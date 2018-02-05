@@ -1,0 +1,9 @@
+{
+  "name"    : "electron-outlook",
+  "version" : "0.1.0",
+  "discription": "Outlook Electron desktop application",
+  "main"    : "main.js",
+  "scripts": {
+    "start": "electron src/main.js"
+  }
+}
