@@ -1,5 +1,7 @@
-const { Tray, nativeImage } = require('electron');
+const { app, Tray, nativeImage, Menu } = require('electron');
 const path = require('path');
+
+const macOS = process.platform === 'darwin' ? true : false;
 
 class TrayController {
     constructor(mailController) {
@@ -10,15 +12,26 @@ class TrayController {
     init() {
         this.tray = new Tray(this.createTrayIcon())
 
+        const context = Menu.buildFromTemplate([
+            {label: 'Quit', click: () => this.cleanupAndQuit()}
+        ])
+
+        this.tray.setContextMenu(context)
+
         this.tray.on('click', () => this.fireClickEvent())
     }
 
     createTrayIcon() {
-        return nativeImage.createFromPath(path.join(__dirname, '../../assets/mail_white.png'))
+        let iconPath = macOS ? '../../assets/outlook_macOS.png' : '../../assets/outlook_linux_black.png'
+        return nativeImage.createFromPath(path.join(__dirname, iconPath))
     }
 
     fireClickEvent() {
         this.mailController.toggleWindow()
+    }
+
+    cleanupAndQuit() {
+        app.exit(0)
     }
 }
 
