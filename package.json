@@ -2,8 +2,38 @@
   "name"    : "electron-outlook",
   "version" : "0.1.0",
   "discription": "Outlook Electron desktop application",
-  "main"    : "main.js",
+  "main"    : "src/main.js",
+  "author": "Howard Ju <howard.ju@outlook.com>",
+  "repository": "https://github.com/eNkru/electron-outlook",
+  "license": "MIT",
+  "keywords": [
+    "Electron",
+    "Outlook",
+    "Microsoft",
+    "Outlook Desktop"
+  ],
   "scripts": {
-    "start": "electron src/main.js"
+    "start": "electron src/main.js",
+    "pack": "electron-builder --dir",
+    "dist:linux": "electron-builder --linux AppImage",
+    "dist:macOS": "electron-builder --mac",
+    "postinstall": "electron-builder install-app-deps",
+    "publish": "build -p always"
+  },
+  "devDependencies": {
+    "electron": "~1.7.10",
+    "electron-builder": "^19.8.0"
+  },
+  "build": {
+    "appId": "nz.co.enkru.${name}",
+    "linux": {
+      "category": "Office",
+      "target": [
+        "AppImage",
+        "deb",
+        "pacman",
+        "tar.xz"
+      ]
+    }
   }
 }
