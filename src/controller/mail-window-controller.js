@@ -18,6 +18,8 @@ class MailWindowController {
         // insert styles
         this.win.webContents.on('dom-ready', () => {
             this.win.webContents.insertCSS(CssInjector.main)
+            this.getUnreadNumber()
+            this.addUnreadNumberObserver()
         })
 
         // prevent the app quit, hide the window instead.
@@ -35,6 +37,40 @@ class MailWindowController {
             // when you should delete the corresponding element.
             this.win = null
         })
+    }
+
+    getUnreadNumber() {
+        this.win.webContents.executeJavaScript(`
+            setTimeout(() => {
+                let unreadSpan = document.querySelector('.o30C-0mPu4HVLw3tCQIgs');
+                unreadSpan = unreadSpan.cloneNode(true);
+                unreadSpan.childNodes.forEach(item => {
+                    if (item.tagName) unreadSpan.removeChild(item);
+                });
+                console.log(unreadSpan.innerText);
+                require('electron').ipcRenderer.send('updateUnread', unreadSpan.innerText);
+            }, 10000);
+        `)
+    }
+
+    addUnreadNumberObserver() {
+        this.win.webContents.executeJavaScript(`
+            setTimeout(() => {
+                let unreadSpan = document.querySelector('.o30C-0mPu4HVLw3tCQIgs');
+                let observer = new MutationObserver(mutations => {
+                    mutations.forEach(mutation => {
+                        console.log('Find change....');
+                        let copiedSpan = unreadSpan.cloneNode(true);
+                        copiedSpan.childNodes.forEach(item => {
+                            if (item.tagName) copiedSpan.removeChild(item);
+                        });
+                        require('electron').ipcRenderer.send('updateUnread', copiedSpan.innerText);
+                    });
+                });
+            
+                observer.observe(unreadSpan, {childList: true});
+            }, 10000);
+        `)
     }
 
     show() {
