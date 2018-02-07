@@ -10,7 +10,12 @@ class MailWindowController {
 
     init() {
         // Create the browser window.
-        this.win = new BrowserWindow({ width: 1400, height: 900 })
+        this.win = new BrowserWindow({ 
+            width: 1400, 
+            height: 900,
+            frame: false,
+            autoHideMenuBar: true
+        })
 
         // and load the index.html of the app.
         this.win.loadURL(outlookUrl)
