@@ -1,4 +1,5 @@
 const { BrowserWindow } = require('electron')
+const CssInjector = require('../js/css-injector')
 
 const outlookUrl = 'https://outlook.live.com/mail'
 
@@ -9,10 +10,15 @@ class MailWindowController {
 
     init() {
         // Create the browser window.
-        this.win = new BrowserWindow({ width: 1200, height: 800 })
+        this.win = new BrowserWindow({ width: 1400, height: 900 })
 
         // and load the index.html of the app.
         this.win.loadURL(outlookUrl)
+
+        // insert styles
+        this.win.webContents.on('dom-ready', () => {
+            this.win.webContents.insertCSS(CssInjector.main)
+        })
 
         // prevent the app quit, hide the window instead.
         this.win.on('close', (e) => {
