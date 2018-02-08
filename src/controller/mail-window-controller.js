@@ -10,7 +10,9 @@ class MailWindowController {
 
     init() {
         // Create the browser window.
-        this.win = new BrowserWindow({ 
+        this.win = new BrowserWindow({
+            x: 100,
+            y: 100,
             width: 1400, 
             height: 900,
             frame: false,
