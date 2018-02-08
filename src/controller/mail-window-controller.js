@@ -1,4 +1,4 @@
-const { BrowserWindow } = require('electron')
+const { BrowserWindow, shell } = require('electron')
 const CssInjector = require('../js/css-injector')
 
 const outlookUrl = 'https://outlook.live.com/mail'
@@ -13,7 +13,7 @@ class MailWindowController {
         this.win = new BrowserWindow({
             x: 100,
             y: 100,
-            width: 1400, 
+            width: 1400,
             height: 900,
             frame: false,
             autoHideMenuBar: true
@@ -22,16 +22,9 @@ class MailWindowController {
         // and load the index.html of the app.
         this.win.loadURL(outlookUrl)
 
-        // insert styles
-        this.win.webContents.on('dom-ready', () => {
-            this.win.webContents.insertCSS(CssInjector.main)
-            this.getUnreadNumber()
-            this.addUnreadNumberObserver()
-        })
-
         // prevent the app quit, hide the window instead.
         this.win.on('close', (e) => {
-            if(this.win.isVisible()) {
+            if (this.win.isVisible()) {
                 e.preventDefault()
                 this.win.hide()
             }
@@ -44,6 +37,16 @@ class MailWindowController {
             // when you should delete the corresponding element.
             this.win = null
         })
+
+        // insert styles
+        this.win.webContents.on('dom-ready', () => {
+            this.win.webContents.insertCSS(CssInjector.main)
+            this.getUnreadNumber()
+            this.addUnreadNumberObserver()
+        })
+
+        // Open the new window in external browser
+        this.win.webContents.on('new-window', this.openInBrowser)
     }
 
     getUnreadNumber() {
@@ -86,11 +89,16 @@ class MailWindowController {
     }
 
     toggleWindow() {
-        if(this.win.isVisible()) {
+        if (this.win.isVisible()) {
             this.win.hide()
         } else {
             this.show()
         }
+    }
+
+    openInBrowser(e, url) {
+        e.preventDefault()
+        shell.openExternal(url)
     }
 }
 
