@@ -1,8 +1,8 @@
 {
-  "name"    : "electron-outlook",
-  "version" : "0.0.1",
+  "name": "electron-outlook",
+  "version": "0.1.0",
   "discription": "Outlook Electron desktop application",
-  "main"    : "src/main.js",
+  "main": "src/main.js",
   "author": "Howard Ju <howard.ju@outlook.com>",
   "repository": "https://github.com/eNkru/electron-outlook",
   "license": "MIT",
