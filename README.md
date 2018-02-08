@@ -4,6 +4,8 @@
 
 The Outlook desktop client.
 
+![screenshot_linux](https://user-images.githubusercontent.com/13460738/35953459-a0875872-0ce9-11e8-9bca-880564b9beee.png)
+
 ## Feature
 * Receive your hotmail / outlook online from the desktop app
 * Close to minimise
