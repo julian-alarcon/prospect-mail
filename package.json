@@ -1,6 +1,6 @@
 {
   "name"    : "electron-outlook",
-  "version" : "0.1.0",
+  "version" : "0.0.1",
   "discription": "Outlook Electron desktop application",
   "main"    : "src/main.js",
   "author": "Howard Ju <howard.ju@outlook.com>",
