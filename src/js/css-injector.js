@@ -3,11 +3,11 @@ class CssInjector {
 }
 
 CssInjector.main = `
-    ._2qPmszDwBfYpF7PO9Mn3KN {
+    ._1K0cujP_EBzCd77bTesW1q {
         display: none !important;
     }
 
-    ._254GqExCxnOxmPy7kKATP2 {
+    .mnkcvmImptYPIG0m29FJh {
         display: none !important;
     }
 
