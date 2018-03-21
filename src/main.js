@@ -20,7 +20,7 @@ class ElectronOutlook {
   // check if the app is already running. return true if already launched, otherwise return false.
   isRunning() {
     return app.makeSingleInstance(() => {
-      if (this.mailController) this.mailController.show();
+      if (this.mailController) this.mailController.win.show();
     });
   }
 
@@ -46,7 +46,7 @@ class ElectronOutlook {
       if (this.mailController === null) {
         createControllers()
       } else {
-        this.mailController.show()
+        this.mailController.win.show()
       }
     })
   }
