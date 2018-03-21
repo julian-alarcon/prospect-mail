@@ -66,7 +66,7 @@ class MailWindowController {
     addUnreadNumberObserver() {
         this.win.webContents.executeJavaScript(`
             setTimeout(() => {
-                let unreadSpan = document.querySelector('.o30C-0mPu4HVLw3tCQIgs');
+                let unreadSpan = document.querySelector('._1hXsFjg4AlONLqIMDQOMlU');
                 let observer = new MutationObserver(mutations => {
                     mutations.forEach(mutation => {
                         console.log('Find change....');
