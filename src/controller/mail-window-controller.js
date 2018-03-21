@@ -83,16 +83,11 @@ class MailWindowController {
         `)
     }
 
-    show() {
-        this.win.show()
-        this.win.focus()
-    }
-
     toggleWindow() {
-        if (this.win.isVisible()) {
+        if (this.win.isFocused()) {
             this.win.hide()
         } else {
-            this.show()
+            this.win.show()
         }
     }
 
