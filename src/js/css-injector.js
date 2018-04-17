@@ -9,7 +9,7 @@ CssInjector.main = `
     }
 
     /* hide the small ad bar in other email page */
-    .mnkcvmImptYPIG0m29FJh {
+    ._1WwQwMPzid8CW9R22noJq6 {
         display: none !important;
     }
 
