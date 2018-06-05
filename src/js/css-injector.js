@@ -4,30 +4,30 @@ class CssInjector {
 
 CssInjector.main = `
     /* hide the vertical ad bar */
-    ._1K0cujP_EBzCd77bTesW1q {
+    ._2qPmszDwBfYpF7PO9Mn3KN {
         display: none !important;
     }
 
     /* hide the small ad bar in other email page */
-    ._1WwQwMPzid8CW9R22noJq6 {
+    .JW6biuVNNJGdDTU7t1DWd {
         display: none !important;
     }
 
     /* hide the upgrade premium ad bar */
-    ._1x0NRQ4xIoC0ZaTr2yjnJc {
+    ._20YsfelFmugQWgNkXdkYaF {
         display: none !important;
     }
 
     /* make the header higher and dragable */
-    ._3fpgaLm7NwXSzB_ETFcCNj {
+    ._2SETNF5hlFf4JfNCfzGXnh {
         padding-top: 30px !important;
         -webkit-app-region: drag;
     }
 
     /* make the clickable component in header not dragable */
-    ._3nKSQcmZjHV3x2jl9xjqWj._2S-r1xigq2rKITZQs-EiCV,
-    ._3w0vuS2NulbHxhF122Um_L,
-    .ms-FocusZone._2UyyMXJKZ_eKg5jzcJFAbN {
+    .iAvecXA_GRQH_AAGS1qhn._2SvWF44TZgwj95spKJn8Za,
+    ._3K7KyMzCPUsIHPTKX-Q7PD,
+    .ms-FocusZone._2heo7Eue0oDeyWNI4XaGWZ {
         -webkit-app-region: no-drag;
     }
 `
