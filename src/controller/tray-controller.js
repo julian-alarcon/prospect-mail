@@ -26,13 +26,17 @@ class TrayController {
     }
 
     createTrayIcon(value) {
+
         let iconPath
-        if (value) {
-            iconPath = macOS ? '../../assets/outlook_macOS_unread.png' : '../../assets/outlook_linux_unread.png'
+        if (macOS) {
+            iconPath = value ? '../../assets/outlook_macOS_unread.png' : '../../assets/outlook_macOS.png'
+            let trayIcon = nativeImage.createFromPath(path.join(__dirname, iconPath))
+            trayIcon.setTemplateImage(true)
+            return trayIcon
         } else {
-            iconPath = macOS ? '../../assets/outlook_macOS.png' : '../../assets/outlook_linux_black.png'
+            iconPath = value ? '../../assets/outlook_linux_unread.png' : '../../assets/outlook_linux_black.png'
+            return nativeImage.createFromPath(path.join(__dirname, iconPath))
         }
-        return nativeImage.createFromPath(path.join(__dirname, iconPath))
     }
 
     fireClickEvent() {
