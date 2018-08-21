@@ -1,5 +1,6 @@
 {
   "name": "electron-outlook",
+  "productName": "Freelook",
   "version": "0.1.0",
   "discription": "Outlook Electron desktop application",
   "main": "src/main.js",
@@ -22,17 +23,18 @@
   },
   "devDependencies": {
     "electron": "~1.8.2",
-    "electron-builder": "^19.8.0"
+    "electron-builder": "20.14.7"
   },
   "build": {
     "appId": "nz.co.enkru.${name}",
     "linux": {
       "category": "Office",
+      "desktop": {
+        "StartupWMClass": "Freelook"
+      },
       "target": [
         "AppImage",
-        "deb",
-        "pacman",
-        "tar.xz"
+        "deb"
       ]
     }
   }

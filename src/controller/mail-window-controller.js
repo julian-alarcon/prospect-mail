@@ -16,7 +16,8 @@ class MailWindowController {
             width: 1400,
             height: 900,
             frame: false,
-            autoHideMenuBar: true
+            autoHideMenuBar: true,
+            show: false
         })
 
         // and load the index.html of the app.
@@ -43,6 +44,8 @@ class MailWindowController {
             this.win.webContents.insertCSS(CssInjector.main)
             this.getUnreadNumber()
             this.addUnreadNumberObserver()
+
+            this.win.show()
         })
 
         // Open the new window in external browser
