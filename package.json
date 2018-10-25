@@ -22,8 +22,8 @@
     "publish": "build -p always"
   },
   "devDependencies": {
-    "electron": "~1.8.2",
-    "electron-builder": "20.14.7"
+    "electron": "~3.0.6",
+    "electron-builder": "20.28.4"
   },
   "build": {
     "appId": "nz.co.enkru.${name}",
