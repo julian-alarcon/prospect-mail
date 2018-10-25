@@ -10,18 +10,16 @@ class ElectronOutlook {
 
   // init method, the entry point of the app
   init() {
-    if (this.isRunning()) {
+    const lock = app.requestSingleInstanceLock()
+    if (!lock) {
       app.quit()
     } else {
+      app.on('second-instance', (event, commandLine, workingDirectory) => {
+        if (this.mailController) this.mailController.show()
+      })
+
       this.initApp()
     }
-  }
-
-  // check if the app is already running. return true if already launched, otherwise return false.
-  isRunning() {
-    return app.makeSingleInstance(() => {
-      if (this.mailController) this.mailController.win.show();
-    });
   }
 
   // init the main app
@@ -29,7 +27,9 @@ class ElectronOutlook {
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
-    app.on('ready', this.createControllers)
+    app.on('ready', () => {
+      this.createControllers()
+    })
 
     // Quit when all windows are closed.
     app.on('window-all-closed', () => {
@@ -44,7 +44,7 @@ class ElectronOutlook {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
       if (this.mailController === null) {
-        createControllers()
+        this.createControllers()
       } else {
         this.mailController.win.show()
       }

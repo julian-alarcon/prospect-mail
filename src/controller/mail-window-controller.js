@@ -90,13 +90,18 @@ class MailWindowController {
         if (this.win.isFocused()) {
             this.win.hide()
         } else {
-            this.win.show()
+            this.show()
         }
     }
 
     openInBrowser(e, url) {
         e.preventDefault()
         shell.openExternal(url)
+    }
+
+    show() {
+        this.win.show()
+        this.win.focus()
     }
 }
 
