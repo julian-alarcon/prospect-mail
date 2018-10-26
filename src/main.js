@@ -1,5 +1,5 @@
 const { app } = require('electron')
-const MailController = require('./controller/mail-window-controller')
+const MailWindowController = require('./controller/mail-window-controller')
 const TrayController = require('./controller/tray-controller')
 
 class ElectronOutlook {
@@ -35,7 +35,7 @@ class ElectronOutlook {
     app.on('window-all-closed', () => {
       // On macOS it is common for applications and their menu bar
       // to stay active until the user quits explicitly with Cmd + Q
-      if (process.platform !== 'darwin') {
+      if (process.platform !== 'darwin' && !this.mailController) {
         app.quit()
       }
     })
@@ -46,13 +46,13 @@ class ElectronOutlook {
       if (this.mailController === null) {
         this.createControllers()
       } else {
-        this.mailController.win.show()
+        this.mailController.show()
       }
     })
   }
 
   createControllers() {
-    this.mailController = new MailController()
+    this.mailController = new MailWindowController()
     this.trayController = new TrayController(this.mailController)
   }
 }

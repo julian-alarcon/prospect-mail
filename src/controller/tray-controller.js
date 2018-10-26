@@ -1,7 +1,8 @@
-const { app, Tray, nativeImage, Menu, ipcMain } = require('electron');
-const path = require('path');
+const { app, Tray, nativeImage, Menu, ipcMain } = require('electron')
+const settings = require('electron-settings')
+const path = require('path')
 
-const macOS = process.platform === 'darwin' ? true : false;
+const macOS = process.platform === 'darwin' ? true : false
 
 class TrayController {
     constructor(mailController) {
@@ -13,6 +14,7 @@ class TrayController {
         this.tray = new Tray(this.createTrayIcon(''))
 
         const context = Menu.buildFromTemplate([
+            {label: 'Toggle Window Frame', click: () => this.toggleWindowFrame()},
             {label: 'Quit', click: () => this.cleanupAndQuit()}
         ])
 
@@ -41,6 +43,12 @@ class TrayController {
 
     fireClickEvent() {
         this.mailController.toggleWindow()
+    }
+
+    toggleWindowFrame() {
+        settings.set('showWindowFrame', !settings.get('showWindowFrame'))
+        this.mailController.win.destroy()
+        this.mailController.init()
     }
 
     cleanupAndQuit() {
