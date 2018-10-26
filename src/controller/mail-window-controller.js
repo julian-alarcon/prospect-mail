@@ -1,4 +1,5 @@
 const { BrowserWindow, shell } = require('electron')
+const settings = require('electron-settings');
 const CssInjector = require('../js/css-injector')
 
 const outlookUrl = 'https://outlook.live.com/mail'
@@ -9,19 +10,32 @@ class MailWindowController {
     }
 
     init() {
+        // Get configurations.
+        const showWindowFrame = settings.get('showWindowFrame', true)
+
         // Create the browser window.
         this.win = new BrowserWindow({
             x: 100,
             y: 100,
             width: 1400,
             height: 900,
-            frame: false,
+            frame: showWindowFrame,
             autoHideMenuBar: true,
             show: false
         })
 
         // and load the index.html of the app.
         this.win.loadURL(outlookUrl)
+
+        // insert styles
+        this.win.webContents.on('dom-ready', () => {
+            this.win.webContents.insertCSS(CssInjector.main)
+            if (!showWindowFrame) this.win.webContents.insertCSS(CssInjector.noFrame)
+            this.getUnreadNumber()
+            this.addUnreadNumberObserver()
+
+            this.win.show()
+        })
 
         // prevent the app quit, hide the window instead.
         this.win.on('close', (e) => {
@@ -37,15 +51,6 @@ class MailWindowController {
             // in an array if your app supports multi windows, this is the time
             // when you should delete the corresponding element.
             this.win = null
-        })
-
-        // insert styles
-        this.win.webContents.on('dom-ready', () => {
-            this.win.webContents.insertCSS(CssInjector.main)
-            this.getUnreadNumber()
-            this.addUnreadNumberObserver()
-
-            this.win.show()
         })
 
         // Open the new window in external browser
