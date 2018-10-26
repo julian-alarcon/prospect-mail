@@ -17,7 +17,9 @@ CssInjector.main = `
     ._20YsfelFmugQWgNkXdkYaF {
         display: none !important;
     }
+`
 
+CssInjector.noFrame = `
     /* make the header higher and dragable */
     ._2SETNF5hlFf4JfNCfzGXnh {
         padding-top: 30px !important;
