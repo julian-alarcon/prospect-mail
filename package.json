@@ -23,8 +23,10 @@
   },
   "devDependencies": {
     "electron": "^3.0.6",
-    "electron-settings": "^3.2.0",
     "electron-builder": "^20.28.4"
+  },
+  "dependencies": {
+    "electron-settings": "^3.2.0"
   },
   "build": {
     "appId": "nz.co.enkru.${name}",
