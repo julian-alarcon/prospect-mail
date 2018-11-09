@@ -60,13 +60,8 @@ class MailWindowController {
     getUnreadNumber() {
         this.win.webContents.executeJavaScript(`
             setTimeout(() => {
-                let unreadSpan = document.querySelector('.o30C-0mPu4HVLw3tCQIgs');
-                unreadSpan = unreadSpan.cloneNode(true);
-                unreadSpan.childNodes.forEach(item => {
-                    if (item.tagName) unreadSpan.removeChild(item);
-                });
-                console.log(unreadSpan.innerText);
-                require('electron').ipcRenderer.send('updateUnread', unreadSpan.innerText);
+                let unreadSpan = document.querySelector('.iSvYn4NxtjOBdoSat6RQw');
+                require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
             }, 10000);
         `)
     }
@@ -74,15 +69,11 @@ class MailWindowController {
     addUnreadNumberObserver() {
         this.win.webContents.executeJavaScript(`
             setTimeout(() => {
-                let unreadSpan = document.querySelector('.o30C-0mPu4HVLw3tCQIgs.q0S8YscBsDIqHYd_faniH');
+                let unreadSpan = document.querySelector('.iSvYn4NxtjOBdoSat6RQw');
                 let observer = new MutationObserver(mutations => {
                     mutations.forEach(mutation => {
-                        console.log('Find change....');
-                        let copiedSpan = unreadSpan.cloneNode(true);
-                        copiedSpan.childNodes.forEach(item => {
-                            if (item.tagName) copiedSpan.removeChild(item);
-                        });
-                        require('electron').ipcRenderer.send('updateUnread', copiedSpan.innerText);
+                        console.log('Observer Changed.');
+                        require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
                     });
                 });
             
