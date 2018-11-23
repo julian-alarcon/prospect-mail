@@ -1,8 +1,7 @@
 const { BrowserWindow, shell } = require('electron')
 const settings = require('electron-settings');
 const CssInjector = require('../js/css-injector')
-
-const outlookUrl = 'https://outlook.live.com/mail'
+const outlookUrl = 'https://outlook.office.com/mail';
 
 class MailWindowController {
     constructor() {
@@ -21,7 +20,13 @@ class MailWindowController {
             height: 900,
             frame: showWindowFrame,
             autoHideMenuBar: true,
-            show: false
+            show: false,
+            title: 'Prospect Mail',
+
+            webPreferences: {
+                partition: 'persist:partition-for-prospect',
+                nodeIntegration: false
+            }
         })
 
         // and load the index.html of the app.
