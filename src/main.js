@@ -2,7 +2,7 @@ const { app } = require('electron')
 const MailWindowController = require('./controller/mail-window-controller')
 const TrayController = require('./controller/tray-controller')
 
-class ElectronOutlook {
+class ProspectMail {
   constructor() {
     this.mailController = null;
     this.trayController = null;
@@ -57,4 +57,4 @@ class ElectronOutlook {
   }
 }
 
-new ElectronOutlook().init()
+new ProspectMail().init()
