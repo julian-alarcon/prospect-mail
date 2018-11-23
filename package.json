@@ -1,43 +1,64 @@
 {
-  "name": "electron-outlook",
-  "productName": "Freelook",
+  "name": "prospect-mail",
+  "productName": "prospect-mail",
   "version": "0.1.0",
-  "discription": "Outlook Electron desktop application",
+  "description": "Prospect Mail is an Outlook Electron desktop application for the new design",
+  "engines" : {
+    "node" : ">=10.13.0",
+    "yarn" : ">=1.12.1"
+  },
   "main": "src/main.js",
-  "author": "Howard Ju <howard.ju@outlook.com>",
-  "repository": "https://github.com/eNkru/electron-outlook",
+  "author": "Julian Alarcon <alarconj@gmail.com>",
+  "repository": "https://github.com/julian-alarcon/prospect-mail",
   "license": "MIT",
   "keywords": [
     "Electron",
     "Outlook",
     "Microsoft",
-    "Outlook Desktop"
+    "Outlook Desktop",
+    "Prospect"
   ],
   "scripts": {
     "start": "electron src/main.js",
     "pack": "electron-builder --dir",
-    "dist:linux": "electron-builder --linux AppImage",
+    "dist:linux": "electron-builder --linux",
+    "dist:linux:appimage": "electron-builder --linux AppImage",
+    "dist:linux:snap": "electron-builder --linux snap",
     "dist:macOS": "electron-builder --mac",
     "postinstall": "electron-builder install-app-deps",
     "publish": "build -p always"
   },
   "devDependencies": {
-    "electron": "^3.0.6",
-    "electron-builder": "^20.28.4"
+    "electron": "4.0.0-beta.7",
+    "electron-builder": "^20.33.2"
   },
   "dependencies": {
     "electron-settings": "^3.2.0"
   },
   "build": {
-    "appId": "nz.co.enkru.${name}",
+    "appId": "io.github.prospect.${name}",
     "linux": {
       "category": "Office",
       "desktop": {
-        "StartupWMClass": "Freelook"
+        "StartupWMClass": "prospect-mail"
       },
       "target": [
         "AppImage",
-        "deb"
+        "deb",
+        "snap"
+      ]
+    },
+    "snap": {
+      "synopsis": "Prospect Mail is an Outlook Electron desktop application for the new design",
+      "confinement": "strict",
+      "grade": "devel",
+      "buildPackages": [
+      ],
+      "stagePackages": [
+        "default"
+      ],
+      "plugs": [
+        "default"
       ]
     }
   }
