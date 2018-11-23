@@ -5,3 +5,4 @@
 /.idea
 *.iml
 /package-lock.json
+yarn-error.log
