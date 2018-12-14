@@ -3,9 +3,9 @@
   "productName": "prospect-mail",
   "version": "0.1.0",
   "description": "Prospect Mail is an Outlook Electron desktop application for the new design",
-  "engines" : {
-    "node" : ">=10.13.0",
-    "yarn" : ">=1.12.1"
+  "engines": {
+    "node": ">=10.13.0",
+    "yarn": ">=1.12.1"
   },
   "main": "src/main.js",
   "author": "Julian Alarcon <alarconj@gmail.com>",
@@ -29,8 +29,8 @@
     "publish": "build -p always"
   },
   "devDependencies": {
-    "electron": "4.0.0-beta.7",
-    "electron-builder": "^20.33.2"
+    "electron": "^3.0.11",
+    "electron-builder": "^20.38.3"
   },
   "dependencies": {
     "electron-settings": "^3.2.0"
@@ -52,8 +52,7 @@
       "synopsis": "Prospect Mail is an Outlook Electron desktop application for the new design",
       "confinement": "strict",
       "grade": "devel",
-      "buildPackages": [
-      ],
+      "buildPackages": [],
       "stagePackages": [
         "default"
       ],
