@@ -36,7 +36,7 @@ class MailWindowController {
         this.win.webContents.on('dom-ready', () => {
             this.win.webContents.insertCSS(CssInjector.main)
             if (!showWindowFrame) this.win.webContents.insertCSS(CssInjector.noFrame)
-            this.getUnreadNumber()
+            
             this.addUnreadNumberObserver()
 
             this.win.show()
@@ -62,19 +62,12 @@ class MailWindowController {
         this.win.webContents.on('new-window', this.openInBrowser)
     }
 
-    getUnreadNumber() {
-        this.win.webContents.executeJavaScript(`
-            setTimeout(() => {
-                let unreadSpan = document.querySelector('.iSvYn4NxtjOBdoSat6RQw');
-                require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
-            }, 10000);
-        `)
-    }
-
     addUnreadNumberObserver() {
         this.win.webContents.executeJavaScript(`
             setTimeout(() => {
-                let unreadSpan = document.querySelector('.iSvYn4NxtjOBdoSat6RQw');
+                let unreadSpan = document.querySelector('._2iKri0mE1PM9vmRn--wKyI');
+                require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
+
                 let observer = new MutationObserver(mutations => {
                     mutations.forEach(mutation => {
                         console.log('Observer Changed.');
