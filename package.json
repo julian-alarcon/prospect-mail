@@ -29,7 +29,7 @@
     "publish": "build -p always"
   },
   "devDependencies": {
-    "electron": "^3.0.11",
+    "electron": "^4.0.0",
     "electron-builder": "^20.38.3"
   },
   "dependencies": {
