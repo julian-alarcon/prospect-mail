@@ -4,32 +4,31 @@ class CssInjector {
 
 CssInjector.main = `
     /* hide the vertical ad bar */
-    ._2qPmszDwBfYpF7PO9Mn3KN {
+    ._1_ag99JsBHxI6S4FP5ayPv {
         display: none !important;
     }
 
     /* hide the small ad bar in other email page */
-    .JW6biuVNNJGdDTU7t1DWd {
+    ._2a6h2L3Tl12cnq2P7ZG9y_ {
         display: none !important;
     }
 
     /* hide the upgrade premium ad bar */
-    ._20YsfelFmugQWgNkXdkYaF {
+    ._1ZEdP0-JdMOVtjBb5ZcM6M {
         display: none !important;
     }
 `
 
 CssInjector.noFrame = `
     /* make the header higher and dragable */
-    ._2SETNF5hlFf4JfNCfzGXnh {
+    ._1Kg3ffZABPxXxDqcmoxkBA {
         padding-top: 30px !important;
         -webkit-app-region: drag;
     }
 
     /* make the clickable component in header not dragable */
-    .iAvecXA_GRQH_AAGS1qhn._2SvWF44TZgwj95spKJn8Za,
-    ._3K7KyMzCPUsIHPTKX-Q7PD,
-    .ms-FocusZone._2heo7Eue0oDeyWNI4XaGWZ {
+    .ms-FocusZone,
+    ._3Nd2PGu67wifhuPZp2Sfj5 {
         -webkit-app-region: no-drag;
     }
 `
