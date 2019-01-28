@@ -29,8 +29,8 @@
     "publish": "build -p always"
   },
   "devDependencies": {
-    "electron": "^4.0.0",
-    "electron-builder": "^20.38.3"
+    "electron": "^4.0.1",
+    "electron-builder": "^20.28.4"
   },
   "dependencies": {
     "electron-settings": "^3.2.0"
