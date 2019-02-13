@@ -2,7 +2,7 @@ const { BrowserWindow, shell } = require('electron')
 const settings = require('electron-settings');
 const CssInjector = require('../js/css-injector')
 
-const outlookUrl = 'https://outlook.live.com/mail'
+const outlookUrl = 'https://outlook.office.com/mail'
 
 class MailWindowController {
     constructor() {
