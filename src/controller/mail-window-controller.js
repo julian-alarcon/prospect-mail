@@ -1,6 +1,7 @@
 const { BrowserWindow, shell } = require('electron')
 const settings = require('electron-settings');
 const CssInjector = require('../js/css-injector')
+const path = require('path')
 
 const outlookUrl = 'https://outlook.office.com/mail'
 
@@ -21,7 +22,8 @@ class MailWindowController {
             height: 900,
             frame: showWindowFrame,
             autoHideMenuBar: true,
-            show: false
+            show: false,
+            icon: path.join(__dirname, '../../assets/outlook_linux_black.png')
         })
 
         // and load the index.html of the app.
