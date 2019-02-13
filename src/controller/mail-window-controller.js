@@ -86,8 +86,19 @@ class MailWindowController {
     }
 
     openInBrowser(e, url) {
-        e.preventDefault()
-        shell.openExternal(url)
+        if (url.includes("outlook.office365.com/mail/deeplink") || url.includes("outlook.office.com/mail/deeplink")) {
+            // Default action - if the user wants to open mail in a new window - let them.
+        }
+        else if (url.includes("outlook.office365.com") || url.includes("outlook.office.com")) {
+            // Open calendar, contacts and tasks in the same window
+            e.preventDefault()
+            this.loadURL(url)
+        }
+        else {
+            // Send everything else to the browser
+            e.preventDefault()
+            shell.openExternal(url)
+        }
     }
 
     show() {
