@@ -75,7 +75,7 @@ class MailWindowController {
                         console.log('Observer Changed.');
                         require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
 
-			// Scrape messages and pop up a notification
+                        // Scrape messages and pop up a notification
                         var messages = document.querySelectorAll('div[role="listbox"][aria-label="Message list"]');
                         if (messages.length)
                         {
@@ -105,7 +105,7 @@ class MailWindowController {
             
                 observer.observe(unreadSpan, {childList: true});
 
-		// If the div containing reminders gets taller we probably got a new
+                // If the div containing reminders gets taller we probably got a new
                 // reminder, so force the window to the top.
                 let reminders = document.getElementsByClassName("_1BWPyOkN5zNVyfbTDKK1gM");
                 let height = 0;
