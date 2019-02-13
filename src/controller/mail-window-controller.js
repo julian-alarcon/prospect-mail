@@ -104,6 +104,24 @@ class MailWindowController {
                 });
             
                 observer.observe(unreadSpan, {childList: true});
+
+		// If the div containing reminders gets taller we probably got a new
+                // reminder, so force the window to the top.
+                let reminders = document.getElementsByClassName("_1BWPyOkN5zNVyfbTDKK1gM");
+                let height = 0;
+                let reminderObserver = new MutationObserver(mutations => {
+                    mutations.forEach(mutation => {
+                        if (reminders[0].clientHeight > height)
+                        {
+                            require('electron').ipcRenderer.send('show');
+                        }
+                        height = reminders[0].clientHeight;
+                    });
+                });
+                if (reminders.length)
+                {
+                    reminderObserver.observe(reminders[0], { childList: true });
+                }
             }, 10000);
         `)
     }
