@@ -1,8 +1,9 @@
-const { BrowserWindow, shell } = require('electron')
-const settings = require('electron-settings');
+const { BrowserWindow, shell, ipcMain } = require('electron')
+const settings = require('electron-settings')
 const CssInjector = require('../js/css-injector')
+const path = require('path')
 
-const outlookUrl = 'https://outlook.live.com/mail'
+const outlookUrl = 'https://outlook.office.com/mail'
 
 class MailWindowController {
     constructor() {
@@ -21,11 +22,17 @@ class MailWindowController {
             height: 900,
             frame: showWindowFrame,
             autoHideMenuBar: true,
-            show: false
+            show: false,
+            icon: path.join(__dirname, '../../assets/outlook_linux_black.png')
         })
 
         // and load the index.html of the app.
         this.win.loadURL(outlookUrl)
+
+        // Show window handler
+        ipcMain.on('show', (event) => {
+            this.show()
+        })
 
         // insert styles
         this.win.webContents.on('dom-ready', () => {
@@ -67,10 +74,54 @@ class MailWindowController {
                     mutations.forEach(mutation => {
                         console.log('Observer Changed.');
                         require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
+
+                        // Scrape messages and pop up a notification
+                        var messages = document.querySelectorAll('div[role="listbox"][aria-label="Message list"]');
+                        if (messages.length)
+                        {
+                            var unread = messages[0].querySelectorAll('div[aria-label^="Unread"]');
+                            var body = "";
+                            for (var i = 0; i < unread.length; i++)
+                            {
+                                if (body.length)
+                                {
+                                    body += "\\n";
+                                }
+                                body += unread[i].getAttribute("aria-label").substring(7, 127);
+                            }
+                            if (unread.length)
+                            {
+                                var notification = new Notification(unread.length + " New Messages", {
+                                    body: body,
+                                    icon: "assets/outlook_linux_black.png"
+                                });
+                                notification.onclick = () => {
+                                    require('electron').ipcRenderer.send('show');
+                                };
+                            }
+                        }
                     });
                 });
             
                 observer.observe(unreadSpan, {childList: true});
+
+                // If the div containing reminders gets taller we probably got a new
+                // reminder, so force the window to the top.
+                let reminders = document.getElementsByClassName("_1BWPyOkN5zNVyfbTDKK1gM");
+                let height = 0;
+                let reminderObserver = new MutationObserver(mutations => {
+                    mutations.forEach(mutation => {
+                        if (reminders[0].clientHeight > height)
+                        {
+                            require('electron').ipcRenderer.send('show');
+                        }
+                        height = reminders[0].clientHeight;
+                    });
+                });
+                if (reminders.length)
+                {
+                    reminderObserver.observe(reminders[0], { childList: true });
+                }
             }, 10000);
         `)
     }
@@ -84,8 +135,19 @@ class MailWindowController {
     }
 
     openInBrowser(e, url) {
-        e.preventDefault()
-        shell.openExternal(url)
+        if (url.includes("outlook.office365.com/mail/deeplink") || url.includes("outlook.office.com/mail/deeplink")) {
+            // Default action - if the user wants to open mail in a new window - let them.
+        }
+        else if (url.includes("outlook.office365.com") || url.includes("outlook.office.com")) {
+            // Open calendar, contacts and tasks in the same window
+            e.preventDefault()
+            this.loadURL(url)
+        }
+        else {
+            // Send everything else to the browser
+            e.preventDefault()
+            shell.openExternal(url)
+        }
     }
 
     show() {
