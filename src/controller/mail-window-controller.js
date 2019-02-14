@@ -3,7 +3,9 @@ const settings = require('electron-settings')
 const CssInjector = require('../js/css-injector')
 const path = require('path')
 
-const outlookUrl = 'https://outlook.office.com/mail'
+const outlookUrl = 'https://outlook.live.com/mail'
+const deeplinkUrls = ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink']
+const outlookUrls = ['outlook.live.com', 'outlook.office365.com', 'outlook.office.com']
 
 class MailWindowController {
     constructor() {
@@ -38,7 +40,7 @@ class MailWindowController {
         this.win.webContents.on('dom-ready', () => {
             this.win.webContents.insertCSS(CssInjector.main)
             if (!showWindowFrame) this.win.webContents.insertCSS(CssInjector.noFrame)
-            
+
             this.addUnreadNumberObserver()
 
             this.win.show()
@@ -118,10 +120,11 @@ class MailWindowController {
                         height = reminders[0].clientHeight;
                     });
                 });
-                if (reminders.length)
-                {
+
+                if (reminders.length) {
                     reminderObserver.observe(reminders[0], { childList: true });
                 }
+
             }, 10000);
         `)
     }
@@ -135,10 +138,11 @@ class MailWindowController {
     }
 
     openInBrowser(e, url) {
-        if (url.includes("outlook.office365.com/mail/deeplink") || url.includes("outlook.office.com/mail/deeplink")) {
+        console.log(url)
+        if (new RegExp(deeplinkUrls.join('|')).test(url)) {
             // Default action - if the user wants to open mail in a new window - let them.
         }
-        else if (url.includes("outlook.office365.com") || url.includes("outlook.office.com")) {
+        else if (new RegExp(outlookUrls.join('|')).test(url)) {
             // Open calendar, contacts and tasks in the same window
             e.preventDefault()
             this.loadURL(url)
