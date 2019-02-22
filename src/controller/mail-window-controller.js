@@ -3,7 +3,7 @@ const settings = require('electron-settings')
 const CssInjector = require('../js/css-injector')
 const path = require('path')
 
-const outlookUrl = 'https://outlook.live.com/mail'
+const outlookUrl = 'https://outlook.office.com/mail'
 const deeplinkUrls = ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink']
 const outlookUrls = ['outlook.live.com', 'outlook.office365.com', 'outlook.office.com']
 
@@ -26,11 +26,6 @@ class MailWindowController {
             autoHideMenuBar: true,
             show: false,
             title: 'Prospect Mail',
-
-            webPreferences: {
-                partition: 'persist:partition-for-prospect',
-                nodeIntegration: false
-            },
             icon: path.join(__dirname, '../../assets/outlook_linux_black.png')
         })
 
