@@ -1,11 +1,11 @@
 {
-  "name": "electron-outlook",
+  "name": "freelook",
   "productName": "Freelook",
   "version": "0.1.0",
   "discription": "Outlook Electron desktop application",
   "main": "src/main.js",
   "author": "Howard Ju <howard.ju@outlook.com>",
-  "repository": "https://github.com/eNkru/electron-outlook",
+  "repository": "https://github.com/eNkru/freelook",
   "license": "MIT",
   "keywords": [
     "Electron",
