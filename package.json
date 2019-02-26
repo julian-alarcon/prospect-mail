@@ -18,6 +18,7 @@
     "pack": "electron-builder --dir",
     "dist:linux": "electron-builder --linux AppImage",
     "dist:macOS": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
     "postinstall": "electron-builder install-app-deps",
     "publish": "build -p always"
   },
@@ -39,6 +40,9 @@
         "AppImage",
         "deb"
       ]
+    },
+    "win": {
+      "target":"msi"
     }
   }
 }
