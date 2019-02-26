@@ -1,8 +1,8 @@
 <img src="build/icons/128x128.png" alt="logo" height="80" align="right" />
 
-# Electron Outlook
+# Freelook
 
-The Outlook desktop client.
+Freelook, an Electron-based client for Microsoft Outlook.
 
 ![screenshot_linux](https://user-images.githubusercontent.com/13460738/35953459-a0875872-0ce9-11e8-9bca-880564b9beee.png)
 
