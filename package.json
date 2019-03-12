@@ -1,11 +1,6 @@
 {
-<<<<<<< HEAD
   "name": "prospect-mail",
   "productName": "prospect-mail",
-=======
-  "name": "freelook",
-  "productName": "Freelook",
->>>>>>> upstream/master
   "version": "0.1.0",
   "description": "Prospect Mail is an Outlook Electron desktop application for the new design",
   "engines": {
@@ -13,13 +8,8 @@
     "yarn": ">=1.12.1"
   },
   "main": "src/main.js",
-<<<<<<< HEAD
   "author": "Julian Alarcon <alarconj@gmail.com>",
   "repository": "https://github.com/julian-alarcon/prospect-mail",
-=======
-  "author": "Howard Ju <howard.ju@outlook.com>",
-  "repository": "https://github.com/eNkru/freelook",
->>>>>>> upstream/master
   "license": "MIT",
   "keywords": [
     "Electron",
