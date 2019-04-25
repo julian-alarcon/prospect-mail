@@ -30,8 +30,8 @@
     "publish": "build -p always"
   },
   "devDependencies": {
-    "electron": "^4.0.1",
-    "electron-builder": "^20.28.4"
+    "electron": "^4.1.5",
+    "electron-builder": "^20.39.0"
   },
   "dependencies": {
     "electron-settings": "^3.2.0"
@@ -52,7 +52,7 @@
     "snap": {
       "synopsis": "Prospect Mail is an Outlook Electron desktop application for the new design",
       "confinement": "strict",
-      "grade": "devel",
+      "grade": "stable",
       "buildPackages": [],
       "stagePackages": [
         "default"
