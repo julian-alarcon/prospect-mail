@@ -35,7 +35,8 @@
     "dist:macOS": "electron-builder --mac",
     "dist:win": "electron-builder --win",
     "postinstall": "electron-builder install-app-deps",
-    "publish": "build -p always"
+    "publish": "build -p always",
+    "release": "electron-builder"
   },
   "dependencies": {
     "electron-settings": "^3.2.0"
