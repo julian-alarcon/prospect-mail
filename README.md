@@ -10,7 +10,7 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 
 ## Needed configuration in your Outlook Web configuration
 
-> You must enable the new design to be able to use this client
+> It's recommended to enable the new design to be able to use this client
 
 ## Feature
 
@@ -23,10 +23,10 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 
 The main software architecture components and their versions are this:
 
-* [Node.js](https://nodejs.org/en/) version: 10.13.0 (new LTS!)
-* [yarn](https://yarnpkg.com/) version: 1.12.1 or newer
-* [electron](http://electronjs.org/) version: 4.0.0-beta.7 (because, why not? It's better to be ready for the next big thing!)
-* [electron-builder](https://www.electron.build/) version: 20.33.x
+* [Node.js](https://nodejs.org/en/) version: 10.15.x
+* [yarn](https://yarnpkg.com/) version: 1.15.2 or newer
+* [electron](http://electronjs.org/) version: 4.2.2 or newer (Electron 5.x or newer has some issues)
+* [electron-builder](https://www.electron.build/) version: 20.40.x
 * [electron-settings](https://github.com/nathanbuchar/electron-settings) version: 3.2.0
 
 ## Build
@@ -60,7 +60,7 @@ The released application can be downloaded [here](https://github.com/julian.alar
 
 ## Installation
 
-Once it was builed, or using the release files available, you can install the files using [AppImage process](https://docs.appimage.org/user-guide/faq.html#question-how-do-i-run-an-appimage), using .deb ```sudo dpkg -i prospect-mail_x.y.z_arch.deb``` or using the snap file ```sudo snap install prospect-mail_x.y.z_arch.snap --dangerous```.
+Once it was builded, or using the release files available, you can install the files using [AppImage process](https://docs.appimage.org/user-guide/faq.html#question-how-do-i-run-an-appimage), using .deb ```sudo dpkg -i prospect-mail_x.y.z_arch.deb``` or using the snap file ```sudo snap install prospect-mail_x.y.z_arch.snap --dangerous```.
 
 ## Release
 
