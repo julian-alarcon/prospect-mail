@@ -18,13 +18,13 @@ script: |
 deploy:
   - provider: snap
     snap: dist/prospect-mail*.snap
-    channel: edge  
+    channel: edge
     skip_cleanup: true
     on:
       branch: develop
   - provider: snap
     snap: dist/prospect-mail*.snap
-    channel: stable  
+    channel: stable
     skip_cleanup: true
     on:
       branch: master
