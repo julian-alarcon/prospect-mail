@@ -1,16 +1,10 @@
 {
   "name": "prospect-mail",
-  "productName": "prospect-mail",
+  "productName": "Prospect Mail",
   "version": "0.1.0",
-  "description": "Prospect Mail is an Outlook Electron desktop application for the new design",
-  "engines": {
-    "node": ">=10.13.0",
-    "yarn": ">=1.12.1"
-  },
   "main": "src/main.js",
-  "author": "Julian Alarcon <alarconj@gmail.com>",
-  "repository": "https://github.com/julian-alarcon/prospect-mail",
-  "license": "MIT",
+  "description": "Prospect Mail is an Outlook Electron desktop application for the new design",
+  "homepage": "https://github.com/julian-alarcon/prospect-mail",
   "keywords": [
     "Electron",
     "Outlook",
@@ -18,6 +12,20 @@
     "Outlook Desktop",
     "Prospect"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://github.com/julian-alarcon/prospect-mail"
+  },
+  "author": {
+    "name": "Julian Alarcon ",
+    "email": "alarconj@gmail.com",
+    "url": "https://github.com/julian-alarcon/"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=10.15.3",
+    "yarn": ">=1.15.2"
+  },
   "scripts": {
     "start": "electron src/main.js",
     "pack": "electron-builder --dir",
@@ -29,28 +37,37 @@
     "postinstall": "electron-builder install-app-deps",
     "publish": "build -p always"
   },
-  "devDependencies": {
-    "electron": "^4.1.5",
-    "electron-builder": "^20.39.0"
-  },
   "dependencies": {
     "electron-settings": "^3.2.0"
+  },
+  "devDependencies": {
+    "electron": "^4.2.2",
+    "electron-builder": "^20.40.2"
   },
   "build": {
     "appId": "io.github.prospect.${name}",
     "linux": {
-      "category": "Office",
+      "category": "Mail;Network;Office",
+      "packageCategory": "net",
+      "executableName": "prospect-mail",
+      "synopsis": "Prospect Mail",
+      "description": "Prospect Mail is an Outlook Electron desktop application for the new design.",
       "desktop": {
+        "Name": "Prospect Mail",
+        "Comment": "Unofficial client for Microsoft Outlook",
         "StartupWMClass": "prospect-mail"
       },
       "target": [
-        "AppImage",
+        "rpm",
         "deb",
-        "snap"
+        "tar.gz",
+        "snap",
+        "AppImage",
+        "pacman"
       ]
     },
     "snap": {
-      "synopsis": "Prospect Mail is an Outlook Electron desktop application for the new design",
+      "summary": "Prospect Mail",
       "confinement": "strict",
       "grade": "stable",
       "buildPackages": [],
@@ -58,7 +75,10 @@
         "default"
       ],
       "plugs": [
-        "default"
+        "default",
+        "screen-inhibit-control",
+        "wayland",
+        "upower-observe"
       ]
     },
     "win": {
