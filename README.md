@@ -34,7 +34,7 @@ The main software architecture components and their versions are this:
 Clone the repository and run in development mode. (You need to have [git](https://git-scm.com/) installed)
 
 ```bash
-git clone https://github.com/julian.alarcon/prospect-mail
+git clone https://github.com/julian.alarcon/prospect-mail.git
 cd electron-outlook
 yarn
 yarn start
