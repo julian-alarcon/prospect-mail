@@ -18,7 +18,7 @@ script: |
     -v ~/.cache/electron:/root/.cache/electron \
     -v ~/.cache/electron-builder:/root/.cache/electron-builder \
     electronuserland/builder:12 \
-    /bin/bash -c "yarn --link-duplicates --pure-lockfile && yarn release"
+    /bin/bash -c "sudo snap install snapcraft --classic && yarn --link-duplicates --pure-lockfile && yarn release"
 deploy:
   - provider: snap
     snap: dist/prospect-mail*.snap
