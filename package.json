@@ -84,9 +84,6 @@
         "wayland",
         "upower-observe"
       ]
-    },
-    "win": {
-      "target":"msi"
     }
   }
 }
