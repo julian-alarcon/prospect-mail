@@ -1,9 +1,11 @@
 sudo: required
-dist: xenial
+dist: bionic
 services: docker
-language: minimal
+language: node_js
 before_install:
   - sudo snap install node --channel 12/stable --classic
+  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version version-number
+  - export PATH="$HOME/.yarn/bin:$PATH"
 cache:
   directories:
   - node_modules
@@ -15,7 +17,7 @@ script: |
     -v ${PWD}:/project \
     -v ~/.cache/electron:/root/.cache/electron \
     -v ~/.cache/electron-builder:/root/.cache/electron-builder \
-    node:12 \
+    electronuserland/builder:12 \
     /bin/bash -c "yarn --link-duplicates --pure-lockfile && yarn release"
 deploy:
   - provider: snap
