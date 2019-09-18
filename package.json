@@ -23,8 +23,8 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=12.10.0",
-    "yarn": ">=1.17.3"
+    "node": ">=12.4.0",
+    "yarn": ">=1.16.0"
   },
   "scripts": {
     "start": "electron src/main.js",
