@@ -1,9 +1,7 @@
 sudo: required
-dist: bionic
+dist: xenial
 services: docker
-language: node_js
-before_install:
-  - sudo snap install node --channel 12/stable --classic
+language: minimal
 cache:
   directories:
   - node_modules
