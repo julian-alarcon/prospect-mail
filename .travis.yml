@@ -2,6 +2,8 @@ sudo: required
 dist: xenial
 services: docker
 language: minimal
+before_install:
+  - sudo snap install node --channel 12/stable
 cache:
   directories:
   - node_modules
@@ -13,7 +15,7 @@ script: |
     -v ${PWD}:/project \
     -v ~/.cache/electron:/root/.cache/electron \
     -v ~/.cache/electron-builder:/root/.cache/electron-builder \
-    electronuserland/builder:wine \
+    electronuserland/builder \
     /bin/bash -c "yarn --link-duplicates --pure-lockfile && yarn release"
 deploy:
   - provider: snap
