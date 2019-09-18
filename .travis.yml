@@ -3,7 +3,7 @@ dist: xenial
 services: docker
 language: minimal
 before_install:
-  - sudo snap install node --channel 12/stable
+  - sudo snap install node --channel 12/stable --classic
 cache:
   directories:
   - node_modules
