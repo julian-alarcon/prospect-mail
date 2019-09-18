@@ -56,7 +56,7 @@ yarn run dist:linux:snap
 
 ## Download
 
-The released application can be downloaded [here](https://github.com/julian.alarcon/prospect-mail/releases).
+The released application can be downloaded [here](https://github.com/julian-alarcon/prospect-mail/releases).
 
 ## Installation
 
@@ -73,4 +73,4 @@ npm publish
 
 ## License
 
-[MIT](https://github.com/julian.alarcon/prospect-mail/blob/master/LICENSE) by [Julian Alarcon](https://desentropia.com) based on work on [electron-outlook](https://github.com/eNkru/electron-outlook) by [Howard J](https://enkru.github.io/)
+[MIT](https://github.com/julian-alarcon/prospect-mail/blob/master/LICENSE) by [Julian Alarcon](https://desentropia.com) based on work on [electron-outlook](https://github.com/eNkru/electron-outlook) by [Howard J](https://enkru.github.io/)
