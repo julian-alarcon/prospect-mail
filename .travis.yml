@@ -2,6 +2,10 @@ sudo: required
 dist: xenial
 services: docker
 language: minimal
+addons:
+  snaps:
+    - name: snapcraft
+      confinement: classic
 cache:
   directories:
   - node_modules
