@@ -1,7 +1,9 @@
-/dist/
+.gitignore/dist/
 /node_modules/
 /npm-debug.log
 /.idea
 *.iml
 /package-lock.json
 yarn-error.log
+.DS_Store
+/dist
