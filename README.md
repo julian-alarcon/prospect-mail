@@ -54,6 +54,12 @@ Is possible to specify the snap or AppImage build type using running this:
 yarn run dist:linux:snap
 ```
 
+Build the application for Mac (It works in versions 10.14 and 10.15)
+
+```bash
+yarn run dist:macOS
+```
+
 ## Download
 
 The released application can be downloaded [here](https://github.com/julian-alarcon/prospect-mail/releases).
