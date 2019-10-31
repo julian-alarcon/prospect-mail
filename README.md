@@ -6,7 +6,7 @@
 
 The Outlook desktop client for the [new Outlook Interface](https://www.microsoft.com/en-us/microsoft-365/blog/2018/06/13/power-and-simplicity-updates-to-the-office-365-user-experience/) from MS Office 365.
 
-![screenshot_linux](https://user-images.githubusercontent.com/13460738/35953459-a0875872-0ce9-11e8-9bca-880564b9beee.png)
+![screenshot_linux](misc/prospects-email.png)
 
 ## Needed configuration in your Outlook Web configuration
 
@@ -52,6 +52,12 @@ Is possible to specify the snap or AppImage build type using running this:
 
 ```bash
 yarn run dist:linux:snap
+```
+
+Build the application for Mac (It works in versions 10.14 and 10.15)
+
+```bash
+yarn run dist:macOS
 ```
 
 ## Download
