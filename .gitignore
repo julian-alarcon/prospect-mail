@@ -1,4 +1,5 @@
-.gitignore/dist/
+.gitignore
+/dist/
 /node_modules/
 /npm-debug.log
 /.idea
