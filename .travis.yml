@@ -1,5 +1,5 @@
 sudo: required
-dist: xenial
+dist: bionic
 services: docker
 language: minimal
 cache:
@@ -22,6 +22,8 @@ deploy:
     skip_cleanup: true
     on:
       branch: develop
+    # we use edge because of this: https://travis-ci.community/t/snap-deployment-stopped-working-out-of-nowhere/6908/2
+    edge: true
   - provider: snap
     snap: dist/prospect-mail*.snap
     channel: stable
