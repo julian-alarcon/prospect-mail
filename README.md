@@ -35,7 +35,7 @@ Clone the repository and run in development mode. (You need to have [git](https:
 
 ```bash
 git clone https://github.com/julian-alarcon/prospect-mail.git
-cd electron-outlook
+cd prospect-mail
 yarn
 yarn start
 ```
