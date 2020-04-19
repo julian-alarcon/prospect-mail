@@ -23,15 +23,15 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 
 The main software architecture components and their versions are this:
 
-* [Node.js](https://nodejs.org/en/) version: 10.15.x
-* [yarn](https://yarnpkg.com/) version: 1.13.x or newer
-* [electron](http://electronjs.org/) version: 4.2.2 or newer (Electron 5.x or newer has some issues)
-* [electron-builder](https://www.electron.build/) version: 20.40.x
+* [Node.js](https://nodejs.org/en/) version: 12.16.x
+* [yarn](https://yarnpkg.com/) version: 1.22.x or newer
+* [electron](http://electronjs.org/) version: 8.2.x
+* [electron-builder](https://www.electron.build/) version: 22.5.x
 * [electron-settings](https://github.com/nathanbuchar/electron-settings) version: 3.2.0
 
 ## Build
 
-Clone the repository and run in development mode. (You need to have [git](https://git-scm.com/) installed)
+Clone the repository and run in development mode. (You need to have [git](https://git-scm.com/ , node and yarn) installed)
 
 ```bash
 git clone https://github.com/julian-alarcon/prospect-mail.git
@@ -65,6 +65,8 @@ yarn run dist:macOS
 The released application can be downloaded [here](https://github.com/julian-alarcon/prospect-mail/releases).
 
 ## Installation
+
+Snap build are available in the Snapcraft Store. You can search `prospect-mail` from the Software Store in Ubuntu and linux distributions or use `sudo snap install prospect-mail` from the terminal.
 
 Once it was builded, or using the release files available, you can install the files using [AppImage process](https://docs.appimage.org/user-guide/faq.html#question-how-do-i-run-an-appimage), using .deb ```sudo dpkg -i prospect-mail_x.y.z_arch.deb``` or using the snap file ```sudo snap install prospect-mail_x.y.z_arch.snap --dangerous```.
 
