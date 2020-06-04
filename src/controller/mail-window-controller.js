@@ -4,7 +4,7 @@ const CssInjector = require('../js/css-injector')
 const path = require('path')
 
 const outlookUrl = 'https://outlook.office.com/mail'
-const deeplinkUrls = ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink']
+const deeplinkUrls = ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
 const outlookUrls = ['outlook.live.com', 'outlook.office365.com', 'outlook.office.com']
 
 class MailWindowController {
