@@ -42,7 +42,7 @@
     "electron-settings": "^3.2.0"
   },
   "devDependencies": {
-    "electron": "^8.2.3",
+    "electron": "^8.2.4",
     "electron-builder": "^22.5.1"
   },
   "build": {
