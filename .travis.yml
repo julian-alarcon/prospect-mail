@@ -29,7 +29,7 @@ deploy:
     channel: stable
     skip_cleanup: true
     on:
-      branch: master
+      branch: main
 branches:
   except:
   - "/^v\\d+\\.\\d+\\.\\d+$/"
