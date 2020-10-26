@@ -4,7 +4,7 @@
 
 [![dependencies Status](https://david-dm.org/julian-alarcon/prospect-mail/status.svg)](https://david-dm.org/julian-alarcon/prospect-mail) [![devDependencies Status](https://david-dm.org/julian-alarcon/prospect-mail/dev-status.svg)](https://david-dm.org/julian-alarcon/prospect-mail?type=dev)
 
-The Outlook desktop client for the [new Outlook Interface](https://www.microsoft.com/en-us/microsoft-365/blog/2018/06/13/power-and-simplicity-updates-to-the-office-365-user-experience/) from MS Office 365.
+The Outlook desktop client for the [new Outlook Interface](https://www.microsoft.com/en-us/microsoft-365/blog/2018/06/13/power-and-simplicity-updates-to-the-office-365-user-experience/) from Microsoft 365.
 
 ![screenshot_linux](misc/prospects-email.png)
 
@@ -14,7 +14,7 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 
 ## Feature
 
-* Receive your Outlook OWA MS Office 365 online from the desktop app
+* Receive your Outlook Microsoft 365 online from the desktop app
 * Close to minimise
 * Dock tray support
 * System notification
@@ -31,7 +31,7 @@ The main software architecture components and their versions are this:
 
 ## Build
 
-Clone the repository and run in development mode. (You need to have [git](https://git-scm.com/ , node and yarn) installed)
+Clone the repository and run in development mode. (You need to have [git](https://git-scm.com/) , node and yarn) installed)
 
 ```bash
 git clone https://github.com/julian-alarcon/prospect-mail.git
