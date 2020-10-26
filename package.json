@@ -23,7 +23,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "^12.16.1",
+    "node": "^12.19.0",
     "yarn": "^1.22.0"
   },
   "scripts": {
@@ -39,11 +39,11 @@
     "release": "electron-builder"
   },
   "dependencies": {
-    "electron-settings": "^3.2.0"
+    "electron-settings": "^4.0.2"
   },
   "devDependencies": {
-    "electron": "^8.2.3",
-    "electron-builder": "^22.5.1"
+    "electron": "^10.1.5",
+    "electron-builder": "^22.9.1"
   },
   "build": {
     "appId": "io.github.prospect.${name}",

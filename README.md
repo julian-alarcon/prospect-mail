@@ -4,7 +4,7 @@
 
 [![dependencies Status](https://david-dm.org/julian-alarcon/prospect-mail/status.svg)](https://david-dm.org/julian-alarcon/prospect-mail) [![devDependencies Status](https://david-dm.org/julian-alarcon/prospect-mail/dev-status.svg)](https://david-dm.org/julian-alarcon/prospect-mail?type=dev)
 
-The Outlook desktop client for the [new Outlook Interface](https://www.microsoft.com/en-us/microsoft-365/blog/2018/06/13/power-and-simplicity-updates-to-the-office-365-user-experience/) from MS Office 365.
+The Outlook desktop client for the [new Outlook Interface](https://www.microsoft.com/en-us/microsoft-365/blog/2018/06/13/power-and-simplicity-updates-to-the-office-365-user-experience/) from Microsoft 365.
 
 ![screenshot_linux](misc/prospects-email.png)
 
@@ -14,7 +14,7 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 
 ## Feature
 
-* Receive your Outlook OWA MS Office 365 online from the desktop app
+* Receive your Outlook Microsoft 365 online from the desktop app
 * Close to minimise
 * Dock tray support
 * System notification
@@ -23,15 +23,15 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 
 The main software architecture components and their versions are this:
 
-* [Node.js](https://nodejs.org/en/) version: 12.16.x
+* [Node.js](https://nodejs.org/en/) version: 12.19.x
 * [yarn](https://yarnpkg.com/) version: 1.22.x or newer
-* [electron](http://electronjs.org/) version: 8.2.x
-* [electron-builder](https://www.electron.build/) version: 22.5.x
-* [electron-settings](https://github.com/nathanbuchar/electron-settings) version: 3.2.0
+* [electron](http://electronjs.org/) version: 10.1.x
+* [electron-builder](https://www.electron.build/) version: 22.9.x
+* [electron-settings](https://github.com/nathanbuchar/electron-settings) version: 4.0.2
 
 ## Build
 
-Clone the repository and run in development mode. (You need to have [git](https://git-scm.com/ , node and yarn) installed)
+Clone the repository and run in development mode. (You need to have [git](https://git-scm.com/) , node and yarn) installed)
 
 ```bash
 git clone https://github.com/julian-alarcon/prospect-mail.git
