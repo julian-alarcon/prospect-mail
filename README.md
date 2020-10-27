@@ -6,7 +6,7 @@
 
 The Outlook desktop client for the [new Outlook Interface](https://www.microsoft.com/en-us/microsoft-365/blog/2018/06/13/power-and-simplicity-updates-to-the-office-365-user-experience/) from Microsoft 365.
 
-![screenshot-linux](misc/prospect-email.png)
+![screenshot-linux](misc/prospect-mail.png)
 
 ![screenshot-calendar-view](misc/calendar-view.png)
 
