@@ -3,18 +3,32 @@ const settings = require('electron-settings')
 const CssInjector = require('../js/css-injector')
 const path = require('path')
 
-const outlookUrl = 'https://outlook.office.com/mail'
-const deeplinkUrls = ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
-const outlookUrls = ['outlook.live.com', 'outlook.office365.com', 'outlook.office.com']
+let outlookUrl
+let deeplinkUrls
+let outlookUrls
+let showWindowFrame
+let $this
 
 class MailWindowController {
     constructor() {
+        $this = this
         this.init()
     }
-
-    init() {
+    reloadSettings() {
         // Get configurations.
-        const showWindowFrame = settings.get('showWindowFrame', true)
+        showWindowFrame = settings.getSync('showWindowFrame') || true
+
+        outlookUrl = settings.getSync('urlMainWindow') || 'https://outlook.office.com/mail' //'https://webmail.studioeco.it/' //'https://outlook.office.com/mail'
+        deeplinkUrls = settings.getSync('urlsInternal') || [/*'webmail.studioeco.it',*/ 'outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
+        outlookUrls = settings.getSync('urlsExternal') || [/*'webmail.studioeco.it',*/ 'outlook.live.com', 'outlook.office365.com', 'outlook.office.com']
+        console.log('Loaded settings', {
+            outlookUrl: outlookUrl
+            , deeplinkUrls: deeplinkUrls
+            , outlookUrls: outlookUrls
+        })
+    }
+    init() {
+        this.reloadSettings()
 
         // Create the browser window.
         this.win = new BrowserWindow({
@@ -24,12 +38,15 @@ class MailWindowController {
             height: 900,
             frame: showWindowFrame,
             autoHideMenuBar: true,
+
             show: false,
             title: 'Prospect Mail',
             icon: path.join(__dirname, '../../assets/outlook_linux_black.png'),
             webPreferences: {
-                spellcheck: true
-              }
+                spellcheck: true,
+                nativeWindowOpen: true,
+                affinity: 'main-window'
+            }
         })
 
         // and load the index.html of the app.
@@ -141,10 +158,13 @@ class MailWindowController {
         }
     }
 
-    openInBrowser(e, url) {
-        console.log(url)
+    openInBrowser(e, url, frameName, disposition, options) {
+        console.log('Open in browser: ' + url)//frameName,disposition,options)
         if (new RegExp(deeplinkUrls.join('|')).test(url)) {
             // Default action - if the user wants to open mail in a new window - let them.
+            //e.preventDefault()
+            console.log('Is deeplink')
+            options.webPreferences.affinity = 'main-window';
         }
         else if (new RegExp(outlookUrls.join('|')).test(url)) {
             // Open calendar, contacts and tasks in the same window
