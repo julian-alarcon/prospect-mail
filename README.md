@@ -20,6 +20,11 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 * Close to minimise
 * Dock tray support
 * System notification
+* Connect to standard or custom outlook url
+
+## Settings
+ 
+* Via tray menu settings.jon can be opened and edited. After every save you need to click in "Reload settings" to apply changes.
 
 ### Architecture components
 
