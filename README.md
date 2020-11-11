@@ -25,6 +25,13 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 ## Settings
  
 * Via tray menu settings.jon can be opened and edited. After every save you need to click in "Reload settings" to apply changes.
+```
+{
+ "urlMainWindow":"https://customurl.example/"
+ ,"urlsInternal":["customurl.example"]
+ ,"showWindowFrame":true
+}
+```
 
 ### Architecture components
 
