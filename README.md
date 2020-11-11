@@ -29,6 +29,7 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 {
  "urlMainWindow":"https://customurl.example/"
  ,"urlsInternal":["customurl.example"]
+ ,"urlsExternal:["externalurls.example"]
  ,"showWindowFrame":true
 }
 ```
