@@ -1,4 +1,4 @@
-const { app, Tray, nativeImage, Menu, ipcMain } = require('electron')
+const { app, Tray, nativeImage, Menu, ipcMain, shell } = require('electron')
 const settings = require('electron-settings')
 const path = require('path')
 
@@ -12,12 +12,24 @@ class TrayController {
 
     init() {
         this.tray = new Tray(this.createTrayIcon(''))
+        console.log('shell', shell)
 
         const context = Menu.buildFromTemplate([
-            {label: 'Show Me', click: () => this.showHide()},
-            {label: 'Separator', type: 'separator'},
-            {label: 'Window Frame', type: 'checkbox', checked: settings.get('showWindowFrame', true), click: () => this.toggleWindowFrame()},
-            {label: 'Quit', click: () => this.cleanupAndQuit()}
+            { label: 'Show Me', click: () => this.showHide() },
+            { label: 'Separator', type: 'separator' },
+            {
+                label: 'Settings', submenu: [
+                    { label: 'Window Frame', type: 'checkbox', checked: settings.getSync('showWindowFrame') || true, click: () => this.toggleWindowFrame() },
+                    { label: 'Open settings', click: () => shell.openPath(path.resolve(settings.file())) },
+                    {
+                        label: 'Reload settings', click: () => {
+                            this.mailController.win.destroy()
+                            this.mailController.init()
+                        }
+                    },
+                ]
+            },
+            { label: 'Quit', click: () => this.cleanupAndQuit() }
         ])
 
         this.tray.setContextMenu(context)
@@ -52,7 +64,7 @@ class TrayController {
     }
 
     toggleWindowFrame() {
-        settings.set('showWindowFrame', !settings.get('showWindowFrame'))
+        settings.setSync('showWindowFrame', !settings.getSync('showWindowFrame'))
         this.mailController.win.destroy()
         this.mailController.init()
     }
