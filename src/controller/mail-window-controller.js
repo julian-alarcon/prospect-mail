@@ -69,11 +69,23 @@ class MailWindowController {
 
         // prevent the app quit, hide the window instead.
         this.win.on('close', (e) => {
+            //console.log('Log invoked: ' + this.win.isVisible())
             if (this.win.isVisible()) {
+                if (settings.getSync('hideOnClose') || true) {
+                    e.preventDefault()
+                    this.win.hide()
+                }
+            }
+        })
+
+        // prevent the app minimze, hide the window instead.
+        this.win.on('minimize', (e) => {
+
+            if (settings.getSync('hideOnMinimize') || true) {
                 e.preventDefault()
                 this.win.hide()
             }
-        })
+        });
 
         // Emitted when the window is closed.
         this.win.on('closed', () => {
@@ -151,7 +163,11 @@ class MailWindowController {
     }
 
     toggleWindow() {
-        if (this.win.isFocused()) {
+        console.log("toggleWindow", {
+            isFocused: this.win.isFocused(),
+            isVisible: this.win.isVisible()
+        })
+        if (/*this.win.isFocused() && */this.win.isVisible()) {
             this.win.hide()
         } else {
             this.show()
