@@ -12,17 +12,19 @@ class TrayController {
 
     init() {
         this.tray = new Tray(this.createTrayIcon(''))
-        console.log('shell', shell)
+        //console.log('shell', shell)
 
         const context = Menu.buildFromTemplate([
             { label: 'Show Me', click: () => this.showHide() },
             { label: 'Separator', type: 'separator' },
             {
                 label: 'Settings', submenu: [
-                    { label: 'Window Frame', type: 'checkbox', checked: settings.getSync('showWindowFrame') || true, click: () => this.toggleWindowFrame() },
-                    { label: 'Open settings', click: () => shell.openPath(path.resolve(settings.file())) },
+                    { label: 'Window Frame', type: 'checkbox', checked: (settings.getSync('showWindowFrame') === undefined ? true : settings.getSync('showWindowFrame')), click: () => this.toggleWindowFrame() },
+                    { label: 'Hide on Close', type: 'checkbox', checked: (settings.getSync('hideOnClose') === undefined ? true : settings.getSync('hideOnClose')), click: () => this.toggleWindowFrame() },
+                    { label: 'Hide on Minimize', type: 'checkbox', checked: (settings.getSync('hideOnMinimize') === undefined ? true : settings.getSync('hideOnMinimize')), click: () => this.toggleWindowFrame() },
+                    { label: 'Open settings file', click: () => shell.openPath(path.resolve(settings.file())) },
                     {
-                        label: 'Reload settings', click: () => {
+                        label: 'Reload settings file', click: () => {
                             this.mailController.win.destroy()
                             this.mailController.init()
                         }
@@ -60,6 +62,7 @@ class TrayController {
     }
 
     showHide() {
+        console.log("showHide: ", this.mailController.win.isVisible())
         this.mailController.toggleWindow();
     }
 
