@@ -67,7 +67,8 @@ class TrayController {
     }
 
     toggleWindowFrame() {
-        settings.setSync('showWindowFrame', !settings.getSync('showWindowFrame'))
+        let orivalue = settings.getSync('showWindowFrame') === undefined ? true : settings.getSync('showWindowFrame')
+        settings.setSync('showWindowFrame', !orivalue)
         this.mailController.win.destroy()
         this.mailController.init()
     }
