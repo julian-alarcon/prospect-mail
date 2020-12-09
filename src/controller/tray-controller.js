@@ -1,6 +1,8 @@
 const { app, Tray, nativeImage, Menu, ipcMain, shell } = require('electron')
 const settings = require('electron-settings')
 const path = require('path')
+const fs = require('fs')
+const crypto = require('crypto')
 
 const macOS = process.platform === 'darwin' ? true : false
 
@@ -22,13 +24,9 @@ class TrayController {
                     { label: 'Window Frame', type: 'checkbox', checked: (settings.getSync('showWindowFrame') === undefined ? true : settings.getSync('showWindowFrame')), click: () => this.toggleWindowFrame() },
                     { label: 'Hide on Close', type: 'checkbox', checked: (settings.getSync('hideOnClose') === undefined ? true : settings.getSync('hideOnClose')), click: () => this.toggleWindowFrame() },
                     { label: 'Hide on Minimize', type: 'checkbox', checked: (settings.getSync('hideOnMinimize') === undefined ? true : settings.getSync('hideOnMinimize')), click: () => this.toggleWindowFrame() },
-                    { label: 'Open settings file', click: () => shell.openPath(path.resolve(settings.file())) },
                     {
-                        label: 'Reload settings file', click: () => {
-                            this.mailController.win.destroy()
-                            this.mailController.init()
-                        }
-                    },
+                        label: 'Show settings file', click: () => shell.showItemInFolder(path.resolve(settings.file()))
+                    }
                 ]
             },
             { label: 'Quit', click: () => this.cleanupAndQuit() }
