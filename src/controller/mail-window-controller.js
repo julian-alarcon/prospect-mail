@@ -1,4 +1,4 @@
-const { BrowserWindow, shell, ipcMain } = require('electron')
+const { BrowserWindow, shell, ipcMain, Menu, MenuItem } = require('electron')
 const settings = require('electron-settings')
 const CssInjector = require('../js/css-injector')
 const path = require('path')
@@ -38,6 +38,47 @@ class MailWindowController {
         // Show window handler
         ipcMain.on('show', (event) => {
             this.show()
+        })
+
+        // add right click handler for editor spellcheck
+        this.win.webContents.on('context-menu', (event, params) => {
+            event.preventDefault()
+            if (params && params.dictionarySuggestions) {
+                const menu = new Menu()
+                menu.append(new MenuItem({
+                    label: 'Spelling',
+                    enabled: false
+                }))
+                menu.append(new MenuItem({
+                    type: 'separator'
+                }))
+                if (params.misspelledWord) {
+                    // allow them to add to dictionary
+                    menu.append(new MenuItem({
+                        label: 'Add to dictionary',
+                        click: () => this.win.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
+                    }))
+                }
+                menu.append(new MenuItem({
+                    type: 'separator'
+                }))
+                if (params.dictionarySuggestions.length > 0) {
+                    // add each spelling suggestion
+                    for (const suggestion of params.dictionarySuggestions) {
+                        menu.append(new MenuItem({
+                            label: suggestion,
+                            click: () => this.win.webContents.replaceMisspelling(suggestion)
+                        }))
+                    }
+                } else {
+                    // no suggestions
+                    menu.append(new MenuItem({
+                        label: 'No Suggestions',
+                        enabled: false
+                    }))
+                }
+                menu.popup()
+            }
         })
 
         // insert styles
