@@ -43,6 +43,7 @@ class MailWindowController {
         // add right click handler for editor spellcheck
         this.win.webContents.on('context-menu', (event, params) => {
             event.preventDefault()
+            var show = false
             if (params && params.dictionarySuggestions) {
                 const menu = new Menu()
                 menu.append(new MenuItem({
@@ -54,6 +55,7 @@ class MailWindowController {
                 }))
                 if (params.misspelledWord) {
                     // allow them to add to dictionary
+                    show = true
                     menu.append(new MenuItem({
                         label: 'Add to dictionary',
                         click: () => this.win.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
@@ -63,6 +65,7 @@ class MailWindowController {
                     type: 'separator'
                 }))
                 if (params.dictionarySuggestions.length > 0) {
+                    show = true
                     // add each spelling suggestion
                     for (const suggestion of params.dictionarySuggestions) {
                         menu.append(new MenuItem({
@@ -77,7 +80,9 @@ class MailWindowController {
                         enabled: false
                     }))
                 }
-                menu.popup()
+                if (show) {
+                    menu.popup()
+                }
             }
         })
 
