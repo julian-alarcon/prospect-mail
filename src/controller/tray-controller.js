@@ -16,6 +16,7 @@ class TrayController {
         const context = Menu.buildFromTemplate([
             {label: 'Show Me', click: () => this.showHide()},
             {label: 'Separator', type: 'separator'},
+            {label: 'Reload', click: () => this.reloadWindow()},
             {label: 'Window Frame', type: 'checkbox', checked: settings.get('showWindowFrame', true), click: () => this.toggleWindowFrame()},
             {label: 'Quit', click: () => this.cleanupAndQuit()}
         ])
@@ -49,6 +50,10 @@ class TrayController {
 
     showHide() {
         this.mailController.toggleWindow();
+    }
+
+    reloadWindow() {
+        this.mailController.reloadWindow()
     }
 
     toggleWindowFrame() {
