@@ -30,8 +30,20 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 {
  "urlMainWindow":"https://customurl.example/"
  ,"urlsInternal":["customurl.example"]
- ,"urlsExternal:["externalurls.example"]
+ ,"urlsExternal":["externalurls.example"]
  ,"showWindowFrame":true
+}
+```
+
+As an example, this configuration will let you use Prospect with personal Outlook.com account:
+
+> Please notice that Prospect Mail is only s in Work/Educational accounts and no issues will be reviewed for personal accounts.
+
+```json
+{
+    "urlMainWindow":"https://outlook.live.com/mail",
+    "urlsInternal":["outlook.com", "live.com"],
+    "urlsExternal":["outlook.com", "live.com"]
 }
 ```
 
