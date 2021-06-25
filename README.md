@@ -27,8 +27,8 @@ The main software architecture components and their versions are this:
 
 * [Node.js](https://nodejs.org/en/) version: 14.17.x
 * [yarn](https://yarnpkg.com/) version: 1.22.x or newer
-* [electron](http://electronjs.org/) version: 10.1.x
-* [electron-builder](https://www.electron.build/) version: 22.9.x
+* [electron](http://electronjs.org/) version: 13.0.x
+* [electron-builder](https://www.electron.build/) version: 22.11.x
 * [electron-settings](https://github.com/nathanbuchar/electron-settings) version: 4.0.2
 
 ## Build
