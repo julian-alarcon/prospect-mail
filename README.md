@@ -37,7 +37,7 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 
 As an example, this configuration will let you use Prospect with personal Outlook.com account:
 
-> Please notice that Prospect Mail is only s in Work/Educational accounts and no issues will be reviewed for personal accounts.
+> Please notice that Prospect Mail is only tested in Work/Educational accounts and no issues will be reviewed for personal accounts.
 
 ```json
 {
