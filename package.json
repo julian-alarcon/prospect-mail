@@ -23,7 +23,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "^14.17.1",
+    "node": "^14.17.0",
     "yarn": "^1.22.5"
   },
   "scripts": {
