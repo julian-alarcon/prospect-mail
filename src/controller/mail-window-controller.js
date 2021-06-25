@@ -142,6 +142,10 @@ class MailWindowController {
         }
     }
 
+    reloadWindow() {
+        this.win.reload()
+    }
+
     openInBrowser(e, url) {
         console.log(url)
         if (new RegExp(deeplinkUrls.join('|')).test(url)) {
