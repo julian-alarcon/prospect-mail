@@ -17,7 +17,7 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 ## Feature
 
 * Receive your Outlook Microsoft 365 online from the desktop app
-* Close to minimise
+* Close to minimize
 * Dock tray support
 * System notification
 
@@ -72,13 +72,11 @@ Snap build are available in the Snapcraft Store. You can search `prospect-mail` 
 
 Once it was builded, or using the release files available, you can install the files using [AppImage process](https://docs.appimage.org/user-guide/faq.html#question-how-do-i-run-an-appimage), using .deb ```sudo dpkg -i prospect-mail_x.y.z_arch.deb``` or using the snap file ```sudo snap install prospect-mail_x.y.z_arch.snap --dangerous```.
 
-## Release
+## Release to Snapstore
 
-```bash
-npm version (new release version)
-git push origin master
-git push origin --tags
-npm publish
+```sh
+snapcraft login
+snapcraft upload --release=edge prospect-mail_x.y.z_arch.snap
 ```
 
 ## License
