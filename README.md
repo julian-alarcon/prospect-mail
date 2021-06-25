@@ -25,7 +25,7 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 
 The main software architecture components and their versions are this:
 
-* [Node.js](https://nodejs.org/en/) version: 12.19.x
+* [Node.js](https://nodejs.org/en/) version: 14.17.x
 * [yarn](https://yarnpkg.com/) version: 1.22.x or newer
 * [electron](http://electronjs.org/) version: 10.1.x
 * [electron-builder](https://www.electron.build/) version: 22.9.x
