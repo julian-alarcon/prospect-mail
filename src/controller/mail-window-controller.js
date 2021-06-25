@@ -28,7 +28,8 @@ class MailWindowController {
             title: 'Prospect Mail',
             icon: path.join(__dirname, '../../assets/outlook_linux_black.png'),
             webPreferences: {
-                spellcheck: true
+                spellcheck: true,
+                nativeWindowOpen: true
               }
         })
 
