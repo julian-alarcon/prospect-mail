@@ -43,7 +43,7 @@
     "electron-settings": "^4.0.2"
   },
   "devDependencies": {
-    "electron": "^13.1.4", 
+    "electron": "^13.1.4",
     "electron-builder": "^22.11.7"
   },
   "build": {
@@ -64,7 +64,8 @@
         "deb",
         "tar.gz",
         "snap",
-        "AppImage"
+        "AppImage",
+        "pacman"
       ],
       "publish": {
         "provider": "github",
