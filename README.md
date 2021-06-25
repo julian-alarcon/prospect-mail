@@ -23,9 +23,10 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 * Connect to standard or custom outlook url
 
 ## Settings
- 
-* Via tray menu settings.jon can be opened and edited. After every save you need to click in "Reload settings" to apply changes.
-```
+
+* Via tray menu settings.json can be opened and edited. After every save you need to click in "Reload settings" to apply changes.
+
+```json
 {
  "urlMainWindow":"https://customurl.example/"
  ,"urlsInternal":["customurl.example"]
