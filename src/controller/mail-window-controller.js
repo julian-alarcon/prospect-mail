@@ -18,9 +18,9 @@ class MailWindowController {
         // Get configurations.
         showWindowFrame = settings.getSync('showWindowFrame') || true
 
-        outlookUrl = settings.getSync('urlMainWindow') || 'https://outlook.office.com/mail' //'https://webmail.studioeco.it/' //'https://outlook.office.com/mail'
-        deeplinkUrls = settings.getSync('urlsInternal') || [/*'webmail.studioeco.it',*/ 'outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
-        outlookUrls = settings.getSync('urlsExternal') || [/*'webmail.studioeco.it',*/ 'outlook.live.com', 'outlook.office365.com', 'outlook.office.com']
+        outlookUrl = settings.getSync('urlMainWindow') || 'https://outlook.office.com/mail'
+        deeplinkUrls = settings.getSync('urlsInternal') || ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
+        outlookUrls = settings.getSync('urlsExternal') || ['outlook.live.com', 'outlook.office365.com', 'outlook.office.com']
         console.log('Loaded settings', {
             outlookUrl: outlookUrl
             , deeplinkUrls: deeplinkUrls
@@ -172,6 +172,9 @@ class MailWindowController {
         } else {
             this.show()
         }
+    }
+    reloadWindow() {
+        this.win.reload()
     }
 
     openInBrowser(e, url, frameName, disposition, options) {
