@@ -48,7 +48,7 @@
     "electron-builder": "^22.11.7"
   },
   "build": {
-    "appId": "io.github.prospect.${name}",
+    "appId": "io.github.julian-alarcon.prospect-mail",
     "linux": {
       "category": "Mail;Network;Office",
       "packageCategory": "net",
@@ -76,7 +76,7 @@
     "snap": {
       "summary": "Prospect Mail",
       "confinement": "strict",
-      "grade": "stable",
+      "grade": "devel",
       "buildPackages": [],
       "stagePackages": [
         "default"
