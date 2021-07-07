@@ -27,7 +27,8 @@ jobs:
         with:
           # Log in to Snap Store
           snapcraft_token: ${{ secrets.snapcraft_token }}
-
+      - name: Install libarchive-tools for pacman build # Related https://github.com/electron-userland/electron-builder/issues/4181
+        run: sudo apt-get install libarchive-tools
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
         with:
