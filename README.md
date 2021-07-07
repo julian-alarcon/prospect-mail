@@ -17,18 +17,44 @@ The Outlook desktop client for the [new Outlook Interface](https://www.microsoft
 ## Feature
 
 * Receive your Outlook Microsoft 365 online from the desktop app
-* Close to minimise
+* Close to minimize
 * Dock tray support
 * System notification
+* Connect to standard or custom outlook url
+
+## Settings
+
+* Via tray menu settings.json can be opened and edited. After every save you need to click in "Reload settings" to apply changes.
+
+```json
+{
+ "urlMainWindow":"https://customurl.example/"
+ ,"urlsInternal":["customurl.example"]
+ ,"urlsExternal":["externalurls.example"]
+ ,"showWindowFrame":true
+}
+```
+
+As an example, this configuration will let you use Prospect with personal Outlook.com account:
+
+> Please notice that Prospect Mail is only tested in Work/Educational accounts and no issues will be reviewed for personal accounts.
+
+```json
+{
+    "urlMainWindow":"https://outlook.live.com/mail",
+    "urlsInternal":["outlook.com", "live.com"],
+    "urlsExternal":["outlook.com", "live.com"]
+}
+```
 
 ### Architecture components
 
 The main software architecture components and their versions are this:
 
-* [Node.js](https://nodejs.org/en/) version: 12.19.x
+* [Node.js](https://nodejs.org/en/) version: 14.17.x
 * [yarn](https://yarnpkg.com/) version: 1.22.x or newer
-* [electron](http://electronjs.org/) version: 10.1.x
-* [electron-builder](https://www.electron.build/) version: 22.9.x
+* [electron](http://electronjs.org/) version: 13.0.x
+* [electron-builder](https://www.electron.build/) version: 22.11.x
 * [electron-settings](https://github.com/nathanbuchar/electron-settings) version: 4.0.2
 
 ## Build
@@ -72,13 +98,11 @@ Snap build are available in the Snapcraft Store. You can search `prospect-mail` 
 
 Once it was builded, or using the release files available, you can install the files using [AppImage process](https://docs.appimage.org/user-guide/faq.html#question-how-do-i-run-an-appimage), using .deb ```sudo dpkg -i prospect-mail_x.y.z_arch.deb``` or using the snap file ```sudo snap install prospect-mail_x.y.z_arch.snap --dangerous```.
 
-## Release
+## Release to Snapstore
 
-```bash
-npm version (new release version)
-git push origin master
-git push origin --tags
-npm publish
+```sh
+snapcraft login
+snapcraft upload --release=edge prospect-mail_x.y.z_arch.snap
 ```
 
 ## License
