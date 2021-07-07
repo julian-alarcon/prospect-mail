@@ -48,7 +48,7 @@
     "electron-builder": "^22.11.7"
   },
   "build": {
-    "appId": "io.github.prospect.${name}",
+    "appId": "io.github.prospect.prospect-mail",
     "linux": {
       "category": "Mail;Network;Office",
       "packageCategory": "net",
