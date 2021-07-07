@@ -76,7 +76,7 @@
     "snap": {
       "summary": "Prospect Mail",
       "confinement": "strict",
-      "grade": "stable",
+      "grade": "devel",
       "buildPackages": [],
       "stagePackages": [
         "default"
