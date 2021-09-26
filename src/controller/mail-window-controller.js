@@ -65,7 +65,6 @@ class MailWindowController {
 
         // insert styles
         this.win.webContents.on('dom-ready', () => {
-            console.log('Insert CSS')
             this.win.webContents.insertCSS(CssInjector.main)
             let that = this
             if (!showWindowFrame) {
@@ -98,12 +97,8 @@ class MailWindowController {
         })
 
         this.win.webContents.on('did-create-window', (childWindow) => {
-            // For example...
-            console.log('Child Window Detected..')
-            
             // insert styles
             childWindow.webContents.on('dom-ready', () => {
-                console.log('Insert CSS')
                 childWindow.webContents.insertCSS(CssInjector.main)
 
                 let that = this
@@ -112,7 +107,6 @@ class MailWindowController {
                     a.then(() => {
                         childWindow.webContents.executeJavaScript(JsInjector.childWindow)
                             .then(() => {
-                                console.log('JS and CSS inserted on Child window')
                                 childWindow.show()
                             })
                             .catch((errJS) => {
@@ -167,7 +161,6 @@ class MailWindowController {
         console.log('Open in browser: ' + url)//frameName,disposition,options)
         if (new RegExp(deeplinkUrls.join('|')).test(url)) {
             // Default action - if the user wants to open mail in a new window - let them.
-            console.log('Is deeplink')
             options.webPreferences.affinity = 'main-window';
         }
         else if (new RegExp(outlookUrls.join('|')).test(url)) {
