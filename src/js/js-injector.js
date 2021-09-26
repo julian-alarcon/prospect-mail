@@ -106,4 +106,4 @@ setTimeout(() => {
 }, 10000);
 `
 
-module.exports = JsInjector
+module.exports = JsInjector;

@@ -28,7 +28,7 @@ class TrayController {
                         click: (menuItem, browserWindow, event) => {
                             let val = menuItem.checked
                             this.setConfigurationItem('hideOnClose', val)
-                            this.toggleWindowFrame()
+                                .then(() => { this.toggleWindowFrame() })
                         }
                     },
                     { 
@@ -38,17 +38,17 @@ class TrayController {
                         click: (menuItem, browserWindow, event) => {
                             let val = menuItem.checked
                             this.setConfigurationItem('hideOnMinimize', val)
-                            this.toggleWindowFrame()
+                                .then(() => { this.toggleWindowFrame() })
                         }
                     },
                     { 
                         label: 'Show Window Frame', 
                         type: 'checkbox', 
                         checked: (this.getConfigurationItem('showWindowFrame', true)),
-                        click: async (menuItem, browserWindow, event) => {
+                        click: (menuItem, browserWindow, event) => {
                             let val = menuItem.checked
-                            await this.setConfigurationItem('showWindowFrame', val)
-                            this.toggleWindowFrame()
+                            this.setConfigurationItem('showWindowFrame', val)
+                                .then(() => { this.toggleWindowFrame() })
                         }
                     },
                     {
@@ -68,10 +68,9 @@ class TrayController {
         })
     }
 
-    getConfigurationItem(flag, defaultValue) {
+    getConfigurationItem(flag, defaultValue = true) {
         let val = settings.getSync(flag)
         // When inexistent, true prevalence.
-        defaultValue === undefined ? true : defaultValue
         return (val === undefined ? defaultValue : val)
     }
 
