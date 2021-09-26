@@ -12,7 +12,6 @@ class ProspectMail {
   init() {
     const lock = app.requestSingleInstanceLock()
     if (!lock) {
-      console.log('Lock')
       app.quit()
     } else {
       app.on('second-instance', (event, commandLine, workingDirectory) => {
@@ -43,7 +42,6 @@ class ProspectMail {
     })
 
     app.on('activate', () => {
-      console.log('Called Activate')
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
       if (this.mailController === null) {
