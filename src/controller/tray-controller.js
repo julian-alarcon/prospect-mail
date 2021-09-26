@@ -1,9 +1,7 @@
-const { app, Tray, nativeImage, Menu, ipcMain, shell } = require('electron')
+const { app, Tray, nativeImage, Menu, ipcMain, shell, dialog } = require('electron')
 const debug = require('electron-debug');
 const settings = require('electron-settings')
 const path = require('path')
-const fs = require('fs')
-const crypto = require('crypto')
 
 const macOS = process.platform === 'darwin' ? true : false
 
@@ -23,8 +21,36 @@ class TrayController {
             { label: 'Reload', click: () => this.reloadWindow()},
             {
                 label: 'Settings', submenu: [
-                    { label: 'Hide on Close', type: 'checkbox', checked: (settings.getSync('hideOnClose') === undefined ? true : settings.getSync('hideOnClose')), click: () => this.toggleWindowFrame() },
-                    { label: 'Hide on Minimize', type: 'checkbox', checked: (settings.getSync('hideOnMinimize') === undefined ? true : settings.getSync('hideOnMinimize')), click: () => this.toggleWindowFrame() },
+                    { 
+                        label: 'Hide on Close', 
+                        type: 'checkbox', 
+                        checked: (this.getConfigurationItem('hideOnClose', true)), 
+                        click: (menuItem, browserWindow, event) => {
+                            let val = menuItem.checked
+                            this.setConfigurationItem('hideOnClose', val)
+                            this.toggleWindowFrame()
+                        }
+                    },
+                    { 
+                        label: 'Hide on Minimize', 
+                        type: 'checkbox', 
+                        checked: (this.getConfigurationItem('hideOnMinimize', true)),
+                        click: (menuItem, browserWindow, event) => {
+                            let val = menuItem.checked
+                            this.setConfigurationItem('hideOnMinimize', val)
+                            this.toggleWindowFrame()
+                        }
+                    },
+                    { 
+                        label: 'Show Window Frame', 
+                        type: 'checkbox', 
+                        checked: (this.getConfigurationItem('showWindowFrame', true)),
+                        click: async (menuItem, browserWindow, event) => {
+                            let val = menuItem.checked
+                            await this.setConfigurationItem('showWindowFrame', val)
+                            this.toggleWindowFrame()
+                        }
+                    },
                     {
                         label: 'Show settings file', click: () => shell.showItemInFolder(path.resolve(settings.file()))
                     }
@@ -40,6 +66,20 @@ class TrayController {
         ipcMain.on('updateUnread', (event, value) => {
             this.tray.setImage(this.createTrayIcon(value))
         })
+    }
+
+    getConfigurationItem(flag, defaultValue) {
+        let val = settings.getSync(flag)
+        // When inexistent, true prevalence.
+        defaultValue === undefined ? true : defaultValue
+        return (val === undefined ? defaultValue : val)
+    }
+
+    // Stores configuration on file.
+    async setConfigurationItem(flag, value) {
+        await settings.set(flag, value)
+        let val = await settings.get(flag)
+        return val
     }
 
     createTrayIcon(value) {
@@ -61,7 +101,6 @@ class TrayController {
     }
 
     showHide() {
-        console.log("showHide: ", this.mailController.win.isVisible())
         this.mailController.toggleWindow();
     }
 
@@ -70,8 +109,6 @@ class TrayController {
     }
 
     toggleWindowFrame() {
-        let orivalue = settings.getSync('showWindowFrame') === undefined ? true : settings.getSync('showWindowFrame')
-        settings.setSync('showWindowFrame', !orivalue)
         this.mailController.win.destroy()
         this.mailController.init()
     }

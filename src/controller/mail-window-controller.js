@@ -1,6 +1,7 @@
-const { BrowserWindow, shell, ipcMain } = require('electron')
+const { app, BrowserWindow, shell, ipcMain, Notification } = require('electron')
 const settings = require('electron-settings')
 const CssInjector = require('../js/css-injector')
+const JsInjector = require('../js/js-injector')
 const path = require('path')
 
 let outlookUrl
@@ -16,17 +17,12 @@ class MailWindowController {
     }
     reloadSettings() {
         // Get configurations.
-        showWindowFrame = settings.getSync('showWindowFrame') || true
-
+        showWindowFrame = (settings.getSync('showWindowFrame') === undefined) ? true : settings.getSync('showWindowFrame')
         outlookUrl = settings.getSync('urlMainWindow') || 'https://outlook.office.com/mail'
-        deeplinkUrls = settings.getSync('urlsInternal') || ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
+        deeplinkUrls = settings.getSync('urlsInternal') || ['to-do.office.com/tasks', 'outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
         outlookUrls = settings.getSync('urlsExternal') || ['outlook.live.com', 'outlook.office365.com', 'outlook.office.com']
-        console.log('Loaded settings', {
-            outlookUrl: outlookUrl
-            , deeplinkUrls: deeplinkUrls
-            , outlookUrls: outlookUrls
-        })
     }
+
     init() {
         this.reloadSettings()
 
@@ -37,6 +33,7 @@ class MailWindowController {
             width: 1400,
             height: 900,
             frame: showWindowFrame,
+            transparent: !showWindowFrame,
             autoHideMenuBar: true,
 
             show: false,
@@ -45,6 +42,9 @@ class MailWindowController {
             webPreferences: {
                 spellcheck: true,
                 nativeWindowOpen: true,
+                nodeIntegration: true,
+                contextIsolation: false,
+                backgroundColor: 'transparent',
                 affinity: 'main-window'
             }
         })
@@ -57,35 +57,82 @@ class MailWindowController {
             this.show()
         })
 
+        // Show Notfications (instead of HTML5)
+        ipcMain.on('unread-messages-notification', (event, arg) => {
+            let notification = new Notification(arg);
+            notification.show();
+        })
+
         // insert styles
         this.win.webContents.on('dom-ready', () => {
+            console.log('Insert CSS')
             this.win.webContents.insertCSS(CssInjector.main)
-            if (!showWindowFrame) this.win.webContents.insertCSS(CssInjector.noFrame)
-
-            this.addUnreadNumberObserver()
-
-            this.win.show()
+            let that = this
+            if (!showWindowFrame) {
+                let a = this.win.webContents.insertCSS(CssInjector.noFrame)
+                a.then(() => {
+                    // Add unread Messages Notification reader
+                    that.addUnreadNumberObserver()
+                    that.win.show()
+                })
+                .catch((err) => { 
+                    console.log('Error CSS Insertion:', err)
+                })
+            } else {
+                this.win.show()
+            }
         })
 
         // prevent the app quit, hide the window instead.
         this.win.on('close', (e) => {
             //console.log('Log invoked: ' + this.win.isVisible())
             if (this.win.isVisible()) {
-                if (settings.getSync('hideOnClose') || true) {
+                if (settings.getSync('hideOnClose') === undefined ? true : settings.getSync('hideOnClose')) {
                     e.preventDefault()
                     this.win.hide()
+                } else {
+                    // Close the app
+                    app.exit()
                 }
             }
         })
 
+        this.win.webContents.on('did-create-window', (childWindow) => {
+            // For example...
+            console.log('Child Window Detected..')
+            
+            // insert styles
+            childWindow.webContents.on('dom-ready', () => {
+                console.log('Insert CSS')
+                childWindow.webContents.insertCSS(CssInjector.main)
+
+                let that = this
+                if (!showWindowFrame) {
+                    let a = childWindow.webContents.insertCSS(CssInjector.noFrame)
+                    a.then(() => {
+                        childWindow.webContents.executeJavaScript(JsInjector.childWindow)
+                            .then(() => {
+                                console.log('JS and CSS inserted on Child window')
+                                childWindow.show()
+                            })
+                            .catch((errJS) => {
+                                console.log('Error JS Insertion:', errJS)        
+                            })
+                    })
+                    .catch((err) => { 
+                        console.log('Error CSS Insertion:', err)
+                    })
+                }
+            })
+        })
+
         // prevent the app minimze, hide the window instead.
         this.win.on('minimize', (e) => {
-
-            if (settings.getSync('hideOnMinimize') || true) {
+            if (settings.getSync('hideOnMinimize') === undefined ? true : settings.getSync('hideOnMinimize')) {
                 e.preventDefault()
                 this.win.hide()
-            }
-        });
+            } 
+        })
 
         // Emitted when the window is closed.
         this.win.on('closed', () => {
@@ -99,75 +146,14 @@ class MailWindowController {
         this.win.webContents.on('new-window', this.openInBrowser)
     }
 
+    // Adds observer for the unread messages.
     addUnreadNumberObserver() {
-        this.win.webContents.executeJavaScript(`
-            setTimeout(() => {
-                let unreadSpan = document.querySelector('._2iKri0mE1PM9vmRn--wKyI');
-                require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
-
-                let observer = new MutationObserver(mutations => {
-                    mutations.forEach(mutation => {
-                        console.log('Observer Changed.');
-                        require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
-
-                        // Scrape messages and pop up a notification
-                        var messages = document.querySelectorAll('div[role="listbox"][aria-label="Message list"]');
-                        if (messages.length)
-                        {
-                            var unread = messages[0].querySelectorAll('div[aria-label^="Unread"]');
-                            var body = "";
-                            for (var i = 0; i < unread.length; i++)
-                            {
-                                if (body.length)
-                                {
-                                    body += "\\n";
-                                }
-                                body += unread[i].getAttribute("aria-label").substring(7, 127);
-                            }
-                            if (unread.length)
-                            {
-                                var notification = new Notification(unread.length + " New Messages", {
-                                    body: body,
-                                    icon: "assets/outlook_linux_black.png"
-                                });
-                                notification.onclick = () => {
-                                    require('electron').ipcRenderer.send('show');
-                                };
-                            }
-                        }
-                    });
-                });
-            
-                observer.observe(unreadSpan, {childList: true});
-
-                // If the div containing reminders gets taller we probably got a new
-                // reminder, so force the window to the top.
-                let reminders = document.getElementsByClassName("_1BWPyOkN5zNVyfbTDKK1gM");
-                let height = 0;
-                let reminderObserver = new MutationObserver(mutations => {
-                    mutations.forEach(mutation => {
-                        if (reminders[0].clientHeight > height)
-                        {
-                            require('electron').ipcRenderer.send('show');
-                        }
-                        height = reminders[0].clientHeight;
-                    });
-                });
-
-                if (reminders.length) {
-                    reminderObserver.observe(reminders[0], { childList: true });
-                }
-
-            }, 10000);
-        `)
+        this.win.webContents.executeJavaScript(JsInjector.main)
     }
 
+    // Toggles Window
     toggleWindow() {
-        console.log("toggleWindow", {
-            isFocused: this.win.isFocused(),
-            isVisible: this.win.isVisible()
-        })
-        if (/*this.win.isFocused() && */this.win.isVisible()) {
+        if (this.win.isVisible()) {
             this.win.hide()
         } else {
             this.show()
@@ -181,7 +167,6 @@ class MailWindowController {
         console.log('Open in browser: ' + url)//frameName,disposition,options)
         if (new RegExp(deeplinkUrls.join('|')).test(url)) {
             // Default action - if the user wants to open mail in a new window - let them.
-            //e.preventDefault()
             console.log('Is deeplink')
             options.webPreferences.affinity = 'main-window';
         }

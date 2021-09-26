@@ -20,14 +20,45 @@ CssInjector.main = `
 `
 
 CssInjector.noFrame = `
-    /* make the header higher and dragable */
-    ._1Kg3ffZABPxXxDqcmoxkBA {
-        padding-top: 30px !important;
+    #owaSearchScopePicker_container {
         -webkit-app-region: drag;
+    }
+
+    #owaSearchBox_container {
+        -webkit-app-region: drag;
+    }
+
+    #toDoSearchBox {
+        -webkit-app-region: drag;
+    }
+
+
+    .tasksToolbar-top,
+    .ms-CommandBar-primaryCommand {
+        -webkit-app-region: drag;
+    }
+
+    ._2wgOIpe6drlPY4DYzFgM0J {
+        -webkit-app-region: drag;
+    }
+
+    #searchBoxColumnContainerId {
+        -webkit-app-region: no-drag;
+    }
+
+    .searchToolbar-icon.search {
+        -webkit-app-region: no-drag;
+    }
+
+    .ms-SearchBox {
+        -webkit-app-region: no-drag;
     }
 
     /* make the clickable component in header not dragable */
     .ms-FocusZone,
+    .ms-Button,
+    .ms-TooltipHost,
+    .tasksToolbar-actions,
     ._3Nd2PGu67wifhuPZp2Sfj5 {
         -webkit-app-region: no-drag;
     }
