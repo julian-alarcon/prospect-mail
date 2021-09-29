@@ -107,6 +107,7 @@ class MailWindowController {
                     a.then(() => {
                         childWindow.webContents.executeJavaScript(JsInjector.childWindow)
                             .then(() => {
+                                childWindow.webContents.on('new-window', this.openInBrowser)
                                 childWindow.show()
                             })
                             .catch((errJS) => {
