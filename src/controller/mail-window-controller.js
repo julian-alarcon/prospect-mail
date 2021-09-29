@@ -44,7 +44,7 @@ class MailWindowController {
                 nativeWindowOpen: true,
                 nodeIntegration: true,
                 contextIsolation: false,
-                backgroundColor: 'transparent',
+                backgroundColor: 'white',
                 affinity: 'main-window'
             }
         })
