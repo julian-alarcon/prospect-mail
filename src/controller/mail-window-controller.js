@@ -32,6 +32,7 @@ class MailWindowController {
             y: 100,
             width: 1400,
             height: 900,
+            roundedCorners: true,
             frame: showWindowFrame,
             transparent: !showWindowFrame,
             autoHideMenuBar: true,
@@ -40,6 +41,7 @@ class MailWindowController {
             title: 'Prospect Mail',
             icon: path.join(__dirname, '../../assets/outlook_linux_black.png'),
             webPreferences: {
+                devTools: true,
                 spellcheck: true,
                 nativeWindowOpen: true,
                 nodeIntegration: true,
