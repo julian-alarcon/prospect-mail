@@ -61,8 +61,10 @@ class MailWindowController {
 
         // Show Notfications (instead of HTML5)
         ipcMain.on('unread-messages-notification', (event, arg) => {
-            let notification = new Notification(arg);
-            notification.show();
+            const iconPath = '../../assets/outlook_linux_black.png'
+            arg.icon = path.join(__dirname, iconPath)
+            let notification = new Notification(arg)
+            notification.show()
         })
 
         // insert styles
