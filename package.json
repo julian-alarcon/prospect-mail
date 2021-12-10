@@ -1,7 +1,7 @@
 {
   "name": "prospect-mail",
   "productName": "Prospect Mail",
-  "version": "0.3.1-dev",
+  "version": "0.4.0-beta",
   "main": "src/main.js",
   "description": "Prospect Mail is an Outlook Electron desktop application for the new design",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
@@ -23,8 +23,8 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "^16.4.0",
-    "yarn": "^1.22.5"
+    "node": "^16.13.1",
+    "yarn": "^1.22.15"
   },
   "scripts": {
     "start": "electron src/main.js",
@@ -44,8 +44,8 @@
     "electron-settings": "^4.0.2"
   },
   "devDependencies": {
-    "electron": "^13.1.6",
-    "electron-builder": "^22.11.7"
+    "electron": "^16.0.2",
+    "electron-builder": "^22.14.5"
   },
   "build": {
     "appId": "io.github.julian-alarcon.prospect-mail",
@@ -54,7 +54,6 @@
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail",
-      "description": "Prospect Mail is an Outlook Electron desktop application for the new design.",
       "desktop": {
         "Name": "Prospect Mail",
         "Comment": "Unofficial client for Microsoft Outlook",
@@ -64,7 +63,6 @@
         "rpm",
         "deb",
         "tar.gz",
-        "snap",
         "AppImage",
         "pacman"
       ],
@@ -76,7 +74,7 @@
     "snap": {
       "summary": "Prospect Mail",
       "confinement": "strict",
-      "grade": "devel",
+      "grade": "stable",
       "buildPackages": [],
       "stagePackages": [
         "default"
@@ -89,7 +87,29 @@
         "screen-inhibit-control",
         "wayland",
         "upower-observe"
-      ]
+      ],
+      "publish": {
+        "provider": "snapStore",
+        "channels": "edge"
+      }
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg"
+      ],
+      "type": "distribution",
+      "icon": "build/icons/256x256.png"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icons/256x256.png",
+      "publish": {
+        "provider": "github",
+        "releaseType": "draft"
+      }
     }
   }
 }
