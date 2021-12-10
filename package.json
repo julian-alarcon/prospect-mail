@@ -33,7 +33,7 @@
     "dist:linux:appimage": "electron-builder --linux AppImage",
     "dist:linux:snap": "electron-builder --linux snap",
     "dist:linux:pacman": "electron-builder --linux pacman",
-    "dist:macOS": "electron-builder --mac",
+    "dist:mac": "electron-builder --mac",
     "dist:win": "electron-builder --win",
     "postinstall": "electron-builder install-app-deps",
     "publish": "build -p always",
@@ -64,7 +64,8 @@
         "deb",
         "tar.gz",
         "AppImage",
-        "pacman"
+        "pacman",
+        "snap"
       ],
       "publish": {
         "provider": "github",
@@ -99,7 +100,11 @@
         "dmg"
       ],
       "type": "distribution",
-      "icon": "build/icons/256x256.png"
+      "icon": "build/icons/256x256.png",
+      "publish": {
+        "provider": "github",
+        "releaseType": "draft"
+      }
     },
     "win": {
       "target": [
