@@ -105,7 +105,7 @@
       "target": [
         "nsis"
       ],
-      "icon": "build/icons/256x256.png",
+      "icon": "build/icons/512x512.png",
       "publish": {
         "provider": "github",
         "releaseType": "draft"
