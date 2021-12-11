@@ -15,7 +15,7 @@ Available for Linux , Windows and macOS.
 
 The application can be downloaded from[here](https://github.com/julian-alarcon/prospect-mail/releases).
 
-Select the appropiated file depending on your OS:
+Select the appropriated file depending on your OS:
 
 * Windows: `.exe` file
 * macOS: `.dmg` file
