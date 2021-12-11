@@ -17,7 +17,7 @@ The application can be downloaded from [here](https://github.com/julian-alarcon/
 
 Select the appropriated file depending on your OS:
 
-* Windows: `.exe` file
+* Windows: `.exe` file or `.msi` file
 * macOS: `.dmg` file
 * Linux: Multiple artifacts are available, please choose your needed one (deb,
 rpm, AppImage, snap, pacman) depending on your Linux Distribution.
