@@ -90,8 +90,12 @@
         "upower-observe"
       ],
       "publish": {
-        "provider": "snapStore",
-        "channels": "edge"
+        "provider": [
+          "snapStore",
+          "github"
+        ],
+        "channels": "edge",
+        "releaseType": "draft"
       }
     },
     "mac": {
