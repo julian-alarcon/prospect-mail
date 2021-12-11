@@ -99,6 +99,7 @@
       "target": [
         "dmg"
       ],
+      "writeUpdateInfo": "false",
       "type": "distribution",
       "icon": "build/icons/512x512.png",
       "publish": {
@@ -110,6 +111,7 @@
       "target": [
         "nsis"
       ],
+      "differentialPackage": "false",
       "icon": "build/icons/512x512.png",
       "publish": {
         "provider": "github",
