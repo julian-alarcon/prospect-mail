@@ -90,12 +90,10 @@
         "wayland",
         "upower-observe"
       ],
-      "publish": {
-          "publish": [
-            "github",
-            "snapStore"
-          ]
-      }
+      "publish": [
+        "github",
+        "snapStore"
+      ]
     },
     "mac": {
       "category": "public.app-category.productivity",
