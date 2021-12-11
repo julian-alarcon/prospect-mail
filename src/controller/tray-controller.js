@@ -1,8 +1,13 @@
-const { app, Tray, nativeImage, Menu, ipcMain } = require('electron')
+const { app, Tray, nativeImage, Menu, ipcMain, shell } = require('electron')
+const debug = require('electron-debug');
 const settings = require('electron-settings')
 const path = require('path')
+const fs = require('fs')
+const crypto = require('crypto')
 
 const macOS = process.platform === 'darwin' ? true : false
+
+debug();
 
 class TrayController {
     constructor(mailController) {
@@ -12,12 +17,20 @@ class TrayController {
 
     init() {
         this.tray = new Tray(this.createTrayIcon(''))
+        //console.log('shell', shell)
 
         const context = Menu.buildFromTemplate([
-            {label: 'Show Me', click: () => this.showHide()},
-            {label: 'Separator', type: 'separator'},
-            {label: 'Window Frame', type: 'checkbox', checked: settings.get('showWindowFrame', true), click: () => this.toggleWindowFrame()},
-            {label: 'Quit', click: () => this.cleanupAndQuit()}
+            { label: 'Reload', click: () => this.reloadWindow()},
+            {
+                label: 'Settings', submenu: [
+                    { label: 'Hide on Close', type: 'checkbox', checked: (settings.getSync('hideOnClose') === undefined ? true : settings.getSync('hideOnClose')), click: () => this.toggleWindowFrame() },
+                    { label: 'Hide on Minimize', type: 'checkbox', checked: (settings.getSync('hideOnMinimize') === undefined ? true : settings.getSync('hideOnMinimize')), click: () => this.toggleWindowFrame() },
+                    {
+                        label: 'Show settings file', click: () => shell.showItemInFolder(path.resolve(settings.file()))
+                    }
+                ]
+            },
+            { label: 'Quit', click: () => this.cleanupAndQuit() }
         ])
 
         this.tray.setContextMenu(context)
@@ -48,11 +61,17 @@ class TrayController {
     }
 
     showHide() {
+        console.log("showHide: ", this.mailController.win.isVisible())
         this.mailController.toggleWindow();
     }
 
+    reloadWindow() {
+        this.mailController.reloadWindow()
+    }
+
     toggleWindowFrame() {
-        settings.set('showWindowFrame', !settings.get('showWindowFrame'))
+        let orivalue = settings.getSync('showWindowFrame') === undefined ? true : settings.getSync('showWindowFrame')
+        settings.setSync('showWindowFrame', !orivalue)
         this.mailController.win.destroy()
         this.mailController.init()
     }
