@@ -1,7 +1,7 @@
 {
   "name": "prospect-mail",
   "productName": "Prospect Mail",
-  "version": "0.3.0",
+  "version": "0.4.0-beta",
   "main": "src/main.js",
   "description": "Prospect Mail is an Outlook Electron desktop application for the new design",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
@@ -23,8 +23,8 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "^14.17.0",
-    "yarn": "^1.22.5"
+    "node": "^16.13.0",
+    "yarn": "^1.22.15"
   },
   "scripts": {
     "start": "electron src/main.js",
@@ -33,7 +33,7 @@
     "dist:linux:appimage": "electron-builder --linux AppImage",
     "dist:linux:snap": "electron-builder --linux snap",
     "dist:linux:pacman": "electron-builder --linux pacman",
-    "dist:macOS": "electron-builder --mac",
+    "dist:mac": "electron-builder --mac",
     "dist:win": "electron-builder --win",
     "postinstall": "electron-builder install-app-deps",
     "publish": "build -p always",
@@ -44,17 +44,16 @@
     "electron-settings": "^4.0.2"
   },
   "devDependencies": {
-    "electron": "^13.1.4",
-    "electron-builder": "^22.11.7"
+    "electron": "^16.0.2",
+    "electron-builder": "^22.14.5"
   },
   "build": {
-    "appId": "io.github.prospect.${name}",
+    "appId": "io.github.julian-alarcon.prospect-mail",
     "linux": {
       "category": "Mail;Network;Office",
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail",
-      "description": "Prospect Mail is an Outlook Electron desktop application for the new design.",
       "desktop": {
         "Name": "Prospect Mail",
         "Comment": "Unofficial client for Microsoft Outlook",
@@ -64,9 +63,9 @@
         "rpm",
         "deb",
         "tar.gz",
-        "snap",
         "AppImage",
-        "pacman"
+        "pacman",
+        "snap"
       ],
       "publish": {
         "provider": "github",
@@ -89,7 +88,44 @@
         "screen-inhibit-control",
         "wayland",
         "upower-observe"
-      ]
-    }
+      ],
+      "publish": {
+        "provider": [
+          "snapStore",
+          "github"
+        ],
+        "channels": "edge",
+        "releaseType": "draft"
+      }
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg"
+      ],
+      "type": "distribution",
+      "icon": "build/icons/512x512.png",
+      "publish": {
+        "provider": "github",
+        "releaseType": "draft"
+      }
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "msi"
+      ],
+      "icon": "build/icons/512x512.png",
+      "publish": {
+        "provider": "github",
+        "releaseType": "draft"
+      }
+    },
+    "nsis": {
+			"differentialPackage": false
+		},
+		"dmg": {
+			"writeUpdateInfo": false
+		}
   }
 }
