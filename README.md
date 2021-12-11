@@ -13,7 +13,7 @@ Available for Linux , Windows and macOS.
 
 ## Download
 
-The application can be downloaded from[here](https://github.com/julian-alarcon/prospect-mail/releases).
+The application can be downloaded from [here](https://github.com/julian-alarcon/prospect-mail/releases).
 
 Select the appropriated file depending on your OS:
 
