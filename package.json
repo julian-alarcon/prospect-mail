@@ -108,7 +108,8 @@
     },
     "win": {
       "target": [
-        "nsis"
+        "nsis",
+        "msi"
       ],
       "icon": "build/icons/512x512.png",
       "publish": {
