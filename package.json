@@ -54,6 +54,7 @@
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail",
+      "icon": "build/icons/512x512.png",
       "desktop": {
         "Name": "Prospect Mail",
         "Comment": "Unofficial client for Microsoft Outlook",
@@ -90,12 +91,10 @@
         "upower-observe"
       ],
       "publish": {
-        "provider": [
-          "snapStore",
-          "github"
-        ],
-        "channels": "edge",
-        "releaseType": "draft"
+          "publish": [
+            "github",
+            "snapStore"
+          ]
       }
     },
     "mac": {
