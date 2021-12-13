@@ -1,4 +1,4 @@
-const { BrowserWindow, shell, ipcMain } = require('electron')
+const { app, BrowserWindow, shell, ipcMain } = require('electron')
 const settings = require('electron-settings')
 const CssInjector = require('../js/css-injector')
 const path = require('path')
@@ -88,7 +88,7 @@ class MailWindowController {
 
         // prevent the app minimze, hide the window instead.
         this.win.on('minimize', (e) => {
-            console.log(settings.getSync('hideOnMinimize'))
+            console.log('minimize',settings.getSync('hideOnMinimize'))
             if (settings.getSync('hideOnMinimize') === undefined || settings.getSync('hideOnMinimize')===true) {
                 e.preventDefault()
                 this.win.hide()
@@ -101,6 +101,10 @@ class MailWindowController {
             // in an array if your app supports multi windows, this is the time
             // when you should delete the corresponding element.
             this.win = null
+            if (!global.preventAutoCloseApp) {
+                app.exit(0) //dont should the app exit is mainWindow is closed?
+            }
+            global.preventAutoCloseApp = false
         })
 
         // Open the new window in external browser
