@@ -1,8 +1,16 @@
-const { app, Tray, nativeImage, Menu, ipcMain } = require('electron')
+const { app, Tray, nativeImage, Menu, ipcMain, shell } = require('electron')
+const debug = require('electron-debug');
 const settings = require('electron-settings')
 const path = require('path')
+const fs = require('fs')
+const crypto = require('crypto')
+const { default: openAboutWindow } = require("about-window");
+const about_iconPath = path.join(__dirname, '../../misc/prospect-logo.svg');
+const packageJson = require("../../package.json");
 
 const macOS = process.platform === 'darwin' ? true : false
+
+debug();
 
 class TrayController {
     constructor(mailController) {
@@ -12,12 +20,43 @@ class TrayController {
 
     init() {
         this.tray = new Tray(this.createTrayIcon(''))
+        //console.log('shell', shell)
 
         const context = Menu.buildFromTemplate([
-            {label: 'Show Me', click: () => this.showHide()},
-            {label: 'Separator', type: 'separator'},
-            {label: 'Window Frame', type: 'checkbox', checked: settings.get('showWindowFrame', true), click: () => this.toggleWindowFrame()},
-            {label: 'Quit', click: () => this.cleanupAndQuit()}
+            { label: 'Show', click: () => this.forceShow() },
+            { label: 'Reload', click: () => this.reloadWindow()},
+            {
+                label: 'Settings', submenu: [
+                    {
+                        label: 'Hide on Close', type: 'checkbox', checked: (settings.getSync('hideOnClose') === undefined ? true : settings.getSync('hideOnClose')), click: () => this.toggleHideOnClose()
+                    },
+                    {
+                        label: 'Hide on Minimize', type: 'checkbox', checked: (settings.getSync('hideOnMinimize') === undefined ? true : settings.getSync('hideOnMinimize')), click: () => this.toggleHideOnMinimize()
+                    },
+                    {
+                        label: 'Show Window Frame', type: 'checkbox', checked: (settings.getSync('showWindowFrame') === undefined ? true : settings.getSync('showWindowFrame')), click: () => this.toggleWindowFrame()
+                    },
+                    {
+                        label: 'Show settings file', click: () => shell.showItemInFolder(path.resolve(settings.file()))
+                    }
+                ]
+            },
+            { label: 'About this App', click: () =>
+                openAboutWindow({
+                    icon_path: about_iconPath,
+                    product_name: "Prospect Mail",
+                    copyright: [
+                        `<p style="text-align: center">Distributed under ${packageJson.license} license</p>
+                        <p style="text-align: center"><b>If this App has been useful for you,
+                        </p><p style="text-align: center">consider buying me a coffee  ☕!</p>
+                        <p style="text-align: center"><a href="https://ko-fi.com/alarconj" title="Ko-Fe">Donate</a></p>`
+                    ],
+                    use_version_info: false,
+                    use_inner_html: true,
+                    adjust_window_size: true
+                }),
+            },
+            { label: 'Quit', click: () => this.cleanupAndQuit() }
         ])
 
         this.tray.setContextMenu(context)
@@ -47,14 +86,31 @@ class TrayController {
         this.mailController.toggleWindow()
     }
 
-    showHide() {
-        this.mailController.toggleWindow();
+    forceShow() {        
+        if (!this.mailController.win.isVisible()) {
+            this.mailController.toggleWindow();
+        }
+        this.mailController.win.show()
+    }
+
+    reloadWindow() {
+        this.mailController.reloadWindow()
     }
 
     toggleWindowFrame() {
-        settings.set('showWindowFrame', !settings.get('showWindowFrame'))
+        let orivalue = settings.getSync('showWindowFrame') === undefined ? true : settings.getSync('showWindowFrame')
+        settings.setSync('showWindowFrame', !orivalue)
+        global.preventAutoCloseApp = true;
         this.mailController.win.destroy()
         this.mailController.init()
+    }
+    toggleHideOnClose() {
+        let orivalue = settings.getSync('hideOnClose') === undefined ? true : settings.getSync('hideOnClose')
+        settings.setSync('hideOnClose', !orivalue)
+    }
+    toggleHideOnMinimize() {
+        let orivalue = settings.getSync('hideOnMinimize') === undefined ? true : settings.getSync('showWindowFrame')
+        settings.setSync('hideOnMinimize', !orivalue)
     }
 
     cleanupAndQuit() {

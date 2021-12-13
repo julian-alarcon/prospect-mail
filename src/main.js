@@ -2,6 +2,9 @@ const { app } = require('electron')
 const MailWindowController = require('./controller/mail-window-controller')
 const TrayController = require('./controller/tray-controller')
 
+//Store commandline for global purpose
+global.cmdLine = process.argv;
+
 class ProspectMail {
   constructor() {
     this.mailController = null;
@@ -29,8 +32,7 @@ class ProspectMail {
     // Some APIs can only be used after this event occurs.
     app.on('ready', () => {
       this.createControllers()
-    })
-
+    })    
     // Quit when all windows are closed.
     app.on('window-all-closed', () => {
       // On macOS it is common for applications and their menu bar
