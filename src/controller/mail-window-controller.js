@@ -51,7 +51,9 @@ class MailWindowController {
             webPreferences: {
                 spellcheck: true,
                 nativeWindowOpen: true,
-                affinity: 'main-window'
+                affinity: 'main-window',
+                contextIsolation: false,
+                nodeIntegration: true,
             }
         })
 
@@ -160,7 +162,7 @@ class MailWindowController {
     addUnreadNumberObserver() {
         this.win.webContents.executeJavaScript(`
             setTimeout(() => {
-                let unreadSpan = document.querySelector('._2iKri0mE1PM9vmRn--wKyI');
+                let unreadSpan = document.querySelector('._2iKri0mE1PM9vmRn--wKyI, ._n_J4._n_F4 .ms-fcl-tp');
                 require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
 
                 let observer = new MutationObserver(mutations => {
