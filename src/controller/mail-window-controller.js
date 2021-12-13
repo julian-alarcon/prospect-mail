@@ -1,4 +1,4 @@
-const { BrowserWindow, shell, ipcMain, Menu, MenuItem } = require('electron')
+const { app, BrowserWindow, shell, ipcMain, Menu, MenuItem } = require('electron')
 const settings = require('electron-settings')
 const CssInjector = require('../js/css-injector')
 const path = require('path')
@@ -9,14 +9,20 @@ let outlookUrls
 let showWindowFrame
 let $this
 
+//Setted by cmdLine to initial minimization
+const initialMinimization = {
+    domReady: false
+} 
+
 class MailWindowController {
     constructor() {
         $this = this
         this.init()
+        initialMinimization.domReady = global.cmdLine.indexOf('--minimized') != -1
     }
     reloadSettings() {
         // Get configurations.
-        showWindowFrame = settings.getSync('showWindowFrame') || true
+        showWindowFrame = settings.getSync('showWindowFrame') === undefined || settings.getSync('showWindowFrame')===true
 
         outlookUrl = settings.getSync('urlMainWindow') || 'https://outlook.office.com/mail'
         deeplinkUrls = settings.getSync('urlsInternal') || ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
@@ -45,7 +51,9 @@ class MailWindowController {
             webPreferences: {
                 spellcheck: true,
                 nativeWindowOpen: true,
-                affinity: 'main-window'
+                affinity: 'main-window',
+/*                contextIsolation: false,
+                nodeIntegration: true,*/
             }
         })
 
@@ -109,15 +117,17 @@ class MailWindowController {
             if (!showWindowFrame) this.win.webContents.insertCSS(CssInjector.noFrame)
 
             this.addUnreadNumberObserver()
-
-            this.win.show()
+            console.log('initialMinimization.domReady', initialMinimization.domReady)
+            if (!initialMinimization.domReady) {
+                this.win.show()
+            }             
         })
 
         // prevent the app quit, hide the window instead.
         this.win.on('close', (e) => {
             //console.log('Log invoked: ' + this.win.isVisible())
             if (this.win.isVisible()) {
-                if (settings.getSync('hideOnClose') || true) {
+                if (settings.getSync('hideOnClose') === undefined || settings.getSync('hideOnClose') === true) {
                     e.preventDefault()
                     this.win.hide()
                 }
@@ -126,8 +136,8 @@ class MailWindowController {
 
         // prevent the app minimze, hide the window instead.
         this.win.on('minimize', (e) => {
-
-            if (settings.getSync('hideOnMinimize') || true) {
+            console.log('minimize',settings.getSync('hideOnMinimize'))
+            if (settings.getSync('hideOnMinimize') === undefined || settings.getSync('hideOnMinimize')===true) {
                 e.preventDefault()
                 this.win.hide()
             }
@@ -139,6 +149,10 @@ class MailWindowController {
             // in an array if your app supports multi windows, this is the time
             // when you should delete the corresponding element.
             this.win = null
+            if (!global.preventAutoCloseApp) {
+                app.exit(0) //dont should the app exit is mainWindow is closed?
+            }
+            global.preventAutoCloseApp = false
         })
 
         // Open the new window in external browser
@@ -148,7 +162,7 @@ class MailWindowController {
     addUnreadNumberObserver() {
         this.win.webContents.executeJavaScript(`
             setTimeout(() => {
-                let unreadSpan = document.querySelector('._2iKri0mE1PM9vmRn--wKyI');
+                let unreadSpan = document.querySelector('._2iKri0mE1PM9vmRn--wKyI, ._n_J4._n_F4 .ms-fcl-tp');
                 require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
 
                 let observer = new MutationObserver(mutations => {
@@ -216,10 +230,13 @@ class MailWindowController {
         if (/*this.win.isFocused() && */this.win.isVisible()) {
             this.win.hide()
         } else {
+            console.log('toggleWindow')
+            initialMinimization.domReady = false
             this.show()
         }
     }
     reloadWindow() {
+        initialMinimization.domReady = false
         this.win.reload()
     }
 
@@ -244,6 +261,7 @@ class MailWindowController {
     }
 
     show() {
+        initialMinimization.domReady = false
         this.win.show()
         this.win.focus()
     }
