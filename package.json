@@ -27,8 +27,8 @@
     "yarn": "^1.22.15"
   },
   "scripts": {
-    "start": "electron src/main.js",
-    "start-minimized": "electron src/main.js --minimized",
+    "start": "electron .",
+    "start-minimized": "electron . --minimized",
     "pack": "electron-builder --dir",
     "dist:linux": "electron-builder --linux",
     "dist:linux:appimage": "electron-builder --linux AppImage",
