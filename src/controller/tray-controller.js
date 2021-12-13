@@ -23,11 +23,19 @@ class TrayController {
         //console.log('shell', shell)
 
         const context = Menu.buildFromTemplate([
+            { label: 'Show', click: () => this.forceShow() },
             { label: 'Reload', click: () => this.reloadWindow()},
             {
                 label: 'Settings', submenu: [
-                    { label: 'Hide on Close', type: 'checkbox', checked: (settings.getSync('hideOnClose') === undefined ? true : settings.getSync('hideOnClose')), click: () => this.toggleWindowFrame() },
-                    { label: 'Hide on Minimize', type: 'checkbox', checked: (settings.getSync('hideOnMinimize') === undefined ? true : settings.getSync('hideOnMinimize')), click: () => this.toggleWindowFrame() },
+                    {
+                        label: 'Hide on Close', type: 'checkbox', checked: (settings.getSync('hideOnClose') === undefined ? true : settings.getSync('hideOnClose')), click: () => this.toggleHideOnClose()
+                    },
+                    {
+                        label: 'Hide on Minimize', type: 'checkbox', checked: (settings.getSync('hideOnMinimize') === undefined ? true : settings.getSync('hideOnMinimize')), click: () => this.toggleHideOnMinimize()
+                    },
+                    {
+                        label: 'Show Window Frame', type: 'checkbox', checked: (settings.getSync('showWindowFrame') === undefined ? true : settings.getSync('showWindowFrame')), click: () => this.toggleWindowFrame()
+                    },
                     {
                         label: 'Show settings file', click: () => shell.showItemInFolder(path.resolve(settings.file()))
                     }
@@ -78,9 +86,11 @@ class TrayController {
         this.mailController.toggleWindow()
     }
 
-    showHide() {
-        console.log("showHide: ", this.mailController.win.isVisible())
-        this.mailController.toggleWindow();
+    forceShow() {        
+        if (!this.mailController.win.isVisible()) {
+            this.mailController.toggleWindow();
+        }
+        this.mailController.win.show()
     }
 
     reloadWindow() {
@@ -90,8 +100,17 @@ class TrayController {
     toggleWindowFrame() {
         let orivalue = settings.getSync('showWindowFrame') === undefined ? true : settings.getSync('showWindowFrame')
         settings.setSync('showWindowFrame', !orivalue)
+        global.preventAutoCloseApp = true;
         this.mailController.win.destroy()
         this.mailController.init()
+    }
+    toggleHideOnClose() {
+        let orivalue = settings.getSync('hideOnClose') === undefined ? true : settings.getSync('hideOnClose')
+        settings.setSync('hideOnClose', !orivalue)
+    }
+    toggleHideOnMinimize() {
+        let orivalue = settings.getSync('hideOnMinimize') === undefined ? true : settings.getSync('showWindowFrame')
+        settings.setSync('hideOnMinimize', !orivalue)
     }
 
     cleanupAndQuit() {
