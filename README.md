@@ -59,6 +59,7 @@ For other distributions please follow your specific steps.
 
 * Receive your Outlook Microsoft 365 online from the desktop app
 * Close to minimize
+* Start as minimized (you can use the Option in the Tray icon menu or start app with `prospect-mail --minimized`)
 * Dock tray support
 * System notification
 * Connect to standard or custom outlook url
