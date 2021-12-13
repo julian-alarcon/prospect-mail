@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, ipcMain } = require('electron')
+const { app, BrowserWindow, shell, ipcMain, Menu, MenuItem } = require('electron')
 const settings = require('electron-settings')
 const CssInjector = require('../js/css-injector')
 const path = require('path')
