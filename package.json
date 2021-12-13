@@ -28,6 +28,7 @@
   },
   "scripts": {
     "start": "electron src/main.js",
+    "start-minimized": "electron src/main.js --minimized",
     "pack": "electron-builder --dir",
     "dist:linux": "electron-builder --linux",
     "dist:linux:appimage": "electron-builder --linux AppImage",

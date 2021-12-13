@@ -2,6 +2,9 @@ const { app } = require('electron')
 const MailWindowController = require('./controller/mail-window-controller')
 const TrayController = require('./controller/tray-controller')
 
+//Store commandline for global purpose
+global.cmdLine = process.argv;
+
 class ProspectMail {
   constructor() {
     this.mailController = null;
