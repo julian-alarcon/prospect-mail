@@ -20,6 +20,7 @@ class TrayController {
         //console.log('shell', shell)
 
         const context = Menu.buildFromTemplate([
+            { label: 'Show', click: () => this.forceShow() },
             { label: 'Reload', click: () => this.reloadWindow()},
             {
                 label: 'Settings', submenu: [
@@ -60,9 +61,11 @@ class TrayController {
         this.mailController.toggleWindow()
     }
 
-    showHide() {
-        console.log("showHide: ", this.mailController.win.isVisible())
-        this.mailController.toggleWindow();
+    forceShow() {        
+        if (!this.mailController.win.isVisible()) {
+            this.mailController.toggleWindow();
+        }
+        this.mailController.win.show()
     }
 
     reloadWindow() {
