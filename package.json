@@ -3,7 +3,7 @@
   "productName": "Prospect Mail",
   "version": "0.4.0-beta",
   "main": "src/main.js",
-  "description": "Prospect Mail is an Outlook Electron desktop application for the new design",
+  "description": "Unofficial desktop client for Microsoft Outlook",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
   "keywords": [
     "Electron",
@@ -15,6 +15,9 @@
   "repository": {
     "type": "git",
     "url": "git+ssh://github.com/julian-alarcon/prospect-mail"
+  },
+  "bugs": {
+    "url": "https://github.com/julian-alarcon/prospect-mail/issues"
   },
   "author": {
     "name": "Julian Alarcon",
@@ -42,7 +45,8 @@
   },
   "dependencies": {
     "electron-debug": "^3.2.0",
-    "electron-settings": "^4.0.2"
+    "electron-settings": "^4.0.2",
+    "about-window": "^1.15.2"
   },
   "devDependencies": {
     "electron": "^16.0.2",
@@ -55,9 +59,10 @@
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail",
+      "icon": "build/icons/512x512.png",
       "desktop": {
         "Name": "Prospect Mail",
-        "Comment": "Unofficial client for Microsoft Outlook",
+        "Comment": "Unofficial desktop client for Microsoft Outlook",
         "StartupWMClass": "prospect-mail"
       },
       "target": [
@@ -90,14 +95,10 @@
         "wayland",
         "upower-observe"
       ],
-      "publish": {
-        "provider": [
-          "snapStore",
-          "github"
-        ],
-        "channels": "edge",
-        "releaseType": "draft"
-      }
+      "publish": [
+        "github",
+        "snapStore"
+      ]
     },
     "mac": {
       "category": "public.app-category.productivity",
