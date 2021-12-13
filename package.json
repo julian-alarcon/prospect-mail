@@ -92,7 +92,9 @@
         "default",
         "screen-inhibit-control",
         "wayland",
-        "upower-observe"
+        "upower-observe",
+        "removable-media",
+        "mount-observe"
       ],
       "publish": [
         "github",
