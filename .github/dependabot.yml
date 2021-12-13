@@ -6,7 +6,7 @@ updates:
     interval: monthly
     time: "10:00"
   open-pull-requests-limit: 10
-  target-branch: develop
+  target-branch: main
   versioning-strategy: increase-if-necessary
 - package-ecosystem: "github-actions"
   directory: "/"
