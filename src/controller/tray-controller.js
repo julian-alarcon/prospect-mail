@@ -2,6 +2,9 @@ const { app, Tray, nativeImage, Menu, ipcMain, shell, dialog } = require('electr
 const debug = require('electron-debug');
 const settings = require('electron-settings')
 const path = require('path')
+const { default: openAboutWindow } = require("about-window");
+const about_iconPath = path.join(__dirname, '../../misc/prospect-logo.svg');
+const packageJson = require("../../package.json");
 
 const macOS = process.platform === 'darwin' ? true : false
 
@@ -55,6 +58,21 @@ class TrayController {
                         label: 'Show settings file', click: () => shell.showItemInFolder(path.resolve(settings.file()))
                     }
                 ]
+            },
+            { label: 'About this App', click: () =>
+                openAboutWindow({
+                    icon_path: about_iconPath,
+                    product_name: "Prospect Mail",
+                    copyright: [
+                        `<p style="text-align: center">Distributed under ${packageJson.license} license</p>
+                        <p style="text-align: center"><b>If this App has been useful for you,
+                        </p><p style="text-align: center">consider buying me a coffee  ☕!</p>
+                        <p style="text-align: center"><a href="https://ko-fi.com/alarconj" title="Ko-Fe">Donate</a></p>`
+                    ],
+                    use_version_info: false,
+                    use_inner_html: true,
+                    adjust_window_size: true
+                }),
             },
             { label: 'Quit', click: () => this.cleanupAndQuit() }
         ])
