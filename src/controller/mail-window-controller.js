@@ -52,8 +52,8 @@ class MailWindowController {
                 spellcheck: true,
                 nativeWindowOpen: true,
                 affinity: 'main-window',
-/*                contextIsolation: false,
-                nodeIntegration: true,*/
+                contextIsolation: false,
+                nodeIntegration: true,
             }
         })
 
