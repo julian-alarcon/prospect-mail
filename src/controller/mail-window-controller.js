@@ -2,7 +2,6 @@ const { app, BrowserWindow, shell, ipcMain, Menu, MenuItem } = require('electron
 const settings = require('electron-settings')
 const getClientFile = require('./client-injector')
 const path = require('path')
-const fs = require('fs')
 
 let outlookUrl
 let deeplinkUrls
