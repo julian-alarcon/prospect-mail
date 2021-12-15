@@ -125,6 +125,31 @@ class MailWindowController {
             }             
         })
 
+        this.win.webContents.on('did-create-window', (childWindow) => {
+            // insert styles
+            childWindow.webContents.on('dom-ready', () => {
+                childWindow.webContents.insertCSS(getClientFile('main.css'))
+
+                let that = this
+                if (!showWindowFrame) {
+                    let a = childWindow.webContents.insertCSS(getClientFile('no-frame.css'))
+                    a.then(() => {
+                        childWindow.webContents.executeJavaScript(getClientFile('child-window.js'))
+                            .then(() => {
+                                childWindow.webContents.on('new-window', this.openInBrowser)
+                                childWindow.show()
+                            })
+                            .catch((errJS) => {
+                                console.log('Error JS Insertion:', errJS)
+                            })
+                    })
+                        .catch((err) => {
+                            console.log('Error CSS Insertion:', err)
+                        })
+                }
+            })
+        })
+
         // prevent the app quit, hide the window instead.
         this.win.on('close', (e) => {
             //console.log('Log invoked: ' + this.win.isVisible())
