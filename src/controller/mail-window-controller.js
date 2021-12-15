@@ -162,7 +162,7 @@ class MailWindowController {
     #unreadNumberObserver
     addUnreadNumberObserver() {
         if (!this.#unreadNumberObserver) {
-            this.#unreadNumberObserver = fs.readFileSync('src/client/unreadNumberObserver.js').toString()
+            this.#unreadNumberObserver = fs.readFileSync('src/client/unread-number-observer.js').toString()
         }
         this.win.webContents.executeJavaScript(this.#unreadNumberObserver)
     }
