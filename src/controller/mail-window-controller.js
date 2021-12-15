@@ -1,6 +1,6 @@
 const { app, BrowserWindow, shell, ipcMain, Menu, MenuItem } = require('electron')
 const settings = require('electron-settings')
-const CssInjector = require('../js/css-injector')
+const getClientFile = require('./client-injector')
 const path = require('path')
 const fs = require('fs')
 
@@ -111,11 +111,13 @@ class MailWindowController {
                 }
             }
         })
-
         // insert styles
         this.win.webContents.on('dom-ready', () => {
-            this.win.webContents.insertCSS(CssInjector.main)
-            if (!showWindowFrame) this.win.webContents.insertCSS(CssInjector.noFrame)
+            this.win.webContents.insertCSS(getClientFile('main.css'))
+            if (!showWindowFrame) {
+                console.log(noFramecss)
+                this.win.webContents.insertCSS(getClientFile('no-frame.css'))
+            }
 
             this.addUnreadNumberObserver()
             console.log('initialMinimization.domReady', initialMinimization.domReady)
@@ -159,12 +161,8 @@ class MailWindowController {
         // Open the new window in external browser
         this.win.webContents.on('new-window', this.openInBrowser)
     }
-    #unreadNumberObserver
     addUnreadNumberObserver() {
-        if (!this.#unreadNumberObserver) {
-            this.#unreadNumberObserver = fs.readFileSync('src/client/unread-number-observer.js').toString()
-        }
-        this.win.webContents.executeJavaScript(this.#unreadNumberObserver)
+        this.win.webContents.executeJavaScript(getClientFile('unread-number-observer.js'))
     }
 
     toggleWindow() {
