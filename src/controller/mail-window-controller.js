@@ -124,6 +124,10 @@ class MailWindowController {
             }
             if (params.linkURL) {
                 menu.append(new MenuItem({
+                    label: params.linkURL.length > 50 ? (params.linkURL.substring(0, 50-3) + '...') : params.linkURL,
+                    enabled: false
+                }))
+                menu.append(new MenuItem({
                     label: 'Copy link url',
                     enabled: true
                     , click: (arg) => {
@@ -136,6 +140,9 @@ class MailWindowController {
                     , click: (arg) => {
                         clipboard.writeText(params.linkText, 'selection');
                     }
+                }))
+                menu.append(new MenuItem({
+                    type: 'separator'
                 }))
             }
             //console.log(params)
