@@ -159,9 +159,12 @@ class MailWindowController {
         // Open the new window in external browser
         this.win.webContents.on('new-window', this.openInBrowser)
     }
-
+    #unreadNumberObserver
     addUnreadNumberObserver() {
-        this.win.webContents.executeJavaScript(fs.readFileSync('src/client/unreadNumberObserver.js').toString())
+        if (!this.#unreadNumberObserver) {
+            this.#unreadNumberObserver = fs.readFileSync('src/client/unreadNumberObserver.js').toString()
+        }
+        this.win.webContents.executeJavaScript(this.#unreadNumberObserver)
     }
 
     toggleWindow() {
