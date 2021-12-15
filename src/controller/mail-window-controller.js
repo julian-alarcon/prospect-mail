@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, ipcMain, Menu, MenuItem } = require('electron')
+const { app, BrowserWindow, shell, ipcMain, Menu, MenuItem, clipboard } = require('electron')
 const settings = require('electron-settings')
 const getClientFile = require('./client-injector')
 const path = require('path')
@@ -12,7 +12,7 @@ let $this
 //Setted by cmdLine to initial minimization
 const initialMinimization = {
     domReady: false
-} 
+}
 
 class MailWindowController {
     constructor() {
@@ -22,7 +22,7 @@ class MailWindowController {
     }
     reloadSettings() {
         // Get configurations.
-        showWindowFrame = settings.getSync('showWindowFrame') === undefined || settings.getSync('showWindowFrame')===true
+        showWindowFrame = settings.getSync('showWindowFrame') === undefined || settings.getSync('showWindowFrame') === true
 
         outlookUrl = settings.getSync('urlMainWindow') || 'https://outlook.office.com/mail'
         deeplinkUrls = settings.getSync('urlsInternal') || ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
@@ -68,11 +68,13 @@ class MailWindowController {
         // add right click handler for editor spellcheck
         this.win.webContents.on('context-menu', (event, params) => {
             event.preventDefault()
-            var show = false
+            //console.log('context-menu', params)
+            let menu = new Menu()
             if (params && params.dictionarySuggestions) {
-                const menu = new Menu()
+                let show = false
+
                 menu.append(new MenuItem({
-                    label: 'Spelling',
+                    label: '- Spelling -',
                     enabled: false
                 }))
                 menu.append(new MenuItem({
@@ -105,24 +107,73 @@ class MailWindowController {
                         enabled: false
                     }))
                 }
-                if (show) {
-                    menu.popup()
+
+                if (!show) {
+                    menu = new Menu() //remove all previuos items
                 }
             }
+
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({
+                    type: 'separator'
+                }))
+                menu.append(new MenuItem({
+                    label: '- Edit -',
+                    enabled: false
+                }))
+            }
+            if (params.linkURL) {
+                menu.append(new MenuItem({
+                    label: 'Copy link url',
+                    enabled: true
+                    , click: (arg) => {
+                        clipboard.writeText(params.linkURL, 'url');
+                    }
+                }))
+                menu.append(new MenuItem({
+                    label: 'Copy link text',
+                    enabled: true
+                    , click: (arg) => {
+                        clipboard.writeText(params.linkText, 'selection');
+                    }
+                }))
+            }
+            //console.log(params)
+            for (const flag in params.editFlags) {
+                let actionLabel = flag.substring(3) //remove "can"
+                if (flag == 'canSelectAll') {
+                    actionLabel = 'Select all'
+                    if (!params.isEditable) {
+                        continue
+                    }
+                }
+                if (flag == 'canEditRichly') {
+                    continue
+                }
+                if (params.editFlags[flag]) {
+                    menu.append(new MenuItem({
+                        label: actionLabel,
+                        enabled: true,
+                        role: flag.substring(3).toLowerCase()
+                    }))
+                }
+            }
+            if (menu.items.length > 0) {
+                menu.popup()
+            }
+
         })
         // insert styles
         this.win.webContents.on('dom-ready', () => {
             this.win.webContents.insertCSS(getClientFile('main.css'))
             if (!showWindowFrame) {
-                console.log(noFramecss)
                 this.win.webContents.insertCSS(getClientFile('no-frame.css'))
             }
 
             this.addUnreadNumberObserver()
-            console.log('initialMinimization.domReady', initialMinimization.domReady)
             if (!initialMinimization.domReady) {
                 this.win.show()
-            }             
+            }
         })
 
         this.win.webContents.on('did-create-window', (childWindow) => {
@@ -163,8 +214,7 @@ class MailWindowController {
 
         // prevent the app minimze, hide the window instead.
         this.win.on('minimize', (e) => {
-            console.log('minimize',settings.getSync('hideOnMinimize'))
-            if (settings.getSync('hideOnMinimize') === undefined || settings.getSync('hideOnMinimize')===true) {
+            if (settings.getSync('hideOnMinimize') === undefined || settings.getSync('hideOnMinimize') === true) {
                 e.preventDefault()
                 this.win.hide()
             }
@@ -197,7 +247,6 @@ class MailWindowController {
         if (/*this.win.isFocused() && */this.win.isVisible()) {
             this.win.hide()
         } else {
-            console.log('toggleWindow')
             initialMinimization.domReady = false
             this.show()
         }
