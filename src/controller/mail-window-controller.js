@@ -146,10 +146,16 @@ class MailWindowController {
                 }))
             }
             //console.log(params)
+
             for (const flag in params.editFlags) {
                 let actionLabel = flag.substring(3) //remove "can"
                 if (flag == 'canSelectAll') {
                     actionLabel = 'Select all'
+                    if (!params.isEditable) {
+                        continue
+                    }
+                }
+                if (flag == 'canUndo' || flag == 'canRedo') {
                     if (!params.isEditable) {
                         continue
                     }
