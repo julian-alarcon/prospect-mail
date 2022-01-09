@@ -5,6 +5,7 @@ const path = require('path')
 
 let outlookUrl
 let deeplinkUrls
+let mainWindowLoadedPromise
 let outlookUrls
 let showWindowFrame
 let $this
@@ -58,7 +59,7 @@ class MailWindowController {
         })
 
         // and load the index.html of the app.
-        this.win.loadURL(outlookUrl)
+        mainWindowLoadedPromise = this.win.loadURL(outlookUrl)
 
         // Show window handler
         ipcMain.on('show', (event) => {
@@ -264,6 +265,136 @@ class MailWindowController {
         initialMinimization.domReady = false
         this.win.show()
         this.win.focus()
+    }
+
+    buildComposeNewMailURL(to, cc, bcc, subject, body) {
+        // Outlook Web App (OWA) URL parameters are not documented but the ones below are known to work.
+        // Note that OWA treats "cc" and "bcc" as exclusive for some reason; both are ignored if both are present.
+        let url = outlookUrl + "/deeplink/compose?popoutv2=1"
+
+        if (to && to.trim().length > 0) {
+            url += "&" + "to=" + to
+        }
+        let sepChar = "?"
+
+        if (cc && cc.trim().length > 0) {
+            url += sepChar + "cc=" + cc
+            sepChar = "&"
+        }
+
+        if (bcc && bcc.trim().length > 0) {
+            url += sepChar + "bcc=" + bcc
+            sepChar = "&"
+        }
+
+        if (subject && subject.trim().length > 0) {
+            url += sepChar + "subject=" + subject
+            sepChar = "&"
+        }
+
+        if (body && body.trim().length > 0) {
+            url += sepChar + "body=" + body
+            sepChar = "&"
+        }
+
+        return url
+    }
+
+    doMailToAction(mailToArg) {
+        let to
+        let cc
+        let bcc
+        let subject
+        let body
+
+        // Remove "mailto:"
+        mailToArg = mailToArg.substring(7)
+
+        // Parse mailto based on RFC 6068
+        // A "?"" separates the "to" value and others key/value pairs separated by "&"
+        // If a "to" value is not specified then the "?" must still be present before key/value pairs
+        // "?" is not required if no key/value pairs are present
+        let toSeparatorIndex = mailToArg.indexOf("?")
+        if (toSeparatorIndex == -1) {
+            to = mailToArg
+        } else {
+            to = mailToArg.substring(0, toSeparatorIndex)
+            let kvPairsRaw = mailToArg.substring(toSeparatorIndex + 1)
+
+            let kvPairs = kvPairsRaw.split("&")
+            for (const kvPair of kvPairs) {
+                let kv = kvPair.split("=", 2)
+                if (kv.length != 2) continue
+                switch (kv[0].toLowerCase()) {
+                    case "cc":
+                        cc = kv[1]
+                        break
+                    case "bcc":
+                        bcc = kv[1]
+                        break
+                    case "subject":
+                        subject = kv[1]
+                        break
+                    case "body":
+                        body = kv[1]
+                        break
+                }
+            }
+        }
+
+        let newMailURL = this.buildComposeNewMailURL(to, cc, bcc, subject, body)
+        mainWindowLoadedPromise.then(() => {
+            const newMessageWindow = new BrowserWindow(
+                {
+                    parent: this.win,
+                    x: 200,
+                    y: 200,
+                    // Dimensions chosen to show all editing controls and no scroll bars as of January 9, 2022
+                    width: 1320,
+                    height: 750,
+                    frame: showWindowFrame,
+                    autoHideMenuBar: true,
+                    show: false,
+                    title: 'Prospect Mail - New Mail',
+                    icon: path.join(__dirname, '../../assets/outlook_linux_black.png'),
+                    webPreferences: {
+                        spellcheck: true,
+                        nativeWindowOpen: true
+                    }
+                })
+            newMessageWindow.loadURL(newMailURL)
+            newMessageWindow.show()
+        })
+    }
+
+    getMailToArg(args) {
+        for (const arg of args) {
+            if (arg.toLowerCase().startsWith("mailto:"))
+            {
+                return arg
+            }
+        }
+
+        return undefined
+    }
+
+    // Executes command-line actions that can be specified on primary and/or secondary processes
+    // Returns true if an action was found and executed, otherwise false
+    doCommandLineActions(commandLineArgs) {
+        let actionTaken = false
+        
+        let mailToArg = this.getMailToArg(commandLineArgs)
+        if (mailToArg) {
+            console.log('mailto action specified')
+            this.doMailToAction(mailToArg)
+            actionTaken = true
+        }
+
+        return actionTaken
+    }
+
+    handleSecondInstance(commandLineArgs) {
+        if (!this.doCommandLineActions(commandLineArgs)) this.show()
     }
 }
 

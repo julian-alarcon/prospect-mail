@@ -56,10 +56,13 @@
   "build": {
     "appId": "io.github.julian-alarcon.prospect-mail",
     "linux": {
-      "category": "Mail;Network;Office",
+      "category": "Email;Network;Office",
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail",
+      "mimeTypes": [
+        "x-scheme-handler/mailto"
+      ],
       "icon": "build/icons/512x512.png",
       "desktop": {
         "Name": "Prospect Mail",

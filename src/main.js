@@ -18,7 +18,7 @@ class ProspectMail {
       app.quit()
     } else {
       app.on('second-instance', (event, commandLine, workingDirectory) => {
-        if (this.mailController) this.mailController.show()
+        if (this.mailController) this.mailController.handleSecondInstance(commandLine)
       })
 
       this.initApp()
@@ -32,6 +32,7 @@ class ProspectMail {
     // Some APIs can only be used after this event occurs.
     app.on('ready', () => {
       this.createControllers()
+      this.mailController.doCommandLineActions(global.cmdLine)
     })    
     // Quit when all windows are closed.
     app.on('window-all-closed', () => {
