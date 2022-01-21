@@ -1,3 +1,4 @@
+let owa_timer;
 const observeUnreadHandlers = {
     consumer: () => {
         const unreadSpan = document.querySelector('._2iKri0mE1PM9vmRn--wKyI');
@@ -117,25 +118,29 @@ const observeUnreadHandlers = {
             return false
         }
         let lastcheck
-        const checkOwa = () => {
+        const checkOwa = (checkonlyzerounread) => {
             const unread = document.querySelectorAll('._n_J4._n_F4 .ms-fcl-tp').length;
-            require('electron').ipcRenderer.send('updateUnread', unread);
 
-            if (unread > 0) {
-                //do not spam notification
-                if (!lastcheck || (new Date() - lastcheck) > 500) {
+            if (unread > 0 || !checkonlyzerounread) {
 
-                    if (!document.hasFocus()) {
+                require('electron').ipcRenderer.send('updateUnread', unread);
 
-                        var notification = new Notification("New Messages", {
-                            body: 'There are ' + unread + ' unread messages.',
-                            icon: "assets/outlook_linux_black.png"
-                        });
-                        notification.onclick = () => {
-                            require('electron').ipcRenderer.send('show');
-                        };
+                if (unread > 0 && !checkonlyzerounread) {
+                    //do not spam notification
+                    if (!lastcheck || (new Date() - lastcheck) > 500) {
+
+                        if (!document.hasFocus()) {
+
+                            var notification = new Notification("New Messages", {
+                                body: 'There are ' + unread + ' unread messages.',
+                                icon: "assets/outlook_linux_black.png"
+                            });
+                            notification.onclick = () => {
+                                require('electron').ipcRenderer.send('show');
+                            };
+                        }
+                        lastcheck = new Date()
                     }
-                    lastcheck = new Date()
                 }
             }
         }
@@ -149,6 +154,14 @@ const observeUnreadHandlers = {
         })
 
         observer.observe(leftPanel, { attributes: true, childList: true, subtree: true });
+
+        //observer cannot catch all changes, use timer to handle ZERO unreadmessages
+        if (owa_timer) {
+            clearInterval(owa_timer);
+        }
+        owa_timer = setInterval(() => {
+            checkOwa(true);
+        }, 5000);
 
         checkOwa();
 
