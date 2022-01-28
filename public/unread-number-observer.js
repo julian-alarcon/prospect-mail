@@ -70,10 +70,13 @@ const observeUnreadHandlers = {
                 console.log('Observer Changed.');
                 require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
                 // Scrape messages and pop up a notification
-                var messages = document.querySelectorAll('div[aria-label="Message list"] [role="listbox"]');
+                var messages = document.querySelectorAll('div[aria-label] [role="listbox"]');
                 if (messages.length) {
                     console.log('Unread messages found');
-                    var unread = messages[0].querySelectorAll('div[aria-label^="Unread"]');
+                    //we need to be multilanguage
+                    var unread =
+                        messages[0].querySelectorAll('div[aria-label^="Unread"]')
+                        || messages[0].querySelectorAll('div[aria-label^="Da leggere"]');
                     var body = "";
                     for (var i = 0; i < unread.length; i++) {
                         if (body.length) {
