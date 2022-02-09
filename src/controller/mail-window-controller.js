@@ -66,116 +66,8 @@ class MailWindowController {
         })
 
         // add right click handler for editor spellcheck
-        this.win.webContents.on('context-menu', (event, params) => {
-            event.preventDefault()
-            //console.log('context-menu', params)
-            let menu = new Menu()
-            if (params && params.dictionarySuggestions) {
-                let show = false
+        this.setupContextMenu(this.win);
 
-                menu.append(new MenuItem({
-                    label: '- Spelling -',
-                    enabled: false
-                }))
-                menu.append(new MenuItem({
-                    type: 'separator'
-                }))
-                if (params.misspelledWord) {
-                    // allow them to add to dictionary
-                    show = true
-                    menu.append(new MenuItem({
-                        label: 'Add to dictionary',
-                        click: () => this.win.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
-                    }))
-                }
-                menu.append(new MenuItem({
-                    type: 'separator'
-                }))
-                if (params.dictionarySuggestions.length > 0) {
-                    show = true
-                    // add each spelling suggestion
-                    for (const suggestion of params.dictionarySuggestions) {
-                        menu.append(new MenuItem({
-                            label: suggestion,
-                            click: () => this.win.webContents.replaceMisspelling(suggestion)
-                        }))
-                    }
-                } else {
-                    // no suggestions
-                    menu.append(new MenuItem({
-                        label: 'No Suggestions',
-                        enabled: false
-                    }))
-                }
-
-                if (!show) {
-                    menu = new Menu() //remove all previuos items
-                }
-            }
-
-            if (menu.items.length > 0) {
-                menu.append(new MenuItem({
-                    type: 'separator'
-                }))
-                menu.append(new MenuItem({
-                    label: '- Edit -',
-                    enabled: false
-                }))
-            }
-            if (params.linkURL) {
-                menu.append(new MenuItem({
-                    label: params.linkURL.length > 50 ? (params.linkURL.substring(0, 50-3) + '...') : params.linkURL,
-                    enabled: false
-                }))
-                menu.append(new MenuItem({
-                    label: 'Copy link url',
-                    enabled: true
-                    , click: (arg) => {
-                        clipboard.writeText(params.linkURL, 'url');
-                    }
-                }))
-                menu.append(new MenuItem({
-                    label: 'Copy link text',
-                    enabled: true
-                    , click: (arg) => {
-                        clipboard.writeText(params.linkText, 'selection');
-                    }
-                }))
-                menu.append(new MenuItem({
-                    type: 'separator'
-                }))
-            }
-            //console.log(params)
-
-            for (const flag in params.editFlags) {
-                let actionLabel = flag.substring(3) //remove "can"
-                if (flag == 'canSelectAll') {
-                    actionLabel = 'Select all'
-                    if (!params.isEditable) {
-                        continue
-                    }
-                }
-                if (flag == 'canUndo' || flag == 'canRedo') {
-                    if (!params.isEditable) {
-                        continue
-                    }
-                }
-                if (flag == 'canEditRichly') {
-                    continue
-                }
-                if (params.editFlags[flag]) {
-                    menu.append(new MenuItem({
-                        label: actionLabel,
-                        enabled: true,
-                        role: flag.substring(3).toLowerCase()
-                    }))
-                }
-            }
-            if (menu.items.length > 0) {
-                menu.popup()
-            }
-
-        })
         // insert styles
         this.win.webContents.on('dom-ready', () => {
             this.win.webContents.insertCSS(getClientFile('main.css'))
@@ -193,6 +85,8 @@ class MailWindowController {
             // insert styles
             childWindow.webContents.on('dom-ready', () => {
                 childWindow.webContents.insertCSS(getClientFile('main.css'))
+
+                this.setupContextMenu(childWindow);
 
                 let that = this
                 if (!showWindowFrame) {
@@ -293,6 +187,119 @@ class MailWindowController {
         initialMinimization.domReady = false
         this.win.show()
         this.win.focus()
+    }
+
+    setupContextMenu(tWin) {
+        tWin.webContents.on('context-menu', (event, params) => {
+            event.preventDefault()
+            //console.log('context-menu', params)
+            let menu = new Menu()
+            if (params && params.dictionarySuggestions) {
+                let show = false
+
+                menu.append(new MenuItem({
+                    label: '- Spelling -',
+                    enabled: false
+                }))
+                menu.append(new MenuItem({
+                    type: 'separator'
+                }))
+                if (params.misspelledWord) {
+                    // allow them to add to dictionary
+                    show = true
+                    menu.append(new MenuItem({
+                        label: 'Add to dictionary',
+                        click: () => tWin.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
+                    }))
+                }
+                menu.append(new MenuItem({
+                    type: 'separator'
+                }))
+                if (params.dictionarySuggestions.length > 0) {
+                    show = true
+                    // add each spelling suggestion
+                    for (const suggestion of params.dictionarySuggestions) {
+                        menu.append(new MenuItem({
+                            label: suggestion,
+                            click: () => tWin.webContents.replaceMisspelling(suggestion)
+                        }))
+                    }
+                } else {
+                    // no suggestions
+                    menu.append(new MenuItem({
+                        label: 'No Suggestions',
+                        enabled: false
+                    }))
+                }
+
+                if (!show) {
+                    menu = new Menu() //remove all previuos items
+                }
+            }
+
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({
+                    type: 'separator'
+                }))
+                menu.append(new MenuItem({
+                    label: '- Edit -',
+                    enabled: false
+                }))
+            }
+            if (params.linkURL) {
+                menu.append(new MenuItem({
+                    label: params.linkURL.length > 50 ? (params.linkURL.substring(0, 50 - 3) + '...') : params.linkURL,
+                    enabled: false
+                }))
+                menu.append(new MenuItem({
+                    label: 'Copy link url',
+                    enabled: true
+                    , click: (arg) => {
+                        clipboard.writeText(params.linkURL, 'url');
+                    }
+                }))
+                menu.append(new MenuItem({
+                    label: 'Copy link text',
+                    enabled: true
+                    , click: (arg) => {
+                        clipboard.writeText(params.linkText, 'selection');
+                    }
+                }))
+                menu.append(new MenuItem({
+                    type: 'separator'
+                }))
+            }
+            //console.log(params)
+
+            for (const flag in params.editFlags) {
+                let actionLabel = flag.substring(3) //remove "can"
+                if (flag == 'canSelectAll') {
+                    actionLabel = 'Select all'
+                    if (!params.isEditable) {
+                        continue
+                    }
+                }
+                if (flag == 'canUndo' || flag == 'canRedo') {
+                    if (!params.isEditable) {
+                        continue
+                    }
+                }
+                if (flag == 'canEditRichly') {
+                    continue
+                }
+                if (params.editFlags[flag]) {
+                    menu.append(new MenuItem({
+                        label: actionLabel,
+                        enabled: true,
+                        role: flag.substring(3).toLowerCase()
+                    }))
+                }
+            }
+            if (menu.items.length > 0) {
+                menu.popup()
+            }
+
+        })
     }
 }
 
