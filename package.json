@@ -46,8 +46,7 @@
   "dependencies": {
     "about-window": "^1.15.2",
     "electron-debug": "^3.2.0",
-    "electron-settings": "^4.0.2",
-    "about-window": "^1.15.2"
+    "electron-settings": "^4.0.2"
   },
   "devDependencies": {
     "electron": "^16.0.2",
@@ -60,7 +59,6 @@
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail",
-      "icon": "build/icons/512x512.png",
       "desktop": {
         "Name": "Prospect Mail",
         "Comment": "Unofficial desktop client for Microsoft Outlook",
@@ -109,7 +107,6 @@
         "dmg"
       ],
       "type": "distribution",
-      "icon": "build/icons/512x512.png",
       "publish": {
         "provider": "github",
         "releaseType": "draft"
@@ -120,7 +117,6 @@
         "nsis",
         "msi"
       ],
-      "icon": "build/icons/512x512.png",
       "publish": {
         "provider": "github",
         "releaseType": "draft"
