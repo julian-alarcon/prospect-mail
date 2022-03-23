@@ -42,10 +42,8 @@ setTimeout(() => {
 
 JsInjector.main = `
 setTimeout(() => {
-    let unreadSpan = document.querySelector('._2HtVv8aUAL5e8b05Rc4I8v');
+    let unreadSpan = document.querySelector('.rh6W3beKQeO3YL0Rsylg');
     require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
-
-    console.log(unreadSpan, unreadSpan.hasChildNodes())
 
     let observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
