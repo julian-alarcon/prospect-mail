@@ -146,6 +146,10 @@ CssInjector.main = `
         padding: 0.5em;
     }
 
+    .TiApUvaZOn0aLkSUHRf7 {
+        overflow-y: inherit !important;
+    }
+
     /* Composing emails */
 
     .LjyW2ttZh2MBrpgJVbXK {

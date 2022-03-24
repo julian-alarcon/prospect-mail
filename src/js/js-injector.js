@@ -101,6 +101,14 @@ setTimeout(() => {
         reminderObserver.observe(reminders[0], { childList: true });
     }
 
+    // Open Teams
+    $("#owaMeetNowButton").unbind();
+    $("#owaMeetNowButton").on("click", (e) => {
+        e.preventDefault();
+        require("electron").ipcRenderer.send('schedule-teams')
+    })
+    
+
 }, 10000);
 `
 

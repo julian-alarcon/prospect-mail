@@ -67,6 +67,11 @@ class MailWindowController {
             notification.show()
         })
 
+        // Open Teams Scheduler
+        ipcMain.on('schedule-teams', (event, arg) => {
+            this.openInBrowser(event, 'https://teams.microsoft.com/l/meeting/new')
+        })
+
         // add right click handler for editor spellcheck
         this.win.webContents.on('context-menu', (event, params) => {
             event.preventDefault()
@@ -218,6 +223,11 @@ class MailWindowController {
             // Open calendar, contacts and tasks in the same window
             e.preventDefault()
             this.loadURL(url)
+        }
+        else if (url == "about:blank#blocked") {
+            // Do nothing
+            e.preventDefault()
+            shell.openExternal("https://teams.microsoft.com/l/meeting/new")
         }
         else {
             // Send everything else to the browser
