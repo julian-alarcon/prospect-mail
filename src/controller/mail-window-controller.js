@@ -34,9 +34,9 @@ class MailWindowController {
             height: 900,
             roundedCorners: true,
             frame: showWindowFrame,
-            transparent: !showWindowFrame,
+            transparent: false,
             autoHideMenuBar: true,
-
+            hasShadow: true,
             show: false,
             title: 'Prospect Mail',
             icon: path.join(__dirname, '../../assets/outlook_linux_black.png'),
@@ -50,6 +50,8 @@ class MailWindowController {
                 affinity: 'main-window'
             }
         })
+
+        this.win.shadow = true;
 
         // and load the index.html of the app.
         this.win.loadURL(outlookUrl)
