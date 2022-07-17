@@ -1,7 +1,7 @@
 {
   "name": "prospect-mail",
   "productName": "Prospect Mail",
-  "version": "0.5.0-beta",
+  "version": "0.5.1-beta",
   "main": "src/main.js",
   "description": "Unofficial desktop client for Microsoft Outlook",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
@@ -94,7 +94,8 @@
         "wayland",
         "upower-observe",
         "removable-media",
-        "mount-observe"
+        "mount-observe",
+        "cups"
       ],
       "publish": [
         "github",
