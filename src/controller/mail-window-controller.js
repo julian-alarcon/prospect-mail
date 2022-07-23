@@ -2,6 +2,7 @@ const { app, BrowserWindow, shell, ipcMain, Menu, MenuItem } = require('electron
 const settings = require('electron-settings')
 const CssInjector = require('../js/css-injector')
 const path = require('path')
+const contextMenu = require('electron-context-menu')
 
 let outlookUrl
 let deeplinkUrls
@@ -13,6 +14,20 @@ let $this
 const initialMinimization = {
     domReady: false
 } 
+
+//right click options
+contextMenu({
+    showLookUpSelection:true,
+    showSearchWithGoogle:true,
+    showCopyImage:true,
+    showCopyImageAddress:true,
+    showSaveImage:true,
+    showSaveLinkAs:true,
+    showInspectElement:true,
+    showLearnSpelling:true,
+    spellcheck:true
+
+});
 
 class MailWindowController {
     constructor() {
