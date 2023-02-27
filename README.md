@@ -72,8 +72,9 @@ need to click in "Reload settings" to apply changes.
 ```json
 {
  "urlMainWindow":"https://customurl.example/"
- ,"urlsInternal":["customurl.example"]
- ,"urlsExternal":["externalurls.example"]
+ ,"deeplinkUrls":["customurl.example"]
+ ,"outlookUrls":["outlookurls.example"]
+ ,"externalUrls": ["externalurls.example"]
  ,"showWindowFrame":true
 }
 ```
@@ -87,10 +88,11 @@ and no issues will be reviewed for personal accounts.
 ```json
 {
     "urlMainWindow":"https://outlook.live.com/mail",
-    "urlsInternal":["outlook.com", "live.com"],
-    "urlsExternal":["outlook.com", "live.com"]
+    "deeplinkUrls":["outlook.com", "live.com"],
+    "outlookUrls":["outlook.com", "live.com"]
 }
 ```
+
 
 ### Architecture components
 

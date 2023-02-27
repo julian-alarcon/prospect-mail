@@ -5,6 +5,7 @@ const path = require('path')
 
 let outlookUrl
 let deeplinkUrls
+let externalUrls
 let outlookUrls
 let showWindowFrame
 let $this
@@ -25,12 +26,14 @@ class MailWindowController {
         showWindowFrame = settings.getSync('showWindowFrame') === undefined || settings.getSync('showWindowFrame')===true
 
         outlookUrl = settings.getSync('urlMainWindow') || 'https://outlook.office.com/mail'
-        deeplinkUrls = settings.getSync('urlsInternal') || ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
-        outlookUrls = settings.getSync('urlsExternal') || ['outlook.live.com', 'outlook.office365.com', 'outlook.office.com']
+        deeplinkUrls = settings.getSync('deeplinkUrls') || ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
+        outlookUrls = settings.getSync('outlookUrls') || ['outlook.live.com', 'outlook.office365.com', 'outlook.office.com']
+        externalUrls = settings.getSync('externalUrls') || ['outlook.office.com/mail/safelink.html']
         console.log('Loaded settings', {
-            outlookUrl: outlookUrl
-            , deeplinkUrls: deeplinkUrls
-            , outlookUrls: outlookUrls
+            outlookUrl: outlookUrl,
+            deeplinkUrls: deeplinkUrls, 
+            outlookUrls: outlookUrls, 
+            externalUrls: externalUrls, 
         })
     }
     init() {
@@ -242,22 +245,27 @@ class MailWindowController {
 
     openInBrowser(e, url, frameName, disposition, options) {
         console.log('Open in browser: ' + url)//frameName,disposition,options)
-        if (new RegExp(deeplinkUrls.join('|')).test(url)) {
-            // Default action - if the user wants to open mail in a new window - let them.
-            //e.preventDefault()
-            console.log('Is deeplink')
-            options.webPreferences.affinity = 'main-window';
+
+        if (!new RegExp(externalUrls.join('|')).test(url)) {
+            if (new RegExp(deeplinkUrls.join('|')).test(url)) {
+                // Default action - if the user wants to open mail in a new window - let them.
+                //e.preventDefault()
+                console.log('Is deeplink, open in main window')
+                options.webPreferences.affinity = 'main-window';
+                return;
+            }
+            if (new RegExp(outlookUrls.join('|')).test(url)) {
+                // Open calendar, contacts and tasks in the same window
+                console.log('Is outlook URL, open in application')
+                e.preventDefault()
+                this.loadURL(url)
+                return;
+            }
         }
-        else if (new RegExp(outlookUrls.join('|')).test(url)) {
-            // Open calendar, contacts and tasks in the same window
-            e.preventDefault()
-            this.loadURL(url)
-        }
-        else {
-            // Send everything else to the browser
-            e.preventDefault()
-            shell.openExternal(url)
-        }
+        // Send everything else to the browser
+        console.log('Is external URL, open in browser')
+        e.preventDefault()
+        shell.openExternal(url)
     }
 
     show() {
