@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "electron": "^25.2.0",
-    "electron-builder": "^23.1.0"
+    "electron-builder": "^24.4.0"
   },
   "build": {
     "appId": "io.github.julian-alarcon.prospect-mail",
