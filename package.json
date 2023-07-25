@@ -86,9 +86,7 @@
       "stagePackages": [
         "default"
       ],
-      "environment": {
-        "DISABLE_WAYLAND": 1
-      },
+      "base": "core22",
       "plugs": [
         "default",
         "screen-inhibit-control",
