@@ -1,7 +1,7 @@
 {
   "name": "prospect-mail",
   "productName": "Prospect Mail",
-  "version": "0.5.1-beta",
+  "version": "0.5.0-beta",
   "main": "src/main.js",
   "description": "Unofficial desktop client for Microsoft Outlook",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
@@ -26,8 +26,8 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "^16.13.0",
-    "yarn": "^1.22.15"
+    "node": "^20.5",
+    "yarn": "^1.22.19"
   },
   "scripts": {
     "start": "electron .",
@@ -46,12 +46,11 @@
   "dependencies": {
     "about-window": "^1.15.2",
     "electron-debug": "^3.2.0",
-    "electron-settings": "^4.0.2",
-    "about-window": "^1.15.2"
+    "electron-settings": "^4.0.2"
   },
   "devDependencies": {
-    "electron": "^16.0.2",
-    "electron-builder": "^22.14.5"
+    "electron": "^25.3",
+    "electron-builder": "^24.6.2"
   },
   "build": {
     "appId": "io.github.julian-alarcon.prospect-mail",

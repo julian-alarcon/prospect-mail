@@ -1,6 +1,6 @@
-const { app, BrowserWindow, shell, ipcMain, Menu, MenuItem } = require('electron')
+const { app, BrowserWindow, shell, ipcMain, Menu, MenuItem, clipboard } = require('electron')
 const settings = require('electron-settings')
-const CssInjector = require('../js/css-injector')
+const getClientFile = require('./client-injector')
 const path = require('path')
 
 let outlookUrl
@@ -12,7 +12,7 @@ let $this
 //Setted by cmdLine to initial minimization
 const initialMinimization = {
     domReady: false
-} 
+}
 
 class MailWindowController {
     constructor() {
@@ -22,7 +22,7 @@ class MailWindowController {
     }
     reloadSettings() {
         // Get configurations.
-        showWindowFrame = settings.getSync('showWindowFrame') === undefined || settings.getSync('showWindowFrame')===true
+        showWindowFrame = settings.getSync('showWindowFrame') === undefined || settings.getSync('showWindowFrame') === true
 
         outlookUrl = settings.getSync('urlMainWindow') || 'https://outlook.office.com/mail'
         deeplinkUrls = settings.getSync('urlsInternal') || ['outlook.live.com/mail/deeplink', 'outlook.office365.com/mail/deeplink', 'outlook.office.com/mail/deeplink', 'outlook.office.com/calendar/deeplink']
@@ -52,8 +52,8 @@ class MailWindowController {
                 spellcheck: true,
                 nativeWindowOpen: true,
                 affinity: 'main-window',
-/*                contextIsolation: false,
-                nodeIntegration: true,*/
+                contextIsolation: false,
+                nodeIntegration: true,
             }
         })
 
@@ -66,61 +66,46 @@ class MailWindowController {
         })
 
         // add right click handler for editor spellcheck
-        this.win.webContents.on('context-menu', (event, params) => {
-            event.preventDefault()
-            var show = false
-            if (params && params.dictionarySuggestions) {
-                const menu = new Menu()
-                menu.append(new MenuItem({
-                    label: 'Spelling',
-                    enabled: false
-                }))
-                menu.append(new MenuItem({
-                    type: 'separator'
-                }))
-                if (params.misspelledWord) {
-                    // allow them to add to dictionary
-                    show = true
-                    menu.append(new MenuItem({
-                        label: 'Add to dictionary',
-                        click: () => this.win.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
-                    }))
-                }
-                menu.append(new MenuItem({
-                    type: 'separator'
-                }))
-                if (params.dictionarySuggestions.length > 0) {
-                    show = true
-                    // add each spelling suggestion
-                    for (const suggestion of params.dictionarySuggestions) {
-                        menu.append(new MenuItem({
-                            label: suggestion,
-                            click: () => this.win.webContents.replaceMisspelling(suggestion)
-                        }))
-                    }
-                } else {
-                    // no suggestions
-                    menu.append(new MenuItem({
-                        label: 'No Suggestions',
-                        enabled: false
-                    }))
-                }
-                if (show) {
-                    menu.popup()
-                }
-            }
-        })
+        this.setupContextMenu(this.win);
 
         // insert styles
         this.win.webContents.on('dom-ready', () => {
-            this.win.webContents.insertCSS(CssInjector.main)
-            if (!showWindowFrame) this.win.webContents.insertCSS(CssInjector.noFrame)
+            this.win.webContents.insertCSS(getClientFile('main.css'))
+            if (!showWindowFrame) {
+                this.win.webContents.insertCSS(getClientFile('no-frame.css'))
+            }
 
             this.addUnreadNumberObserver()
-            console.log('initialMinimization.domReady', initialMinimization.domReady)
             if (!initialMinimization.domReady) {
                 this.win.show()
-            }             
+            }
+        })
+
+        this.win.webContents.on('did-create-window', (childWindow) => {
+            // insert styles
+            childWindow.webContents.on('dom-ready', () => {
+                childWindow.webContents.insertCSS(getClientFile('main.css'))
+
+                this.setupContextMenu(childWindow);
+
+                let that = this
+                if (!showWindowFrame) {
+                    let a = childWindow.webContents.insertCSS(getClientFile('no-frame.css'))
+                    a.then(() => {
+                        childWindow.webContents.executeJavaScript(getClientFile('child-window.js'))
+                            .then(() => {
+                                childWindow.webContents.on('new-window', this.openInBrowser)
+                                childWindow.show()
+                            })
+                            .catch((errJS) => {
+                                console.log('Error JS Insertion:', errJS)
+                            })
+                    })
+                        .catch((err) => {
+                            console.log('Error CSS Insertion:', err)
+                        })
+                }
+            })
         })
 
         // prevent the app quit, hide the window instead.
@@ -136,8 +121,7 @@ class MailWindowController {
 
         // prevent the app minimze, hide the window instead.
         this.win.on('minimize', (e) => {
-            console.log('minimize',settings.getSync('hideOnMinimize'))
-            if (settings.getSync('hideOnMinimize') === undefined || settings.getSync('hideOnMinimize')===true) {
+            if (settings.getSync('hideOnMinimize') === undefined || settings.getSync('hideOnMinimize') === true) {
                 e.preventDefault()
                 this.win.hide()
             }
@@ -158,68 +142,8 @@ class MailWindowController {
         // Open the new window in external browser
         this.win.webContents.on('new-window', this.openInBrowser)
     }
-
     addUnreadNumberObserver() {
-        this.win.webContents.executeJavaScript(`
-            setTimeout(() => {
-                let unreadSpan = document.querySelector('._2iKri0mE1PM9vmRn--wKyI, ._n_J4._n_F4 .ms-fcl-tp');
-                require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
-
-                let observer = new MutationObserver(mutations => {
-                    mutations.forEach(mutation => {
-                        console.log('Observer Changed.');
-                        require('electron').ipcRenderer.send('updateUnread', unreadSpan.hasChildNodes());
-
-                        // Scrape messages and pop up a notification
-                        var messages = document.querySelectorAll('div[role="listbox"][aria-label="Message list"]');
-                        if (messages.length)
-                        {
-                            var unread = messages[0].querySelectorAll('div[aria-label^="Unread"]');
-                            var body = "";
-                            for (var i = 0; i < unread.length; i++)
-                            {
-                                if (body.length)
-                                {
-                                    body += "\\n";
-                                }
-                                body += unread[i].getAttribute("aria-label").substring(7, 127);
-                            }
-                            if (unread.length)
-                            {
-                                var notification = new Notification(unread.length + " New Messages", {
-                                    body: body,
-                                    icon: "assets/outlook_linux_black.png"
-                                });
-                                notification.onclick = () => {
-                                    require('electron').ipcRenderer.send('show');
-                                };
-                            }
-                        }
-                    });
-                });
-            
-                observer.observe(unreadSpan, {childList: true});
-
-                // If the div containing reminders gets taller we probably got a new
-                // reminder, so force the window to the top.
-                let reminders = document.getElementsByClassName("_1BWPyOkN5zNVyfbTDKK1gM");
-                let height = 0;
-                let reminderObserver = new MutationObserver(mutations => {
-                    mutations.forEach(mutation => {
-                        if (reminders[0].clientHeight > height)
-                        {
-                            require('electron').ipcRenderer.send('show');
-                        }
-                        height = reminders[0].clientHeight;
-                    });
-                });
-
-                if (reminders.length) {
-                    reminderObserver.observe(reminders[0], { childList: true });
-                }
-
-            }, 10000);
-        `)
+        this.win.webContents.executeJavaScript(getClientFile('unread-number-observer.js'))
     }
 
     toggleWindow() {
@@ -230,7 +154,6 @@ class MailWindowController {
         if (/*this.win.isFocused() && */this.win.isVisible()) {
             this.win.hide()
         } else {
-            console.log('toggleWindow')
             initialMinimization.domReady = false
             this.show()
         }
@@ -264,6 +187,119 @@ class MailWindowController {
         initialMinimization.domReady = false
         this.win.show()
         this.win.focus()
+    }
+
+    setupContextMenu(tWin) {
+        tWin.webContents.on('context-menu', (event, params) => {
+            event.preventDefault()
+            //console.log('context-menu', params)
+            let menu = new Menu()
+            if (params && params.dictionarySuggestions) {
+                let show = false
+
+                menu.append(new MenuItem({
+                    label: '- Spelling -',
+                    enabled: false
+                }))
+                menu.append(new MenuItem({
+                    type: 'separator'
+                }))
+                if (params.misspelledWord) {
+                    // allow them to add to dictionary
+                    show = true
+                    menu.append(new MenuItem({
+                        label: 'Add to dictionary',
+                        click: () => tWin.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
+                    }))
+                }
+                menu.append(new MenuItem({
+                    type: 'separator'
+                }))
+                if (params.dictionarySuggestions.length > 0) {
+                    show = true
+                    // add each spelling suggestion
+                    for (const suggestion of params.dictionarySuggestions) {
+                        menu.append(new MenuItem({
+                            label: suggestion,
+                            click: () => tWin.webContents.replaceMisspelling(suggestion)
+                        }))
+                    }
+                } else {
+                    // no suggestions
+                    menu.append(new MenuItem({
+                        label: 'No Suggestions',
+                        enabled: false
+                    }))
+                }
+
+                if (!show) {
+                    menu = new Menu() //remove all previuos items
+                }
+            }
+
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({
+                    type: 'separator'
+                }))
+                menu.append(new MenuItem({
+                    label: '- Edit -',
+                    enabled: false
+                }))
+            }
+            if (params.linkURL) {
+                menu.append(new MenuItem({
+                    label: params.linkURL.length > 50 ? (params.linkURL.substring(0, 50 - 3) + '...') : params.linkURL,
+                    enabled: false
+                }))
+                menu.append(new MenuItem({
+                    label: 'Copy link url',
+                    enabled: true
+                    , click: (arg) => {
+                        clipboard.writeText(params.linkURL, 'url');
+                    }
+                }))
+                menu.append(new MenuItem({
+                    label: 'Copy link text',
+                    enabled: true
+                    , click: (arg) => {
+                        clipboard.writeText(params.linkText, 'selection');
+                    }
+                }))
+                menu.append(new MenuItem({
+                    type: 'separator'
+                }))
+            }
+            //console.log(params)
+
+            for (const flag in params.editFlags) {
+                let actionLabel = flag.substring(3) //remove "can"
+                if (flag == 'canSelectAll') {
+                    actionLabel = 'Select all'
+                    if (!params.isEditable) {
+                        continue
+                    }
+                }
+                if (flag == 'canUndo' || flag == 'canRedo') {
+                    if (!params.isEditable) {
+                        continue
+                    }
+                }
+                if (flag == 'canEditRichly') {
+                    continue
+                }
+                if (params.editFlags[flag]) {
+                    menu.append(new MenuItem({
+                        label: actionLabel,
+                        enabled: true,
+                        role: flag.substring(3).toLowerCase()
+                    }))
+                }
+            }
+            if (menu.items.length > 0) {
+                menu.popup()
+            }
+
+        })
     }
 }
 
