@@ -59,7 +59,6 @@
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail",
-      "icon": "build/icons/512x512.png",
       "desktop": {
         "Name": "Prospect Mail",
         "Comment": "Unofficial desktop client for Microsoft Outlook",
@@ -106,8 +105,8 @@
       "target": [
         "dmg"
       ],
+      "icon":"build/icon.icns",
       "type": "distribution",
-      "icon": "build/icons/512x512.png",
       "publish": {
         "provider": "github",
         "releaseType": "draft"
@@ -118,7 +117,6 @@
         "nsis",
         "msi"
       ],
-      "icon": "build/icons/512x512.png",
       "publish": {
         "provider": "github",
         "releaseType": "draft"
