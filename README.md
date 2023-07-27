@@ -1,6 +1,6 @@
 # Prospect Mail client
 
-<img src="build/icons/128x128.png" alt="logo" height="80" align="center" />
+<img src="build/icon.png" alt="logo" height="80" align="center" />
 
 [![builds](https://github.com/julian-alarcon/prospect-mail/actions/workflows/release.yml/badge.svg)](https://github.com/julian-alarcon/prospect-mail/actions)
 [![releases](https://badgen.net/github/release/julian-alarcon/prospect-mail/)](https://github.com/julian-alarcon/prospect-mail/releases/latest)
