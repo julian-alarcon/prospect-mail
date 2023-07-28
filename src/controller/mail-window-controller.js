@@ -58,7 +58,7 @@ class MailWindowController {
         })
 
         // and load the index.html of the app.
-        this.win.loadURL(outlookUrl)
+        this.win.loadURL(outlookUrl,{userAgent: 'Chrome'});
 
         // Show window handler
         ipcMain.on('show', (event) => {
@@ -194,58 +194,7 @@ class MailWindowController {
             event.preventDefault()
             //console.log('context-menu', params)
             let menu = new Menu()
-            if (params && params.dictionarySuggestions) {
-                let show = false
 
-                menu.append(new MenuItem({
-                    label: '- Spelling -',
-                    enabled: false
-                }))
-                menu.append(new MenuItem({
-                    type: 'separator'
-                }))
-                if (params.misspelledWord) {
-                    // allow them to add to dictionary
-                    show = true
-                    menu.append(new MenuItem({
-                        label: 'Add to dictionary',
-                        click: () => tWin.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
-                    }))
-                }
-                menu.append(new MenuItem({
-                    type: 'separator'
-                }))
-                if (params.dictionarySuggestions.length > 0) {
-                    show = true
-                    // add each spelling suggestion
-                    for (const suggestion of params.dictionarySuggestions) {
-                        menu.append(new MenuItem({
-                            label: suggestion,
-                            click: () => tWin.webContents.replaceMisspelling(suggestion)
-                        }))
-                    }
-                } else {
-                    // no suggestions
-                    menu.append(new MenuItem({
-                        label: 'No Suggestions',
-                        enabled: false
-                    }))
-                }
-
-                if (!show) {
-                    menu = new Menu() //remove all previuos items
-                }
-            }
-
-            if (menu.items.length > 0) {
-                menu.append(new MenuItem({
-                    type: 'separator'
-                }))
-                menu.append(new MenuItem({
-                    label: '- Edit -',
-                    enabled: false
-                }))
-            }
             if (params.linkURL) {
                 menu.append(new MenuItem({
                     label: params.linkURL.length > 50 ? (params.linkURL.substring(0, 50 - 3) + '...') : params.linkURL,
@@ -264,9 +213,6 @@ class MailWindowController {
                     , click: (arg) => {
                         clipboard.writeText(params.linkText, 'selection');
                     }
-                }))
-                menu.append(new MenuItem({
-                    type: 'separator'
                 }))
             }
             //console.log(params)

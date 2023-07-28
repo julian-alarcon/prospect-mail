@@ -63,6 +63,7 @@ For other distributions please follow your specific steps.
 * Dock tray support
 * System notification
 * Connect to standard or custom outlook url
+* Spellcheck using native Outlook MS Editor
 
 ## Settings
 
