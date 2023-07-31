@@ -88,12 +88,11 @@
       "base": "core22",
       "plugs": [
         "default",
-        "screen-inhibit-control",
-        "wayland",
-        "upower-observe",
-        "removable-media",
+        "cups",
         "mount-observe",
-        "cups"
+        "removable-media",
+        "screen-inhibit-control",
+        "upower-observe"
       ],
       "publish": [
         "github",
@@ -105,7 +104,7 @@
       "target": [
         "dmg"
       ],
-      "icon":"build/icon.icns",
+      "icon": "build/icon.icns",
       "type": "distribution",
       "publish": {
         "provider": "github",
