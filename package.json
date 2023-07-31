@@ -97,7 +97,8 @@
       "publish": [
         "github",
         "snapStore"
-      ]
+      ],
+      "allowNativeWayland": true
     },
     "mac": {
       "category": "public.app-category.productivity",
