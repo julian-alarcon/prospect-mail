@@ -17,10 +17,10 @@ The application can be downloaded from [here](https://github.com/julian-alarcon/
 
 Select the appropriated file depending on your OS:
 
-* Windows: `.exe` file or `.msi` file
-* macOS: `.dmg` file
-* Linux: Multiple artifacts are available, please choose your needed one (deb,
-rpm, AppImage, snap, pacman) depending on your Linux Distribution.
+- Windows: `.exe` file or `.msi` file
+- macOS: `.dmg` file
+- Linux: Multiple artifacts are available, please choose your needed one (deb,
+  rpm, AppImage, snap, pacman) depending on your Linux Distribution.
 
 ## Installation
 
@@ -57,25 +57,25 @@ For other distributions please follow your specific steps.
 
 ## Features
 
-* Receive your Outlook Microsoft 365 online from the desktop app
-* Close to minimize
-* Start as minimized (you can use the Option in the Tray icon menu or start app with `prospect-mail --minimized`)
-* Dock tray support
-* System notification
-* Connect to standard or custom outlook url
-* Spellcheck using native Outlook MS Editor
+- Receive your Outlook Microsoft 365 online from the desktop app
+- Close to minimize
+- Start as minimized (you can use the Option in the Tray icon menu or start app with `prospect-mail --minimized`)
+- Dock tray support
+- System notification
+- Connect to standard or custom outlook url
+- Spellcheck using native Outlook MS Editor
 
 ## Settings
 
-* Via tray menu settings.json can be opened and edited. After every save you
-need to click in "Reload settings" to apply changes.
+- Via tray menu settings.json can be opened and edited. After every save you
+  need to click in "Reload settings" to apply changes.
 
 ```json
 {
- "urlMainWindow":"https://customurl.example/"
- ,"urlsInternal":["customurl.example"]
- ,"urlsExternal":["externalurls.example"]
- ,"showWindowFrame":true
+  "urlMainWindow": "https://customurl.example/",
+  "urlsInternal": ["customurl.example"],
+  "urlsExternal": ["externalurls.example"],
+  "showWindowFrame": true
 }
 ```
 
@@ -83,13 +83,13 @@ As an example, this configuration will let you use Prospect with personal
 Outlook.com account:
 
 > Please notice that Prospect Mail is only tested in Work/Educational accounts
-and no issues will be reviewed for personal accounts.
+> and no issues will be reviewed for personal accounts.
 
 ```json
 {
-    "urlMainWindow":"https://outlook.live.com/mail",
-    "urlsInternal":["outlook.com", "live.com"],
-    "urlsExternal":["outlook.com", "live.com"]
+  "urlMainWindow": "https://outlook.live.com/mail",
+  "urlsInternal": ["outlook.com", "live.com"],
+  "urlsExternal": ["outlook.com", "live.com"]
 }
 ```
 
@@ -97,12 +97,12 @@ and no issues will be reviewed for personal accounts.
 
 The main software architecture components and their versions are this:
 
-* [Node.js](https://nodejs.org/en/) version: 20.x
-* [yarn](https://yarnpkg.com/) version: 1.22.x or newer
-* [electron](http://electronjs.org/) version: 25.x
-* [electron-builder](https://www.electron.build/) version: 24.6.x
-* [electron-settings](https://github.com/nathanbuchar/electron-settings)
-version: 4.0.2
+- [Node.js](https://nodejs.org/en/) version: 20.x
+- [yarn](https://yarnpkg.com/) version: 1.22.x or newer
+- [electron](http://electronjs.org/) version: 25.x
+- [electron-builder](https://www.electron.build/) version: 24.6.x
+- [electron-settings](https://github.com/nathanbuchar/electron-settings)
+  version: 4.0.2
 
 ## Build
 
@@ -141,8 +141,8 @@ yarn run dist:mac
 
 Once it was builded, or using the release files available, you can install the
 files using [AppImage process](https://docs.appimage.org/user-guide/faq.html#question-how-do-i-run-an-appimage),
-using .deb ```sudo dpkg -i prospect-mail_x.y.z_arch.deb``` or using the snap
-file ```sudo snap install prospect-mail_x.y.z_arch.snap --dangerous```.
+using .deb `sudo dpkg -i prospect-mail_x.y.z_arch.deb` or using the snap
+file `sudo snap install prospect-mail_x.y.z_arch.snap --dangerous`.
 
 ## Release to Public
 
@@ -152,7 +152,7 @@ steps defined by [action-electron-builder](https://github.com/samuelmeuli/action
 1. Define version in package.json. E.g. `0.4.0`
 1. Add commit with changes. E.g. `git commit -am v0.4.0`
 1. Tag the commit. E.g. `git tag v0.4.0`. Don't forget the `v` as suffix of the
-version.
+   version.
 1. Push changes including tags `git push && git push --tags`
 
 ## Manual release to Snapstore

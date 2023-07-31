@@ -1,6 +1,6 @@
 name: Build/release
 
-on: [push,pull_request]
+on: [push, pull_request]
 
 jobs:
   release:
@@ -18,7 +18,7 @@ jobs:
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: 20
 
       - name: Install Snapcraft
         uses: samuelmeuli/action-snapcraft@v1
