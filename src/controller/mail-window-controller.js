@@ -11,9 +11,10 @@ const settings = require("electron-settings");
 const getClientFile = require("./client-injector");
 const path = require("path");
 
-let outlookUrl;
+let mainMailServiceUrl;
 let deeplinkUrls;
-let outlookUrls;
+let safelinksUrls;
+let mailServicesUrls;
 let showWindowFrame;
 let $this;
 
@@ -34,23 +35,41 @@ class MailWindowController {
       settings.getSync("showWindowFrame") === undefined ||
       settings.getSync("showWindowFrame") === true;
 
-    outlookUrl =
+    mainMailServiceUrl =
       settings.getSync("urlMainWindow") || "https://outlook.office.com/mail";
     deeplinkUrls = settings.getSync("urlsInternal") || [
       "outlook.live.com/mail/deeplink",
       "outlook.office365.com/mail/deeplink",
       "outlook.office.com/mail/deeplink",
       "outlook.office.com/calendar/deeplink",
+      "to-do.office.com/tasks"
     ];
-    outlookUrls = settings.getSync("urlsExternal") || [
+    mailServicesUrls = settings.getSync("urlsExternal") || [
       "outlook.live.com",
       "outlook.office365.com",
-      "outlook.office.com",
+      "outlook.office.com"
     ];
+    // // Outlook.com personal accounts tests values
+    // mainMailServiceUrl =
+    //   settings.getSync("urlMainWindow") || "https://login.live.com/login.srf";
+    // deeplinkUrls = settings.getSync("urlsInternal") || [
+    //   "outlook.com",
+    //   "live.com",
+    // ];
+    // mailServicesUrls = settings.getSync("urlsExternal") || [
+    //   "outlook.com",
+    //   "live.com",
+    // ];
+    safelinksUrls = settings.getSync("safelinksUrls") || [
+      "outlook.office.com/mail/safelink.html",
+      "safelinks.protection.outlook.com",
+    ];
+
     console.log("Loaded settings", {
-      outlookUrl: outlookUrl,
+      mainMailServiceUrl: mainMailServiceUrl,
       deeplinkUrls: deeplinkUrls,
-      outlookUrls: outlookUrls,
+      mailServicesUrls: mailServicesUrls,
+      safelinksUrls: safelinksUrls,
     });
   }
   init() {
@@ -70,7 +89,6 @@ class MailWindowController {
       icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
       webPreferences: {
         spellcheck: true,
-        nativeWindowOpen: true,
         affinity: "main-window",
         contextIsolation: false,
         nodeIntegration: true,
@@ -78,7 +96,7 @@ class MailWindowController {
     });
 
     // and load the index.html of the app.
-    this.win.loadURL(outlookUrl, { userAgent: "Chrome" });
+    this.win.loadURL(mainMailServiceUrl, { userAgent: "Chrome" });
 
     // Show window handler
     ipcMain.on("show", (event) => {
@@ -101,33 +119,46 @@ class MailWindowController {
       }
     });
 
-    this.win.webContents.on("did-create-window", (childWindow) => {
-      // insert styles
-      childWindow.webContents.on("dom-ready", () => {
-        childWindow.webContents.insertCSS(getClientFile("main.css"));
-
-        this.setupContextMenu(childWindow);
-
-        let that = this;
-        if (!showWindowFrame) {
-          let a = childWindow.webContents.insertCSS(
-            getClientFile("no-frame.css")
-          );
-          a.then(() => {
-            childWindow.webContents
-              .executeJavaScript(getClientFile("child-window.js"))
-              .then(() => {
-                childWindow.webContents.on("new-window", this.openInBrowser);
-                childWindow.show();
-              })
-              .catch((errJS) => {
-                console.log("Error JS Insertion:", errJS);
-              });
-          }).catch((err) => {
-            console.log("Error CSS Insertion:", err);
-          });
-        }
-      });
+    this.win.webContents.setWindowOpenHandler(({ url }) => {
+      console.log(url);
+      // If url is a detatch from outlook then open in small window
+      if (url === "about:blank") {
+        return {
+          action: "allow",
+          overrideBrowserWindowOptions: {
+            autoHideMenuBar: true,
+          },
+        };
+      }
+      // Open MS Safe Links in local browser
+      if (new RegExp(safelinksUrls.join("|")).test(url)) {
+        shell.openExternal(url);
+        return {
+          action: "deny",
+        };
+      }
+      // If deeplink is detected, open it in new detached window from app
+      if (new RegExp(deeplinkUrls.join("|")).test(url)) {
+        return {
+          action: "allow",
+          overrideBrowserWindowOptions: {
+            autoHideMenuBar: true,
+          },
+        };
+      }
+      // Check if the URL matches any mailServicesUrls for outlook.com
+      if (new RegExp(mailServicesUrls.join("|")).test(url)) {
+        // Open main MS365 apps the same window
+        safelinksUrls
+        this.win.loadURL(url)
+        return {
+          action: "deny",
+        };
+      }
+      shell.openExternal(url);
+      return {
+        action: "deny",
+      };
     });
 
     // prevent the app quit, hide the window instead.
@@ -166,9 +197,6 @@ class MailWindowController {
       }
       global.preventAutoCloseApp = false;
     });
-
-    // Open the new window in external browser
-    this.win.webContents.on("new-window", this.openInBrowser);
   }
   addUnreadNumberObserver() {
     this.win.webContents.executeJavaScript(
@@ -191,24 +219,6 @@ class MailWindowController {
   reloadWindow() {
     initialMinimization.domReady = false;
     this.win.reload();
-  }
-
-  openInBrowser(e, url, frameName, disposition, options) {
-    console.log("Open in browser: " + url); //frameName,disposition,options)
-    if (new RegExp(deeplinkUrls.join("|")).test(url)) {
-      // Default action - if the user wants to open mail in a new window - let them.
-      //e.preventDefault()
-      console.log("Is deeplink");
-      options.webPreferences.affinity = "main-window";
-    } else if (new RegExp(outlookUrls.join("|")).test(url)) {
-      // Open calendar, contacts and tasks in the same window
-      e.preventDefault();
-      this.loadURL(url);
-    } else {
-      // Send everything else to the browser
-      e.preventDefault();
-      shell.openExternal(url);
-    }
   }
 
   show() {
@@ -253,7 +263,6 @@ class MailWindowController {
         );
       }
       //console.log(params)
-
       for (const flag in params.editFlags) {
         let actionLabel = flag.substring(3); //remove "can"
         if (flag == "canSelectAll") {
