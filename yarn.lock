@@ -686,10 +686,10 @@ electron-settings@^4.0.2:
     mkdirp "^1.0.4"
     write-file-atomic "^3.0.3"
 
-electron@^25.3:
-  version "25.4.0"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-25.4.0.tgz#d45b1cf3e4e96eb5bff5fee704d7aa13b532f3a5"
-  integrity sha512-VLTRxDhL4UvQbqM7pTNENnJo62cdAPZT92N+B7BZQ5Xfok1wuVPEewIjBot4K7U3EpLUuHn1veeLzho3ihiP+Q==
+electron@^26.2:
+  version "26.2.1"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-26.2.1.tgz#2ef86c03d9753647622bb9a53c4213fb290e5eac"
+  integrity sha512-SNT24Cf/wRvfcFZQoERXjzswUlg5ouqhIuA2t9x2L7VdTn+2Jbs0QXRtOfzcnOV/raVMz3e8ICyaU2GGeciKLg==
   dependencies:
     "@electron/get" "^2.0.0"
     "@types/node" "^18.11.18"
