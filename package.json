@@ -26,8 +26,8 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "^16.13.0",
-    "yarn": "^1.22.15"
+    "node": "^20.5",
+    "yarn": "^1.22.19"
   },
   "scripts": {
     "start": "electron .",
@@ -46,12 +46,11 @@
   "dependencies": {
     "about-window": "^1.15.2",
     "electron-debug": "^3.2.0",
-    "electron-settings": "^4.0.2",
-    "about-window": "^1.15.2"
+    "electron-settings": "^4.0.2"
   },
   "devDependencies": {
-    "electron": "^16.0.2",
-    "electron-builder": "^22.14.5"
+    "electron": "^25.3",
+    "electron-builder": "^24.6.2"
   },
   "build": {
     "appId": "io.github.julian-alarcon.prospect-mail",
@@ -60,7 +59,6 @@
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail",
-      "icon": "build/icons/512x512.png",
       "desktop": {
         "Name": "Prospect Mail",
         "Comment": "Unofficial desktop client for Microsoft Outlook",
@@ -87,29 +85,28 @@
       "stagePackages": [
         "default"
       ],
-      "environment": {
-        "DISABLE_WAYLAND": 1
-      },
+      "base": "core22",
       "plugs": [
         "default",
-        "screen-inhibit-control",
-        "wayland",
-        "upower-observe",
+        "cups",
+        "mount-observe",
         "removable-media",
-        "mount-observe"
+        "screen-inhibit-control",
+        "upower-observe"
       ],
       "publish": [
         "github",
         "snapStore"
-      ]
+      ],
+      "allowNativeWayland": true
     },
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
         "dmg"
       ],
+      "icon": "build/icon.icns",
       "type": "distribution",
-      "icon": "build/icons/512x512.png",
       "publish": {
         "provider": "github",
         "releaseType": "draft"
@@ -120,7 +117,6 @@
         "nsis",
         "msi"
       ],
-      "icon": "build/icons/512x512.png",
       "publish": {
         "provider": "github",
         "releaseType": "draft"
