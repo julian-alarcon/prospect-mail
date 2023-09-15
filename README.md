@@ -9,7 +9,7 @@ The Outlook desktop client for the
 [new Outlook Interface](https://www.microsoft.com/en-us/microsoft-365/blog/2018/06/13/power-and-simplicity-updates-to-the-office-365-user-experience/)
 from Microsoft 365.
 
-Available for Linux , Windows and macOS.
+Available for Linux, Windows (10+) and macOS.
 
 ## Download
 
@@ -72,10 +72,11 @@ For other distributions please follow your specific steps.
 
 ```json
 {
-  "urlMainWindow": "https://customurl.example/",
-  "urlsInternal": ["customurl.example"],
-  "urlsExternal": ["externalurls.example"],
-  "showWindowFrame": true
+ "mainMailServiceUrl":"https://customurl.example/",
+ "deeplinkUrls":["customurl.example"],
+ "mailServicesUrls":["mailServicesUrls.example"],
+ "safelinksUrls": ["safelinksUrls.example"],
+ "showWindowFrame":true
 }
 ```
 
@@ -87,9 +88,9 @@ Outlook.com account:
 
 ```json
 {
-  "urlMainWindow": "https://outlook.live.com/mail",
-  "urlsInternal": ["outlook.com", "live.com"],
-  "urlsExternal": ["outlook.com", "live.com"]
+  "mainMailServiceUrl": "https://login.live.com/login.srf",
+  "deeplinkUrls": ["outlook.com", "live.com"],
+  "mailServicesUrls": ["outlook.com", "live.com"]
 }
 ```
 
