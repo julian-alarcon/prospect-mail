@@ -1,8 +1,10 @@
 let owa_timer;
 const observeUnreadHandlers = {
   consumer: () => {
-    const unreadSpan = document.querySelector("._2iKri0mE1PM9vmRn--wKyI");
+    // Notification DOM elements  in the top right
+    const unreadSpan = document.querySelector("._19RqVuyYJ8MMsIOLN6_XRh");
     if (!unreadSpan) {
+      console.log(`No notification found for consumer`);
       return false;
     }
 
@@ -74,6 +76,7 @@ const observeUnreadHandlers = {
   consumer_2: () => {
     let unreadSpan = document.querySelector("._2HtVv8aUAL5e8b05Rc4I8v");
     if (!unreadSpan) {
+      console.log(`No notification found for consumer_2`);
       return false;
     }
     require("electron").ipcRenderer.send(
@@ -140,16 +143,22 @@ const observeUnreadHandlers = {
     return true; //successfully attached
   },
   owa: () => {
-    const unreadSpan = document.querySelector("._n_J4._n_F4 .ms-fcl-tp");
+    // Check the number of unread messages for Inbox Folder
+    const unreadSpan = document.querySelector(".C2IG3.LPIso.oTkSL.iDEcr.wk4Sg .o03Ce .BptzE.e0wpX.WIYG1 .WIYG1.Mt2TB");
     if (!unreadSpan) {
+      console.log(`No notification found for owa`);
       return false;
     }
     let lastcheck;
     const checkOwa = (checkonlyzerounread) => {
-      const unread = document.querySelectorAll(
-        "._n_J4._n_F4 .ms-fcl-tp"
-      ).length;
-
+      if (unreadSpan) {
+        let unread = parseInt(unreadSpan.textContent, 10);
+        console.log(unread);
+      } else {
+        console.log("Not a valid number for unread messages.");
+        return false;
+      }
+      unread = parseInt(unreadSpan.textContent, 10);
       if (unread > 0 || !checkonlyzerounread) {
         require("electron").ipcRenderer.send("updateUnread", unread);
 
@@ -171,7 +180,7 @@ const observeUnreadHandlers = {
       }
     };
 
-    const leftPanel = document.querySelector(".ms-bgc-nlr");
+    const leftPanel = document.querySelector(".slWCo.ou4TM");
     console.log("Begin observe leftPanel: ", leftPanel);
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
