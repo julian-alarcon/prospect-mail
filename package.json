@@ -35,6 +35,7 @@
     "pack": "electron-builder --dir",
     "dist:linux": "electron-builder --linux",
     "dist:linux:appimage": "electron-builder --linux AppImage",
+    "dist:linux:deb": "electron-builder --linux deb",
     "dist:linux:snap": "electron-builder --linux snap",
     "dist:linux:pacman": "electron-builder --linux pacman",
     "dist:mac": "electron-builder --mac",
