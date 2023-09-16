@@ -1,82 +1,78 @@
 let owa_timer;
 const observeUnreadHandlers = {
-  consumer: () => {
-    // Notification DOM elements  in the top right
-    const unreadSpan = document.querySelector("._19RqVuyYJ8MMsIOLN6_XRh");
+  owa: () => {
+    // Check the number of unread messages for Inbox Folder
+    const unreadSpan = document.querySelector(".C2IG3.LPIso.oTkSL.iDEcr .o03Ce .BptzE.e0wpX.WIYG1 .WIYG1.Mt2TB");
     if (!unreadSpan) {
-      console.log(`No notification found for consumer`);
+      console.log(`No notification found for owa`);
       return false;
     }
+    let lastcheck;
+    const checkOwa = (checkonlyzerounread) => {
+      if (unreadSpan) {
+        let unread = parseInt(unreadSpan.textContent, 10);
+        console.log(unread);
+      } else {
+        console.log("Not a valid number for unread messages.");
+        return false;
+      }
+      unread = parseInt(unreadSpan.textContent, 10);
+      if (unread > 0 || !checkonlyzerounread) {
+        require("electron").ipcRenderer.send("updateUnread", unread);
 
-    //Default standard outlook url-site
-    require("electron").ipcRenderer.send(
-      "updateUnread",
-      unreadSpan.hasChildNodes()
-    );
-    let observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        console.log("Observer Changed.");
-        require("electron").ipcRenderer.send(
-          "updateUnread",
-          unreadSpan.hasChildNodes()
-        );
-
-        // Scrape messages and pop up a notification
-        var messages = document.querySelectorAll(
-          'div[role="listbox"][aria-label="Message list"]'
-        );
-        if (messages.length) {
-          var unread = messages[0].querySelectorAll(
-            'div[aria-label^="Unread"]'
-          );
-          var body = "";
-          for (var i = 0; i < unread.length; i++) {
-            if (body.length) {
-              body += "\\n";
-            }
-            body += unread[i].getAttribute("aria-label").substring(7, 127);
-          }
-          if (unread.length) {
-            var notification = new Notification(
-              unread.length + " New Messages",
-              {
-                body: body,
+        if (unread > 0 && !checkonlyzerounread) {
+          //do not spam notification
+          if (!lastcheck || new Date() - lastcheck > 500) {
+            console.log(new Date());
+            console.log(lastcheck);
+            console.log(new Date() - lastcheck);
+            if (!document.hasFocus()) {
+              var notification = new Notification("Prospect Mail: New Messages", {
+                body: "There are " + unread + " unread messages.",
                 icon: "assets/outlook_linux_black.png",
-              }
-            );
-            notification.onclick = () => {
-              require("electron").ipcRenderer.send("show");
-            };
+              });
+              notification.onclick = () => {
+                require("electron").ipcRenderer.send("show");
+              };
+            }
+            lastcheck = new Date();
           }
         }
-      });
-    });
+      }
+    };
 
-    observer.observe(unreadSpan, { childList: true });
-
-    // If the div containing reminders gets taller we probably got a new
-    // reminder, so force the window to the top.
-    let reminders = document.getElementsByClassName("_1BWPyOkN5zNVyfbTDKK1gM");
-    let height = 0;
-    let reminderObserver = new MutationObserver((mutations) => {
+    const leftPanel = document.querySelector(".slWCo.ou4TM");
+    console.log("Begin observe leftPanel: ", leftPanel);
+    const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        if (reminders[0].clientHeight > height) {
-          require("electron").ipcRenderer.send("show");
-        }
-        height = reminders[0].clientHeight;
+        waitForFinalEvent(checkOwa, 1000, "mutation detected");
       });
     });
 
-    if (reminders.length) {
-      reminderObserver.observe(reminders[0], { childList: true });
+    observer.observe(leftPanel, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+    });
+
+    //observer cannot catch all changes, use timer to handle ZERO unreadmessages
+    if (owa_timer) {
+      clearInterval(owa_timer);
     }
+    owa_timer = setInterval(() => {
+      checkOwa(true);
+    }, 5000);
+
+    checkOwa();
+
     return true; //successfully attached
   },
-  // @joax implmenetation, maybe this is an update or consumer
+
+  // @joax implementation, maybe this is an update or consumer
   consumer_2: () => {
-    let unreadSpan = document.querySelector("._2HtVv8aUAL5e8b05Rc4I8v");
+    let unreadSpan = document.querySelector(".ki0YS.bSYaw_");
     if (!unreadSpan) {
-      console.log(`No notification found for consumer_2`);
+      console.log(`No notification found for Calendars/Alerts`);
       return false;
     }
     require("electron").ipcRenderer.send(
@@ -127,7 +123,8 @@ const observeUnreadHandlers = {
     observer.observe(unreadSpan, { childList: true });
     // If the div containing reminders gets taller we probably got a new
     // reminder, so force the window to the top.
-    let reminders = document.getElementsByClassName("_3PvwGqXAizENgzsKVa_JPJ");
+    let reminders = document.getElementsByClassName(".ki0YS.bSYw_");
+    console.log(reminders);
     let height = 0;
     let reminderObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -140,70 +137,6 @@ const observeUnreadHandlers = {
     if (reminders.length) {
       reminderObserver.observe(reminders[0], { childList: true });
     }
-    return true; //successfully attached
-  },
-  owa: () => {
-    // Check the number of unread messages for Inbox Folder
-    const unreadSpan = document.querySelector(".C2IG3.LPIso.oTkSL.iDEcr.wk4Sg .o03Ce .BptzE.e0wpX.WIYG1 .WIYG1.Mt2TB");
-    if (!unreadSpan) {
-      console.log(`No notification found for owa`);
-      return false;
-    }
-    let lastcheck;
-    const checkOwa = (checkonlyzerounread) => {
-      if (unreadSpan) {
-        let unread = parseInt(unreadSpan.textContent, 10);
-        console.log(unread);
-      } else {
-        console.log("Not a valid number for unread messages.");
-        return false;
-      }
-      unread = parseInt(unreadSpan.textContent, 10);
-      if (unread > 0 || !checkonlyzerounread) {
-        require("electron").ipcRenderer.send("updateUnread", unread);
-
-        if (unread > 0 && !checkonlyzerounread) {
-          //do not spam notification
-          if (!lastcheck || new Date() - lastcheck > 500) {
-            if (!document.hasFocus()) {
-              var notification = new Notification("New Messages", {
-                body: "There are " + unread + " unread messages.",
-                icon: "assets/outlook_linux_black.png",
-              });
-              notification.onclick = () => {
-                require("electron").ipcRenderer.send("show");
-              };
-            }
-            lastcheck = new Date();
-          }
-        }
-      }
-    };
-
-    const leftPanel = document.querySelector(".slWCo.ou4TM");
-    console.log("Begin observe leftPanel: ", leftPanel);
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        waitForFinalEvent(checkOwa, 1000, "mutation detected");
-      });
-    });
-
-    observer.observe(leftPanel, {
-      attributes: true,
-      childList: true,
-      subtree: true,
-    });
-
-    //observer cannot catch all changes, use timer to handle ZERO unreadmessages
-    if (owa_timer) {
-      clearInterval(owa_timer);
-    }
-    owa_timer = setInterval(() => {
-      checkOwa(true);
-    }, 5000);
-
-    checkOwa();
-
     return true; //successfully attached
   },
 };
@@ -219,7 +152,6 @@ const observeUnreadInit = () => {
       break;
     }
   }
-
   if (!found) {
     console.log("Missing valid handler, try again in 5 seconds");
     setTimeout(observeUnreadInit, 5000);
