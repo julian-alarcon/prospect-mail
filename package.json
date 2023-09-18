@@ -1,7 +1,7 @@
 {
   "name": "prospect-mail",
   "productName": "Prospect Mail",
-  "version": "0.5.0-beta2",
+  "version": "0.5.0-beta1",
   "main": "src/main.js",
   "description": "Unofficial desktop client for Microsoft Outlook",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
@@ -33,16 +33,22 @@
     "start": "electron .",
     "start-minimized": "electron . --minimized",
     "pack": "electron-builder --dir",
+    "dist": "electron-builder",
     "dist:linux": "electron-builder --linux",
-    "dist:linux:appimage": "electron-builder --linux AppImage",
-    "dist:linux:deb": "electron-builder --linux deb",
-    "dist:linux:snap": "electron-builder --linux snap",
-    "dist:linux:pacman": "electron-builder --linux pacman",
+    "dist:linux:appimage": "electron-builder --x64 --armv7l --arm64 -l AppImage",
+    "dist:linux:deb": "electron-builder --x64 --armv7l --arm64 -l deb",
+    "dist:linux:pacman": "electron-builder --l pacman",
+    "dist:linux:rpm": "electron-builder --x64 --armv7l --arm64 -l rpm",
+    "dist:linux:snap": "electron-builder -l snap",
+    "dist:linux:snap:armv7l": "electron-builder --armv7l -l snap",
+    "dist:linux:targz": "electron-builder --x64 --armv7l --arm64 -l tar.gz",
     "dist:mac": "electron-builder --mac",
-    "dist:win": "electron-builder --win",
-    "postinstall": "electron-builder install-app-deps",
-    "publish": "build -p always",
-    "release": "electron-builder"
+    "dist:windows": "electron-builder --windows --x64",
+    "dist:linux:x64": "electron-builder --x64 -l AppImage deb pacman rpm tar.gz",
+    "dist:linux:arm64": "electron-builder --arm64 -l AppImage deb pacman rpm tar.gz",
+    "dist:linux:arm": "electron-builder --armv7l -l AppImage deb pacman rpm tar.gz",
+    "release": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "about-window": "^1.15.2",
@@ -56,7 +62,7 @@
   "build": {
     "appId": "io.github.julian-alarcon.prospect-mail",
     "linux": {
-      "category": "Mail;Network;Office",
+      "category": "Email;Network;Office",
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail",
@@ -66,25 +72,27 @@
         "StartupWMClass": "prospect-mail"
       },
       "target": [
-        "rpm",
-        "deb",
-        "tar.gz",
         "AppImage",
-        "snap"
+        "deb",
+        "pacman",
+        "rpm",
+        "snap",
+        "tar.gz"
       ],
       "publish": {
         "provider": "github",
         "releaseType": "draft"
       }
     },
+    "rpm": {
+      "fpm": [
+        "--rpm-rpmbuild-define=_build_id_links none"
+      ]
+    },
     "snap": {
       "summary": "Prospect Mail",
       "confinement": "strict",
       "grade": "stable",
-      "buildPackages": [],
-      "stagePackages": [
-        "default"
-      ],
       "base": "core22",
       "plugs": [
         "default",
@@ -102,9 +110,6 @@
     },
     "mac": {
       "category": "public.app-category.productivity",
-      "target": [
-        "dmg"
-      ],
       "icon": "build/icon.icns",
       "type": "distribution",
       "publish": {
