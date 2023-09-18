@@ -30,11 +30,11 @@ jobs:
         uses: samuelmeuli/action-snapcraft@v2
 
       - name: Build for test only
-        if: github.ref != 'main'
+        if: github.ref != 'refs/heads/main'
         run: yarn dist:linux:snap --publish never
 
       - name: Release
-        if: github.ref == 'main'
+        if: github.ref == 'refs/heads/main'
         run: yarn dist:linux:snap --publish always
 
   snap-armv7l:
@@ -59,9 +59,9 @@ jobs:
         uses: samuelmeuli/action-snapcraft@v2
 
       - name: Build for test only
-        if: github.ref != 'main'
+        if: github.ref != 'refs/heads/main'
         run: yarn dist:linux:snap:armv7l --publish never
 
       - name: Release
-        if: github.ref == 'main'
+        if: github.ref == 'refs/heads/main'
         run: yarn dist:linux:snap:armv7l --publish always
