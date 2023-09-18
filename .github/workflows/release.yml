@@ -1,6 +1,9 @@
 name: Build/release
 
-on: [push, pull_request]
+on: [push]
+
+env:
+  GH_TOKEN: ${{ SECRETS.GITHUB_TOKEN }}
 
 jobs:
   release:
@@ -10,6 +13,16 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        arch: [x64, arm64, arm]
+        exclude:
+          - os: macos-latest
+            arch: arm
+          - os: macos-latest
+            arch: x64
+          - os: windows-latest
+            arch: arm
+          - os: windows-latest
+            arch: arm64
 
     steps:
       - name: Check out Git repository
@@ -20,25 +33,45 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v1
-        # Only install Snapcraft on Ubuntu
-        if: startsWith(matrix.os, 'ubuntu')
-        with:
-          # Log in to Snap Store
-          snapcraft_token: ${{ secrets.snapcraft_token }}
+      - name: Build
+        run: yarn --link-duplicates --pure-lockfile
 
       - name: Install libarchive-tools for pacman build # Related https://github.com/electron-userland/electron-builder/issues/4181
         if: startsWith(matrix.os, 'ubuntu')
         run: sudo apt-get install libarchive-tools
 
-      - name: Build/release Electron app
-        uses: coparse-inc/action-electron-builder@v1.0.0
-        with:
-          # GitHub token, automatically provided to the action
-          # (No need to define this secret in the repo settings)
-          github_token: ${{ secrets.github_token }}
+      - name: Build for test only linux
+        if: |
+          github.ref != 'main' &&
+          startsWith(matrix.os, 'ubuntu')
+        run: yarn dist:linux:${{ matrix.arch }} -- --publish never
 
-          # If the commit is tagged with a version (e.g. "v1.0.0"),
-          # release the app after building
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      - name: Release linux
+        if: |
+          github.ref == 'main' &&
+          startsWith(matrix.os, 'ubuntu')
+        run: yarn dist:linux:${{ matrix.arch }} -- --publish always
+
+      - name: Build for test only macos
+        if: |
+          github.ref != 'main' &&
+          startsWith(matrix.os, 'macos')
+        run: yarn dist:mac -- --publish never
+
+      - name: Release macos
+        if: |
+          github.ref == 'main' &&
+          startsWith(matrix.os, 'macos')
+        run: yarn dist:mac -- --publish always
+
+      - name: Build for test only windows
+        if: |
+          github.ref != 'main' &&
+          startsWith(matrix.os, 'windows')
+        run: yarn dist:windows -- --publish never
+
+      - name: Release windows
+        if: |
+          github.ref == 'main' &&
+          startsWith(matrix.os, 'windows')
+        run: yarn dist:windows -- --publish always
