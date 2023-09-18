@@ -1,0 +1,67 @@
+name: Build/release for Snap
+
+on: push
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  snap:
+    runs-on: ubuntu-latest
+
+    env:
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Build
+        run: yarn --link-duplicates --pure-lockfile
+
+      - name: Install Snapcraft
+        uses: samuelmeuli/action-snapcraft@v2
+
+      - name: Build for test only
+        if: github.ref != 'main'
+        run: yarn dist:linux:snap --publish never
+
+      - name: Release
+        if: github.ref == 'main'
+        run: yarn dist:linux:snap --publish always
+
+  snap-armv7l:
+    runs-on: ubuntu-latest
+
+    env:
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Build
+        run: yarn --link-duplicates --pure-lockfile
+
+      - name: Install Snapcraft
+        uses: samuelmeuli/action-snapcraft@v2
+
+      - name: Build for test only
+        if: github.ref != 'main'
+        run: yarn dist:linux:snap:armv7l --publish never
+
+      - name: Release
+        if: github.ref == 'main'
+        run: yarn dist:linux:snap:armv7l --publish always
