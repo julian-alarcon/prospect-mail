@@ -33,12 +33,15 @@ jobs:
         with:
           node-version: 20
 
-      - name: Build
-        run: yarn --link-duplicates --pure-lockfile
+      - name: Install Snapcraft
+        uses: samuelmeuli/action-snapcraft@v2
 
       - name: Install libarchive-tools for pacman build # Related https://github.com/electron-userland/electron-builder/issues/4181
         if: startsWith(matrix.os, 'ubuntu')
         run: sudo apt-get install libarchive-tools
+
+      - name: Build
+        run: yarn --link-duplicates --pure-lockfile
 
       - name: Build for test only linux
         if: |
@@ -92,11 +95,11 @@ jobs:
         with:
           node-version: 20
 
-      - name: Build
-        run: yarn --link-duplicates --pure-lockfile
-
       - name: Install Snapcraft
         uses: samuelmeuli/action-snapcraft@v2
+
+      - name: Build
+        run: yarn --link-duplicates --pure-lockfile
 
       - name: Build for test only
         if: github.ref != 'refs/heads/main'
