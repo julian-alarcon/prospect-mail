@@ -1,15 +1,20 @@
-# Prospect Mail client
+# Prospect Mail
 
 <img src="build/icon.png" alt="logo" height="80" align="center" />
 
-[![builds](https://github.com/julian-alarcon/prospect-mail/actions/workflows/release.yml/badge.svg)](https://github.com/julian-alarcon/prospect-mail/actions)
-[![releases](https://badgen.net/github/release/julian-alarcon/prospect-mail/)](https://github.com/julian-alarcon/prospect-mail/releases/latest)
+[![Build & Release](https://github.com/julian-alarcon/prospect-mail/actions/workflows/build-release.yml/badge.svg)](https://github.com/julian-alarcon/prospect-mail/actions/workflows/build-release.yml)
+[![Latest release](https://img.shields.io/github/v/release/julian-alarcon/prospect-mail)](https://github.com/julian-alarcon/prospect-mail/releases/latest)
+[![GitHub all releases](https://img.shields.io/github/downloads/julian-alarcon/prospect-mail/total)](https://github.com/julian-alarcon/prospect-mail/releases)
 
-The Outlook desktop client for the
-[new Outlook Interface](https://www.microsoft.com/en-us/microsoft-365/blog/2018/06/13/power-and-simplicity-updates-to-the-office-365-user-experience/)
-from Microsoft 365.
+Unofficial email Outlook client using Electron. It uses the
+[Web App](https://www.microsoft.com/en-us/microsoft-365/outlook/web-email-login-for-outlook)
+and wraps it as a standalone application using Electron. This only works for
+Microsoft/Office 365 accounts, don't use it for personal Outlook.com accounts.
 
 Available for Linux, Windows (10+) and macOS.
+
+> This project has NO DIRECT AFFILIATION with Microsoft, Microsoft 365 or any
+> product made by Microsoft.
 
 ## Download
 
@@ -19,8 +24,9 @@ Select the appropriated file depending on your OS:
 
 - Windows: `.exe` file or `.msi` file
 - macOS: `.dmg` file
-- Linux: Multiple artifacts are available, please choose your needed one (deb,
-  rpm, AppImage, snap, pacman) depending on your Linux Distribution.
+- Linux: Multiple artifacts are available, please choose your needed one
+(AppImage, deb, pacman, rpm, snap, tar.gz) depending on your Linux
+Distribution.
 
 ## Installation
 
@@ -30,7 +36,8 @@ Just double click and follow the Installer steps.
 
 ### macOS
 
-Double click the dmg file and drag the blue Prospect Mail icon to the App folder
+Double click the dmg file and drag the blue Prospect Mail icon to the App
+folder
 
 ### Linux
 
@@ -51,15 +58,12 @@ For other distributions please follow your specific steps.
 
 ![screenshot-calendar-view](misc/calendar-view.png)
 
-## Needed configuration in your Outlook Web configuration
-
-> It's recommended to enable the new design to be able to use this client
-
 ## Features
 
 - Receive your Outlook Microsoft 365 online from the desktop app
 - Close to minimize
-- Start as minimized (you can use the Option in the Tray icon menu or start app with `prospect-mail --minimized`)
+- Start as minimized (you can use the Option in the Tray icon menu or start app
+with `prospect-mail --minimized`)
 - Dock tray support
 - System notification
 - Connect to standard or custom outlook url
@@ -67,8 +71,8 @@ For other distributions please follow your specific steps.
 
 ## Settings
 
-- Via tray menu settings.json can be opened and edited. After every save you
-  need to click in "Reload settings" to apply changes.
+Via tray menu settings.json can be opened and edited. After every save you
+need to click in "Reload settings" to apply changes.
 
 ```json
 {
@@ -110,7 +114,7 @@ The main software architecture components and their versions are this:
 Clone the repository and run in development mode. (You need to have
 [git](https://git-scm.com/) , node and yarn) installed)
 
-```bash
+```sh
 git clone https://github.com/julian-alarcon/prospect-mail.git
 cd prospect-mail
 yarn
@@ -119,7 +123,7 @@ yarn start
 
 Build the application for linux
 
-```bash
+```sh
 yarn run dist:linux
 ```
 
@@ -128,14 +132,20 @@ can be run in most popular linux distributions.
 
 Is possible to specify the snap or AppImage build type using running this:
 
-```bash
-yarn run dist:linux:snap
+```sh
+yarn dist:linux:snap
 ```
 
 Build the application for Mac (It works in versions 10.14 and 10.15)
 
-```bash
-yarn run dist:mac
+```sh
+yarn dist:mac
+```
+
+Build it for windows:
+
+```sh
+yarn dist:windows
 ```
 
 ### Install developer artifact
@@ -150,11 +160,8 @@ file `sudo snap install prospect-mail_x.y.z_arch.snap --dangerous`.
 With the specific permissions on Github, to create a new release follow the
 steps defined by [action-electron-builder](https://github.com/samuelmeuli/action-electron-builder)
 
-1. Define version in package.json. E.g. `0.4.0`
-1. Add commit with changes. E.g. `git commit -am v0.4.0`
-1. Tag the commit. E.g. `git tag v0.4.0`. Don't forget the `v` as suffix of the
-   version.
-1. Push changes including tags `git push && git push --tags`
+1. Open Pull Request for new version
+1. Define version in package.json. E.g. `1.0.0-beta2`
 
 ## Manual release to Snapstore
 
@@ -166,6 +173,6 @@ snapcraft upload --release=edge prospect-mail_x.y.z_arch.snap
 ## License
 
 [MIT](https://github.com/julian-alarcon/prospect-mail/blob/master/LICENSE) by
-[Julian Alarcon](https://desentropia.com) based on work on
+[Julian Alarcon](https://desentropia.com) based on
 [electron-outlook](https://github.com/eNkru/electron-outlook) by
 [Howard J](https://enkru.github.io/)
