@@ -2,8 +2,8 @@
 
 <img src="build/icon.png" alt="logo" height="80" align="center" />
 
-[![builds](https://github.com/julian-alarcon/prospect-mail/actions/workflows/release.yml/badge.svg)](https://github.com/julian-alarcon/prospect-mail/actions)
-[![releases](https://badgen.net/github/release/julian-alarcon/prospect-mail/)](https://github.com/julian-alarcon/prospect-mail/releases/latest)
+[![Build & Release](https://github.com/julian-alarcon/prospect-mail/actions/workflows/build-release.yml/badge.svg)](https://github.com/julian-alarcon/prospect-mail/actions/workflows/build-release.yml)
+[![releases](https://badgen.net/github/release/julian-alarcon/prospect-mail)](https://github.com/julian-alarcon/prospect-mail/releases/latest)
 
 The Outlook desktop client for the
 [new Outlook Interface](https://www.microsoft.com/en-us/microsoft-365/blog/2018/06/13/power-and-simplicity-updates-to-the-office-365-user-experience/)
