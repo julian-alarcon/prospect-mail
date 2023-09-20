@@ -3,7 +3,8 @@ name: Build & Release
 on: [push]
 
 env:
-  GH_TOKEN: ${{ SECRETS.GITHUB_TOKEN }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
 
 jobs:
   github-release:
