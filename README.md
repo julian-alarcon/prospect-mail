@@ -102,9 +102,9 @@ Outlook.com account:
 
 The main software architecture components and their versions are this:
 
-- [Node.js](https://nodejs.org/en/) version: 20.x
+- [Node.js](https://nodejs.org/en/about/previous-releases#release-schedule) version: 20.x LTS
 - [yarn](https://yarnpkg.com/) version: 1.22.x or newer
-- [electron](http://electronjs.org/) version: 25.x
+- [electron](https://www.electronjs.org/docs/latest/tutorial/electron-timelines) version: 27.x
 - [electron-builder](https://www.electron.build/) version: 24.6.x
 - [electron-settings](https://github.com/nathanbuchar/electron-settings)
   version: 4.0.2
