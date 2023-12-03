@@ -39,9 +39,9 @@ class MailWindowController {
     nodeIntegration = 
       settings.getSync("nodeIntegration") === undefined ||
       settings.getSync("nodeIntegration") === true;
-      contextIsolation = 
-      settings.getSync("contextIsolation") === undefined ||
-      settings.getSync("contextIsolation") === false;
+    //contextIsolation default value : false
+    contextIsolation = 
+      settings.getSync("contextIsolation") === true;
 
     mainMailServiceUrl =
       settings.getSync("urlMainWindow") || "https://outlook.office.com/mail";
