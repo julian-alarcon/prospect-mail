@@ -26,8 +26,8 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "^20.6",
-    "yarn": "^1.22.19"
+    "node": "^20.10",
+    "yarn": "^1.22.21"
   },
   "scripts": {
     "start": "electron .",
@@ -69,8 +69,8 @@
     "electron-settings": "^4.0.2"
   },
   "devDependencies": {
-    "electron": "^27.0",
-    "electron-builder": "^24.6"
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
   },
   "build": {
     "appId": "io.github.julian-alarcon.prospect-mail",
