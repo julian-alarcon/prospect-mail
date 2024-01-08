@@ -15,6 +15,8 @@ let mainMailServiceUrl;
 let deeplinkUrls;
 let safelinksUrls;
 let mailServicesUrls;
+let nodeIntegration;
+let contextIsolation;
 let showWindowFrame;
 let $this;
 
@@ -34,6 +36,12 @@ class MailWindowController {
     showWindowFrame =
       settings.getSync("showWindowFrame") === undefined ||
       settings.getSync("showWindowFrame") === true;
+    nodeIntegration = 
+      settings.getSync("nodeIntegration") === undefined ||
+      settings.getSync("nodeIntegration") === true;
+    contextIsolation = 
+      settings.getSync("contextIsolation") === undefined ||
+      settings.getSync("contextIsolation") === true;
 
     mainMailServiceUrl =
       settings.getSync("urlMainWindow") || "https://outlook.office.com/mail";
@@ -70,6 +78,8 @@ class MailWindowController {
       deeplinkUrls: deeplinkUrls,
       mailServicesUrls: mailServicesUrls,
       safelinksUrls: safelinksUrls,
+      nodeIntegration: nodeIntegration,
+      contextIsolation: contextIsolation,
     });
   }
   init() {
@@ -90,8 +100,8 @@ class MailWindowController {
       webPreferences: {
         spellcheck: true,
         affinity: "main-window",
-        contextIsolation: false,
-        nodeIntegration: true,
+        contextIsolation: contextIsolation,
+        nodeIntegration: nodeIntegration,
       },
     });
 
