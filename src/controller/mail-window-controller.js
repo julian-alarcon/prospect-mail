@@ -39,8 +39,8 @@ class MailWindowController {
     nodeIntegration = 
       settings.getSync("nodeIntegration") === undefined ||
       settings.getSync("nodeIntegration") === true;
-    //contextIsolation default value : false
     contextIsolation = 
+      settings.getSync("contextIsolation") === undefined ||
       settings.getSync("contextIsolation") === true;
 
     mainMailServiceUrl =
