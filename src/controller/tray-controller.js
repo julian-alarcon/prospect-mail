@@ -71,7 +71,7 @@ class TrayController {
               `<p style="text-align: center">Distributed under ${packageJson.license} license</p>
                         <p style="text-align: center"><b>If this App has been useful for you,
                         </p><p style="text-align: center">consider buying me a coffee  ☕!</p>
-                        <p style="text-align: center"><a href="https://ko-fi.com/alarconj" title="Ko-Fe">Donate</a></p>`,
+                        <p style="text-align: center"><a href="https://github.com/sponsors/julian-alarcon" title="Donate using Ko-fe, PayPal or GitHub">Donate</a></p>`,
             ],
             use_version_info: false,
             use_inner_html: true,
