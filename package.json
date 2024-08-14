@@ -1,7 +1,7 @@
 {
   "name": "prospect-mail",
   "productName": "Prospect Mail",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "main": "src/main.js",
   "description": "Unofficial desktop client for Microsoft Outlook",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
