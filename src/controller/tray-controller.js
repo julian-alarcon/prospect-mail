@@ -1,5 +1,4 @@
 const { app, Tray, nativeImage, Menu, ipcMain, shell } = require("electron");
-const debug = require("electron-debug");
 const settings = require("electron-settings");
 const path = require("path");
 const fs = require("fs");
@@ -9,8 +8,6 @@ const about_iconPath = path.join(__dirname, "../../misc/prospect-logo.svg");
 const packageJson = require("../../package.json");
 
 const macOS = process.platform === "darwin" ? true : false;
-
-debug();
 
 class TrayController {
   constructor(mailController) {

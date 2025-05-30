@@ -42,12 +42,12 @@ class MailWindowController {
       "outlook.office365.com/mail/deeplink",
       "outlook.office.com/mail/deeplink",
       "outlook.office.com/calendar/deeplink",
-      "to-do.office.com/tasks"
+      "to-do.office.com/tasks",
     ];
     mailServicesUrls = settings.getSync("urlsExternal") || [
       "outlook.live.com",
       "outlook.office365.com",
-      "outlook.office.com"
+      "outlook.office.com",
     ];
     // // Outlook.com personal accounts tests values
     // mainMailServiceUrl =
@@ -94,6 +94,13 @@ class MailWindowController {
         nodeIntegration: true,
       },
     });
+
+    const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
+
+    // Open DevTools in development mode
+    if (isDev) {
+      this.win.webContents.openDevTools();
+    }
 
     // and load the index.html of the app.
     this.win.loadURL(mainMailServiceUrl, { userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/119.0.0.0" });
@@ -149,8 +156,8 @@ class MailWindowController {
       // Check if the URL matches any mailServicesUrls for outlook.com
       if (new RegExp(mailServicesUrls.join("|")).test(url)) {
         // Open main MS365 apps the same window
-        safelinksUrls
-        this.win.loadURL(url)
+        safelinksUrls;
+        this.win.loadURL(url);
         return {
           action: "deny",
         };
