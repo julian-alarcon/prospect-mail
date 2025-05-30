@@ -3,9 +3,6 @@ const {
   BrowserWindow,
   shell,
   ipcMain,
-  Menu,
-  MenuItem,
-  clipboard,
 } = require("electron");
 const settings = require("electron-settings");
 const getClientFile = require("./client-injector");
@@ -88,8 +85,6 @@ class MailWindowController {
       title: "Prospect Mail",
       icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
       webPreferences: {
-        spellcheck: true,
-        affinity: "main-window",
         contextIsolation: false,
         nodeIntegration: true,
       },
@@ -109,9 +104,6 @@ class MailWindowController {
     ipcMain.on("show", (event) => {
       this.show();
     });
-
-    // add right click handler for editor spellcheck
-    this.setupContextMenu(this.win);
 
     // insert styles
     this.win.webContents.on("dom-ready", () => {
@@ -232,74 +224,6 @@ class MailWindowController {
     initialMinimization.domReady = false;
     this.win.show();
     this.win.focus();
-  }
-
-  setupContextMenu(tWin) {
-    tWin.webContents.on("context-menu", (event, params) => {
-      event.preventDefault();
-      //console.log('context-menu', params)
-      let menu = new Menu();
-
-      if (params.linkURL) {
-        menu.append(
-          new MenuItem({
-            label:
-              params.linkURL.length > 50
-                ? params.linkURL.substring(0, 50 - 3) + "..."
-                : params.linkURL,
-            enabled: false,
-          })
-        );
-        menu.append(
-          new MenuItem({
-            label: "Copy link url",
-            enabled: true,
-            click: (arg) => {
-              clipboard.writeText(params.linkURL, "url");
-            },
-          })
-        );
-        menu.append(
-          new MenuItem({
-            label: "Copy link text",
-            enabled: true,
-            click: (arg) => {
-              clipboard.writeText(params.linkText, "selection");
-            },
-          })
-        );
-      }
-      //console.log(params)
-      for (const flag in params.editFlags) {
-        let actionLabel = flag.substring(3); //remove "can"
-        if (flag == "canSelectAll") {
-          actionLabel = "Select all";
-          if (!params.isEditable) {
-            continue;
-          }
-        }
-        if (flag == "canUndo" || flag == "canRedo") {
-          if (!params.isEditable) {
-            continue;
-          }
-        }
-        if (flag == "canEditRichly") {
-          continue;
-        }
-        if (params.editFlags[flag]) {
-          menu.append(
-            new MenuItem({
-              label: actionLabel,
-              enabled: true,
-              role: flag.substring(3).toLowerCase(),
-            })
-          );
-        }
-      }
-      if (menu.items.length > 0) {
-        menu.popup();
-      }
-    });
   }
 }
 
