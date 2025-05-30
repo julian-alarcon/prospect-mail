@@ -1,9 +1,4 @@
-const {
-  app,
-  BrowserWindow,
-  shell,
-  ipcMain,
-} = require("electron");
+const { app, BrowserWindow, shell, ipcMain } = require("electron");
 const settings = require("electron-settings");
 const getClientFile = require("./client-injector");
 const path = require("path");
@@ -96,11 +91,35 @@ class MailWindowController {
       this.win.webContents.openDevTools();
     }
 
+    const platform = process.platform;
+    let userAgentOS;
+    let customUserAgent;
+
+    // Set OS-specific part of the user agent
+    switch (platform) {
+      case "darwin":
+        userAgentOS = "Macintosh; Intel Mac OS X 10_15_7";
+        break;
+      case "linux":
+        userAgentOS = "X11; Linux x86_64";
+        break;
+      case "win32":
+      default:
+        userAgentOS = "Windows NT 10.0; Win64; x64";
+        break;
+    }
+
+    customUserAgent =
+      "Mozilla/5.0 " +
+      userAgentOS +
+      " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0"; // TODO: Updated Edge version
+
     // and load the index.html of the app.
     this.win.loadURL(mainMailServiceUrl, {
-      userAgent:
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0", // TODO: Updated Edge version
+      userAgent: customUserAgent,
     });
+
+    console.log("Custom User Agent: " + customUserAgent);
 
     // Show window handler
     ipcMain.on("show", (event) => {
