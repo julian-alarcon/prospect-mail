@@ -86,7 +86,6 @@ class MailWindowController {
       icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
       webPreferences: {
         contextIsolation: false,
-        nodeIntegration: true,
       },
     });
 
@@ -98,7 +97,10 @@ class MailWindowController {
     }
 
     // and load the index.html of the app.
-    this.win.loadURL(mainMailServiceUrl, { userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/119.0.0.0" });
+    this.win.loadURL(mainMailServiceUrl, {
+      userAgent:
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0", // TODO: Updated Edge version
+    });
 
     // Show window handler
     ipcMain.on("show", (event) => {
