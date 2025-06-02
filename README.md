@@ -18,25 +18,25 @@ Available for Linux, Windows (10+) and macOS.
 
 ## Download
 
-The application can be downloaded from [here](https://github.com/julian-alarcon/prospect-mail/releases).
+The application can be downloaded from [release page](https://github.com/julian-alarcon/prospect-mail/releases).
 
 Select the appropriated file depending on your OS:
 
 - Windows: `.exe` file or `.msi` file
 - macOS: `.dmg` file
 - Linux: Multiple artifacts are available, please choose your needed one
-(AppImage, deb, pacman, rpm, snap, tar.gz) depending on your Linux
+(`AppImage`, `deb`, `pacman`, `rpm`, `snap`, `tar.gz`) depending on your Linux
 Distribution.
 
 ## Installation
 
 ### Windows
 
-Just double click and follow the Installer steps.
+Just double-click and follow the Installer steps.
 
 ### macOS
 
-Double click the dmg file and drag the blue Prospect Mail icon to the App
+Double-click the `dmg` file and drag the blue Prospect Mail icon to the App
 folder
 
 ### Linux
@@ -60,18 +60,19 @@ For other distributions please follow your specific steps.
 
 ## Features
 
-- Receive your Outlook Microsoft 365 online from the desktop app
+- Check your Outlook Microsoft 365 emails/calendar from the desktop app
 - Close to minimize
 - Start as minimized (you can use the Option in the Tray icon menu or start app
 with `prospect-mail --minimized`)
 - Dock tray support
 - System notification
-- Connect to standard or custom outlook url
+- Connect to standard or custom Outlook URL
 - Spellcheck using native Outlook MS Editor
+- Visualize files (pdf) in emails
 
 ## Settings
 
-Via tray menu settings.json can be opened and edited. After every save you
+Via tray menu `settings.json` can be opened and edited. After every save you
 need to click in "Reload settings" to apply changes.
 
 ```json
@@ -88,7 +89,7 @@ As an example, this configuration will let you use Prospect with personal
 Outlook.com account:
 
 > Please notice that Prospect Mail is only tested in Work/Educational accounts
-> and no issues will be reviewed for personal accounts.
+> and no issues will be reviewed on use for personal accounts.
 
 ```json
 {
@@ -102,17 +103,19 @@ Outlook.com account:
 
 The main software architecture components and their versions are this:
 
-- [Node.js](https://nodejs.org/en/about/previous-releases#release-schedule) version: 20.x LTS
-- [yarn](https://yarnpkg.com/) version: 1.22.x or newer
-- [electron](https://www.electronjs.org/docs/latest/tutorial/electron-timelines) version: 27.x
-- [electron-builder](https://www.electron.build/) version: 24.6.x
+- [Node.js](https://nodejs.org/en/about/previous-releases#release-schedule)
+version: 22.x LTS
+- [yarn](https://classic.yarnpkg.com/en/docs) [version: 1.x](https://www.electron.build/index.html#installation)
+- [electron](https://www.electronjs.org/docs/latest/tutorial/electron-timelines)
+version: 36.x
+- [electron-builder](https://www.electron.build/) version: 26.x
 - [electron-settings](https://github.com/nathanbuchar/electron-settings)
-  version: 4.0.2
+  version: 4.0.4
 
 ## Build
 
-Clone the repository and run in development mode. (You need to have
-[git](https://git-scm.com/) , node and yarn) installed)
+Clone the repository and run in development mode.
+(You need to have [git](https://git-scm.com/), node and yarn installed)
 
 ```sh
 git clone https://github.com/julian-alarcon/prospect-mail.git
@@ -121,14 +124,14 @@ yarn
 yarn start
 ```
 
-Build the application for linux
+Build the application for Linux
 
 ```sh
-yarn run dist:linux
+yarn dist:linux
 ```
 
 This will build an AppImage, deb and snap files in the dist folder. This files
-can be run in most popular linux distributions.
+can be run in most popular Linux distributions.
 
 Is possible to specify the snap or AppImage build type using running this:
 
@@ -150,20 +153,22 @@ yarn dist:windows
 
 ### Install developer artifact
 
-Once it was builded, or using the release files available, you can install the
+Once it has been built, or using the release files available, you can install the
 files using [AppImage process](https://docs.appimage.org/user-guide/faq.html#question-how-do-i-run-an-appimage),
 using .deb `sudo dpkg -i prospect-mail_x.y.z_arch.deb` or using the snap
-file `sudo snap install prospect-mail_x.y.z_arch.snap --dangerous`.
+file `sudo snap install dist/prospect-mail_x.y.z_arch.snap --dangerous`.
 
 ## Release to Public
 
-With the specific permissions on Github, to create a new release follow the
-steps defined by [action-electron-builder](https://github.com/samuelmeuli/action-electron-builder)
-
+1. Create a working branch
+1. Add changes
+1. Define version in `package.json`. E.g. `1.0.0-beta2`
 1. Open Pull Request for new version
-1. Define version in package.json. E.g. `1.0.0-beta2`
+1. Set Changelog and publish [release in GitHub](https://github.com/julian-alarcon/prospect-mail/releases/)
+1. Move release in [Snap Store](https://snapcraft.io/prospect-mail/releases) to
+stable channel
 
-## Manual release to Snapstore
+## Manual release to Snap Store
 
 ```sh
 snapcraft login

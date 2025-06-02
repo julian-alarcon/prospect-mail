@@ -1,12 +1,4 @@
-const {
-  app,
-  BrowserWindow,
-  shell,
-  ipcMain,
-  Menu,
-  MenuItem,
-  clipboard,
-} = require("electron");
+const { app, BrowserWindow, shell, ipcMain } = require("electron");
 const settings = require("electron-settings");
 const getClientFile = require("./client-injector");
 const path = require("path");
@@ -42,12 +34,12 @@ class MailWindowController {
       "outlook.office365.com/mail/deeplink",
       "outlook.office.com/mail/deeplink",
       "outlook.office.com/calendar/deeplink",
-      "to-do.office.com/tasks"
+      "to-do.office.com/tasks",
     ];
     mailServicesUrls = settings.getSync("urlsExternal") || [
       "outlook.live.com",
       "outlook.office365.com",
-      "outlook.office.com"
+      "outlook.office.com",
     ];
     // // Outlook.com personal accounts tests values
     // mainMailServiceUrl =
@@ -88,23 +80,51 @@ class MailWindowController {
       title: "Prospect Mail",
       icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
       webPreferences: {
-        spellcheck: true,
-        affinity: "main-window",
         contextIsolation: false,
-        nodeIntegration: true,
       },
     });
 
+    const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
+
+    // Open DevTools in development mode
+    if (isDev) {
+      this.win.webContents.openDevTools();
+    }
+
+    const platform = process.platform;
+    let userAgentOS;
+    let customUserAgent;
+
+    // Set OS-specific part of the user agent
+    switch (platform) {
+      case "darwin":
+        userAgentOS = "Macintosh; Intel Mac OS X 10_15_7";
+        break;
+      case "linux":
+        userAgentOS = "X11; Linux x86_64";
+        break;
+      case "win32":
+      default:
+        userAgentOS = "Windows NT 10.0; Win64; x64";
+        break;
+    }
+
+    customUserAgent =
+      "Mozilla/5.0 " +
+      userAgentOS +
+      " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0"; // TODO: Updated Edge version
+
     // and load the index.html of the app.
-    this.win.loadURL(mainMailServiceUrl, { userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/119.0.0.0" });
+    this.win.loadURL(mainMailServiceUrl, {
+      userAgent: customUserAgent,
+    });
+
+    console.log("Custom User Agent: " + customUserAgent);
 
     // Show window handler
     ipcMain.on("show", (event) => {
       this.show();
     });
-
-    // add right click handler for editor spellcheck
-    this.setupContextMenu(this.win);
 
     // insert styles
     this.win.webContents.on("dom-ready", () => {
@@ -149,8 +169,8 @@ class MailWindowController {
       // Check if the URL matches any mailServicesUrls for outlook.com
       if (new RegExp(mailServicesUrls.join("|")).test(url)) {
         // Open main MS365 apps the same window
-        safelinksUrls
-        this.win.loadURL(url)
+        safelinksUrls;
+        this.win.loadURL(url);
         return {
           action: "deny",
         };
@@ -225,74 +245,6 @@ class MailWindowController {
     initialMinimization.domReady = false;
     this.win.show();
     this.win.focus();
-  }
-
-  setupContextMenu(tWin) {
-    tWin.webContents.on("context-menu", (event, params) => {
-      event.preventDefault();
-      //console.log('context-menu', params)
-      let menu = new Menu();
-
-      if (params.linkURL) {
-        menu.append(
-          new MenuItem({
-            label:
-              params.linkURL.length > 50
-                ? params.linkURL.substring(0, 50 - 3) + "..."
-                : params.linkURL,
-            enabled: false,
-          })
-        );
-        menu.append(
-          new MenuItem({
-            label: "Copy link url",
-            enabled: true,
-            click: (arg) => {
-              clipboard.writeText(params.linkURL, "url");
-            },
-          })
-        );
-        menu.append(
-          new MenuItem({
-            label: "Copy link text",
-            enabled: true,
-            click: (arg) => {
-              clipboard.writeText(params.linkText, "selection");
-            },
-          })
-        );
-      }
-      //console.log(params)
-      for (const flag in params.editFlags) {
-        let actionLabel = flag.substring(3); //remove "can"
-        if (flag == "canSelectAll") {
-          actionLabel = "Select all";
-          if (!params.isEditable) {
-            continue;
-          }
-        }
-        if (flag == "canUndo" || flag == "canRedo") {
-          if (!params.isEditable) {
-            continue;
-          }
-        }
-        if (flag == "canEditRichly") {
-          continue;
-        }
-        if (params.editFlags[flag]) {
-          menu.append(
-            new MenuItem({
-              label: actionLabel,
-              enabled: true,
-              role: flag.substring(3).toLowerCase(),
-            })
-          );
-        }
-      }
-      if (menu.items.length > 0) {
-        menu.popup();
-      }
-    });
   }
 }
 
