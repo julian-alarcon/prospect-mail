@@ -110,6 +110,10 @@
       ],
       "publish": [
         {
+          "provider": "github",
+          "releaseType": "draft"
+        },
+        {
           "provider": "snapStore",
           "channels": "beta"
         }
