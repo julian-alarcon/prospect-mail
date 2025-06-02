@@ -2,21 +2,21 @@ let owa_timer;
 const observeUnreadHandlers = {
   owa: () => {
     // Check the number of unread messages for Inbox Folder
-    const unreadSpan = document.querySelector(".C2IG3.LPIso.oTkSL.iDEcr .o03Ce .BptzE.e0wpX.WIYG1 .WIYG1.Mt2TB");
+    let unreadSpan = document.querySelector(".C2IG3.LPIso.oTkSL.iDEcr .o03Ce .BptzE.e0wpX.WIYG1 .WIYG1.Mt2TB");
     if (!unreadSpan) {
       console.log(`No notification found for owa`);
       return false;
     }
     let lastcheck;
     const checkOwa = (checkonlyzerounread) => {
+      unreadSpan = document.querySelector(".C2IG3.LPIso.oTkSL.iDEcr .o03Ce .BptzE.e0wpX.WIYG1 .WIYG1.Mt2TB");
+      let unread = 0;
       if (unreadSpan) {
-        let unread = parseInt(unreadSpan.textContent, 10);
-        console.log(unread);
+        unread = parseInt(unreadSpan.textContent, 10);
       } else {
-        console.log("Not a valid number for unread messages.");
-        return false;
+        unread = 0;
       }
-      unread = parseInt(unreadSpan.textContent, 10);
+      //unread = parseInt(unreadSpan.textContent, 10);
       if (unread > 0 || !checkonlyzerounread) {
         require("electron").ipcRenderer.send("updateUnread", unread);
 
