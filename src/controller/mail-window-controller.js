@@ -77,7 +77,7 @@ class MailWindowController {
       autoHideMenuBar: true,
 
       show: false,
-      title: "Prospect Mail",
+      title: "Outlook Mail",
       icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
       webPreferences: {
         contextIsolation: false,

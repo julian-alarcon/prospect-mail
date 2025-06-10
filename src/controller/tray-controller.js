@@ -79,18 +79,13 @@ class TrayController {
 
       { type: "separator" },
       {
-        label: "About Prospect Mail",
+        label: "About Outlook Mail",
         click: () =>
           openAboutWindow({
             icon_path: about_iconPath,
-            product_name: "Prospect Mail",
+            product_name: "Outlook Mail",
             copyright: [
-              `
-              <p style="text-align: center">Distributed under ${packageJson.license} license</p>
-              <p style="text-align: center"><b>If this App has been useful for you,</p>
-              <p style="text-align: center">consider buying me a coffee  ☕!</p>
-              <p style="text-align: center"><a href="https://github.com/sponsors/julian-alarcon" title="DONATE using Ko-fe, PayPal or GitHub">Donate</a></p>
-              `,
+              `Trackflaw`,
             ],
             use_version_info: false,
             use_inner_html: true,
