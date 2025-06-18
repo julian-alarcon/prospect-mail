@@ -80,7 +80,8 @@ class MailWindowController {
       title: "Prospect Mail",
       icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
       webPreferences: {
-        contextIsolation: false,
+        contextIsolation: true,
+        preload: path.join(__dirname, "preload.js"),
       },
     });
 
