@@ -6,6 +6,12 @@ changelog:
         prefixes:
           - "breaking"
           - "BREAKING CHANGE"
+          - "feat!"
+          - "fix!"
+          - "refactor!"
+          - "perf!"
+          - "build!"
+          - "chore!"
 
     - title: 🔒 Security
       labels: []
