@@ -107,7 +107,7 @@ The main software architecture components and their versions are this:
 version: 22.x LTS
 - [yarn](https://classic.yarnpkg.com/en/docs) [version: 1.x](https://www.electron.build/index.html#installation)
 - [electron](https://www.electronjs.org/docs/latest/tutorial/electron-timelines)
-version: 36.x
+version: 39.x
 - [electron-builder](https://www.electron.build/) version: 26.x
 - [electron-settings](https://github.com/nathanbuchar/electron-settings)
   version: 4.0.4
@@ -117,16 +117,20 @@ version: 36.x
 Clone the repository and run in development mode.
 (You need to have [git](https://git-scm.com/), node and yarn installed)
 
-```sh
+```shell
 git clone https://github.com/julian-alarcon/prospect-mail.git
 cd prospect-mail
 yarn
 yarn start
 ```
 
+**Note:** If you encounter a sandbox error on Linux, run:
+`ELECTRON_DISABLE_SANDBOX=1 yarn start`. See
+[CONTRIBUTING.md](CONTRIBUTING.md#troubleshooting-sandbox-issues) for details.
+
 Build the application for Linux
 
-```sh
+```shell
 yarn dist:linux
 ```
 
@@ -135,19 +139,19 @@ can be run in most popular Linux distributions.
 
 Is possible to specify the snap or AppImage build type using running this:
 
-```sh
+```shell
 yarn dist:linux:snap
 ```
 
 Build the application for Mac (It works in versions 10.14 and 10.15)
 
-```sh
+```shell
 yarn dist:mac
 ```
 
 Build it for windows:
 
-```sh
+```shell
 yarn dist:windows
 ```
 
@@ -158,22 +162,11 @@ files using [AppImage process](https://docs.appimage.org/user-guide/faq.html#que
 using .deb `sudo dpkg -i prospect-mail_x.y.z_arch.deb` or using the snap
 file `sudo snap install dist/prospect-mail_x.y.z_arch.snap --dangerous`.
 
-## Release to Public
+## Contributing
 
-1. Create a working branch
-1. Add changes
-1. Define version in `package.json`. E.g. `1.0.0-beta2`
-1. Open Pull Request for new version
-1. Set Changelog and publish [release in GitHub](https://github.com/julian-alarcon/prospect-mail/releases/)
-1. Move release in [Snap Store](https://snapcraft.io/prospect-mail/releases) to
-stable channel
-
-## Manual release to Snap Store
-
-```sh
-snapcraft login
-snapcraft upload --release=edge prospect-mail_x.y.z_arch.snap
-```
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for
+guidelines on how to contribute to this project, including development setup,
+coding standards, and the release process.
 
 ## License
 
