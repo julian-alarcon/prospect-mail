@@ -110,20 +110,27 @@ class TrayController {
   }
 
   createTrayIcon(value) {
+    const isUnread = Boolean(value);
     let iconPath;
+
     if (macOS) {
-      iconPath = value
+      iconPath = isUnread
         ? "../../assets/outlook_macOS_unread.png"
         : "../../assets/outlook_macOS.png";
-      let trayIcon = nativeImage.createFromPath(path.join(__dirname, iconPath));
+
+      const trayIcon = nativeImage.createFromPath(
+        path.join(__dirname, iconPath)
+      );
       trayIcon.setTemplateImage(true);
       return trayIcon;
-    } else {
-      iconPath = value
-        ? "../../assets/outlook_linux_unread.png"
-        : "../../assets/outlook_linux_black.png";
-      return nativeImage.createFromPath(path.join(__dirname, iconPath));
     }
+
+    // For non-macOS platforms
+    iconPath = isUnread
+      ? "../../assets/outlook_linux_unread.png"
+      : "../../assets/outlook_linux_black.png";
+
+    return nativeImage.createFromPath(path.join(__dirname, iconPath));
   }
 
   fireClickEvent() {
@@ -231,7 +238,7 @@ class TrayController {
         detail: "The application will now close.",
       });
 
-      app.exit(0);;
+      app.exit(0);
     } catch (error) {
       await dialog.showErrorBox(
         "Reset Failed",

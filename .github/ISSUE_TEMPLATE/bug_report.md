@@ -25,10 +25,10 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
 
-- OS: [e.g. Ubuntu 23.04]
-- Installation source: [deb, rpm, snap, AppImage, tar.gz, Snapstore]
-- Version [e.g. 0.5.0-beta1]
+- OS: [e.g. Ubuntu 24.04, Windows 11, macOS 15]
+- Installation source: [deb, rpm, snap, AppImage, tar.gz, Snapstore, exe, msi, dmg]
+- Version: [e.g. 0.6.0-beta2]
 
 **Additional context**
 Add any other context about the problem here.
-Also, did you tried another build (AppImage, deb, rpm)?
+Also, did you try another build (AppImage, deb, rpm)?

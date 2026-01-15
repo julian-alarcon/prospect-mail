@@ -1,0 +1,64 @@
+changelog:
+  categories:
+    - title: 🚨 Breaking Changes
+      labels: []
+      commits:
+        prefixes:
+          - "breaking"
+          - "BREAKING CHANGE"
+          - "feat!"
+          - "fix!"
+          - "refactor!"
+          - "perf!"
+          - "build!"
+          - "chore!"
+
+    - title: 🔒 Security
+      labels: []
+      commits:
+        prefixes:
+          - "security"
+          - "sec"
+
+    - title: 🚀 Features
+      labels: []
+      commits:
+        prefixes:
+          - "feat"
+
+    - title: 🐛 Bug Fixes
+      labels: []
+      commits:
+        prefixes:
+          - "fix"
+
+    - title: 🌟 Enhancements
+      labels: []
+      commits:
+        prefixes:
+          - "enhancement"
+          - "improve"
+          - "perf"
+
+    - title: 📚 Documentation
+      labels: []
+      commits:
+        prefixes:
+          - "docs"
+
+    - title: 🔧 Build & CI
+      labels: []
+      commits:
+        prefixes:
+          - "build"
+          - "ci"
+
+    - title: 🧹 Chores & Maintenance
+      labels: []
+      commits:
+        prefixes:
+          - "chore"
+          - "misc"
+          - "refactor"
+          - "style"
+          - "test"

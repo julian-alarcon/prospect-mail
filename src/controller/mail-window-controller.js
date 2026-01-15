@@ -80,7 +80,8 @@ class MailWindowController {
       title: "Prospect Mail",
       icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
       webPreferences: {
-        contextIsolation: false,
+        contextIsolation: true,
+        preload: path.join(__dirname, "preload.js"),
       },
     });
 
@@ -112,7 +113,7 @@ class MailWindowController {
     customUserAgent =
       "Mozilla/5.0 " +
       userAgentOS +
-      " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0"; // TODO: Updated Edge version
+      " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"; // TODO: Updated Edge version
 
     // and load the index.html of the app.
     this.win.loadURL(mainMailServiceUrl, {

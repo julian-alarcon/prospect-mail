@@ -2,6 +2,16 @@ name: Build & Release
 
 on: [push]
 
+# Prevent multiple builds running simultaneously
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Explicit permissions for security
+permissions:
+  contents: write  # For creating releases
+  packages: write  # For publishing artifacts
+
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
@@ -36,14 +46,15 @@ jobs:
           cache: 'yarn'
 
       - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v2
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo snap install snapcraft --classic
 
       - name: Install libarchive-tools for pacman build # Related https://github.com/electron-userland/electron-builder/issues/4181
         if: startsWith(matrix.os, 'ubuntu')
         run: sudo apt-get install libarchive-tools
 
       - name: Install dependencies
-        run: yarn --link-duplicates --pure-lockfile
+        run: yarn --frozen-lockfile
 
       - name: Build for test only linux
         if: |
