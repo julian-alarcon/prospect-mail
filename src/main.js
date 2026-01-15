@@ -1,6 +1,11 @@
 const { app } = require("electron");
+const path = require("path");
 const MailWindowController = require("./controller/mail-window-controller");
 const TrayController = require("./controller/tray-controller");
+
+// Set the app name to use kebab-case for config directory (avoids spaces in path)
+// This must be set before app is ready
+app.setPath("userData", path.join(app.getPath("appData"), "prospect-mail"));
 
 //Store commandline for global purpose
 global.cmdLine = process.argv;
