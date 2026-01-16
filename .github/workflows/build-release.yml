@@ -41,21 +41,12 @@ jobs:
           node-version: 22
           cache: 'yarn'
 
-      - name: Install Snapcraft
-        if: matrix.os == 'ubuntu'
-        run: sudo snap install snapcraft --classic
-
-      - name: Install libarchive-tools for pacman build # Related https://github.com/electron-userland/electron-builder/issues/4181
+      - name: Install Linux build dependencies
         if: matrix.os == 'ubuntu'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libarchive-tools
-
-      - name: Install Flatpak build dependencies
-        if: matrix.os == 'ubuntu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder
+          sudo apt-get install -y libarchive-tools libopenjp2-tools flatpak flatpak-builder
+          sudo snap install snapcraft --classic
           sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           sudo flatpak install -y --system flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
           sudo flatpak install -y --system flathub org.electronjs.Electron2.BaseApp//24.08
