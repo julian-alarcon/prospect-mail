@@ -54,12 +54,16 @@
     "dist:linux:snap": "electron-builder --x64 --armv7l -l snap",
     "dist:linux:snap:x64": "electron-builder --x64 -l snap",
     "dist:linux:snap:armv7l": "electron-builder --armv7l -l snap",
+    "dist:linux:flatpak": "electron-builder --x64 --arm64 -l flatpak",
+    "dist:linux:flatpak:x64": "electron-builder --x64 -l flatpak",
+    "dist:linux:flatpak:arm64": "electron-builder --arm64 -l flatpak",
     "dist:linux:targz": "electron-builder --x64 --arm64 --armv7l -l tar.gz",
     "dist:mac": "electron-builder --mac",
+    "dist:mac:arm64": "electron-builder --mac --arm64",
+    "dist:mac:x64": "electron-builder --mac --x64",
     "dist:windows": "electron-builder --win --x64",
-    "dist:linux:x64": "electron-builder --x64 -l AppImage deb pacman rpm snap tar.gz",
-    "dist:linux:arm64": "electron-builder --arm64 -l AppImage deb pacman rpm tar.gz",
-    "dist:linux:arm": "electron-builder --armv7l -l AppImage deb pacman rpm snap tar.gz",
+    "dist:linux:x64": "electron-builder --x64 -l AppImage deb pacman rpm snap flatpak tar.gz",
+    "dist:linux:arm64": "electron-builder --arm64 -l AppImage deb pacman rpm flatpak tar.gz",
     "release": "electron-builder",
     "postinstall": "electron-builder install-app-deps"
   },
@@ -84,6 +88,7 @@
         "pacman",
         "rpm",
         "snap",
+        "flatpak",
         "tar.gz"
       ],
       "publish": {
@@ -119,6 +124,25 @@
         }
       ],
       "allowNativeWayland": true
+    },
+    "flatpak": {
+      "runtime": "org.freedesktop.Platform",
+      "runtimeVersion": "24.08",
+      "sdk": "org.freedesktop.Sdk",
+      "base": "org.electronjs.Electron2.BaseApp",
+      "baseVersion": "24.08",
+      "finishArgs": [
+        "--share=ipc",
+        "--socket=x11",
+        "--socket=wayland",
+        "--socket=pulseaudio",
+        "--share=network",
+        "--device=dri",
+        "--filesystem=xdg-download",
+        "--talk-name=org.freedesktop.Notifications",
+        "--talk-name=org.kde.StatusNotifierWatcher",
+        "--own-name=org.mpris.MediaPlayer2.chromium.*"
+      ]
     },
     "mac": {
       "category": "public.app-category.productivity",

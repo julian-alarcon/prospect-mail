@@ -18,22 +18,32 @@ env:
 
 jobs:
   github-release:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
 
     # Platforms to build on/for
     strategy:
       matrix:
-        os: [ubuntu-24.04, windows-2025, macos-15]
-        arch: [x64, arm64, arm]
-        exclude:
-          - os: macos-15
-            arch: arm
-          - os: macos-15
+        include:
+          # Linux x64
+          - runner: ubuntu-24.04
+            os: ubuntu
             arch: x64
-          - os: windows-2025
-            arch: arm
-          - os: windows-2025
+          # Linux ARM64 (new native runners)
+          - runner: ubuntu-24.04-arm
+            os: ubuntu
             arch: arm64
+          # Windows x64
+          - runner: windows-2025
+            os: windows
+            arch: x64
+          # macOS ARM64
+          - runner: macos-15
+            os: macos
+            arch: arm64
+          # macOS Intel x64
+          - runner: macos-15-intel
+            os: macos
+            arch: x64
 
     steps:
       - name: Check out Git repository
@@ -46,12 +56,23 @@ jobs:
           cache: 'yarn'
 
       - name: Install Snapcraft
-        if: startsWith(matrix.os, 'ubuntu')
+        if: matrix.os == 'ubuntu'
         run: sudo snap install snapcraft --classic
 
       - name: Install libarchive-tools for pacman build # Related https://github.com/electron-userland/electron-builder/issues/4181
-        if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt-get install libarchive-tools
+        if: matrix.os == 'ubuntu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libarchive-tools
+
+      - name: Install Flatpak build dependencies
+        if: matrix.os == 'ubuntu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y --system flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+          sudo flatpak install -y --system flathub org.electronjs.Electron2.BaseApp//24.08
 
       - name: Install dependencies
         run: yarn --frozen-lockfile
@@ -59,35 +80,35 @@ jobs:
       - name: Build for test only linux
         if: |
           github.ref != 'refs/heads/main' &&
-          startsWith(matrix.os, 'ubuntu')
+          matrix.os == 'ubuntu'
         run: yarn dist:linux:${{ matrix.arch }} -- --publish never
 
       - name: Release linux
         if: |
           github.ref == 'refs/heads/main' &&
-          startsWith(matrix.os, 'ubuntu')
+          matrix.os == 'ubuntu'
         run: yarn dist:linux:${{ matrix.arch }} -- --publish always
 
       - name: Build for test only macos
         if: |
           github.ref != 'refs/heads/main' &&
-          startsWith(matrix.os, 'macos')
-        run: yarn dist:mac -- --publish never
+          matrix.os == 'macos'
+        run: yarn dist:mac:${{ matrix.arch }} -- --publish never
 
       - name: Release macos
         if: |
           github.ref == 'refs/heads/main' &&
-          startsWith(matrix.os, 'macos')
-        run: yarn dist:mac -- --publish always
+          matrix.os == 'macos'
+        run: yarn dist:mac:${{ matrix.arch }} -- --publish always
 
       - name: Build for test only windows
         if: |
           github.ref != 'refs/heads/main' &&
-          startsWith(matrix.os, 'windows')
+          matrix.os == 'windows'
         run: yarn dist:windows -- --publish never
 
       - name: Release windows
         if: |
           github.ref == 'refs/heads/main' &&
-          startsWith(matrix.os, 'windows')
+          matrix.os == 'windows'
         run: yarn dist:windows -- --publish always

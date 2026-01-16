@@ -25,8 +25,8 @@ Select the appropriated file depending on your OS:
 - Windows: `.exe` file or `.msi` file
 - macOS: `.dmg` file
 - Linux: Multiple artifacts are available, please choose your needed one
-(`AppImage`, `deb`, `pacman`, `rpm`, `snap`, `tar.gz`) depending on your Linux
-Distribution.
+(`AppImage`, `deb`, `flatpak`, `pacman`, `rpm`, `snap`, `tar.gz`) depending on
+your Linux Distribution.
 
 ## Installation
 
@@ -167,13 +167,15 @@ Build the application for Linux
 yarn dist:linux
 ```
 
-This will build an AppImage, deb and snap files in the dist folder. This files
-can be run in most popular Linux distributions.
+This will build an AppImage, deb, flatpak and snap files in the dist folder.
+These files can be run in most popular Linux distributions.
 
-Is possible to specify the snap or AppImage build type using running this:
+You can specify a specific build type:
 
 ```shell
 yarn dist:linux:snap
+yarn dist:linux:flatpak
+yarn dist:linux:appimage
 ```
 
 Build the application for Mac (It works in versions 10.14 and 10.15)
@@ -190,10 +192,14 @@ yarn dist:windows
 
 ### Install developer artifact
 
-Once it has been built, or using the release files available, you can install the
-files using [AppImage process](https://docs.appimage.org/user-guide/faq.html#question-how-do-i-run-an-appimage),
-using .deb `sudo dpkg -i prospect-mail_x.y.z_arch.deb` or using the snap
-file `sudo snap install dist/prospect-mail_x.y.z_arch.snap --dangerous`.
+Once it has been built, or using the release files available, you can install
+the files using:
+
+- AppImage: Follow the [AppImage
+  process](https://docs.appimage.org/user-guide/faq.html#question-how-do-i-run-an-appimage)
+- Deb: `sudo dpkg -i prospect-mail_x.y.z_arch.deb`
+- Snap: `sudo snap install dist/prospect-mail_x.y.z_arch.snap --dangerous`
+- Flatpak: `flatpak install --user dist/prospect-mail_x.y.z_arch.flatpak`
 
 ## Contributing
 

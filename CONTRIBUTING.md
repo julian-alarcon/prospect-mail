@@ -97,6 +97,40 @@ export ELECTRON_DISABLE_SANDBOX=1
 (AppImage, deb, rpm, snap, etc.) are not affected as electron-builder handles
 sandboxing correctly during the build process.
 
+### Building Linux Packages
+
+Different package formats require specific build dependencies:
+
+#### Snap packages
+
+```shell
+sudo snap install snapcraft --classic
+yarn dist:linux:snap
+```
+
+#### Flatpak packages
+
+```shell
+sudo apt install flatpak flatpak-builder
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install -y --system flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 org.electronjs.Electron2.BaseApp//24.08
+yarn dist:linux:flatpak
+```
+
+#### Deb packages
+
+```shell
+sudo apt install fakeroot dpkg
+yarn dist:linux:deb
+```
+
+#### Pacman packages
+
+```shell
+sudo apt install libarchive-tools
+yarn dist:linux:pacman
+```
+
 ## Project Structure
 
 ```shell
@@ -139,30 +173,15 @@ Branch naming conventions:
 
 1. Make your changes in your feature branch
 2. Test your changes locally
-3. Commit your changes with clear, descriptive commit messages
+3. Commit your changes using conventional commit format (see commit prefixes in
+   [Release Process](#release-process))
 4. Keep commits focused and atomic
 
-### Commit Message Guidelines
+Examples:
 
-Follow these conventions for commit messages:
-
-* `feat:` for new features
-* `fix:` for bug fixes
-* `docs:` for documentation changes
-* `refactor:` for code refactoring
-* `test:` for test additions or modifications
-* `build:` for build system changes
-* `chore:` for maintenance tasks
-
-Example:
-```
+```shell
 feat: add support for custom notification sounds
 fix: resolve tray icon not appearing on Windows
-docs: update installation instructions for Linux
-```
-
-Reference issues in your commits when applicable:
-```
 fix: #123 resolve crash when opening calendar view
 ```
 
