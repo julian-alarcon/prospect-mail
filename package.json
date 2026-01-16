@@ -1,7 +1,7 @@
 {
   "name": "prospect-mail",
   "productName": "Prospect Mail",
-  "version": "1.0.0",
+  "version": "1.0.1-beta",
   "main": "src/main.js",
   "description": "Unofficial desktop mail client for Microsoft Outlook",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
@@ -100,6 +100,9 @@
       "confinement": "strict",
       "grade": "stable",
       "base": "core22",
+      "environment": {
+        "DISABLE_WAYLAND": "1"
+      },
       "plugs": [
         "default",
         "cups",
@@ -117,8 +120,7 @@
           "provider": "snapStore",
           "channels": "beta"
         }
-      ],
-      "allowNativeWayland": true
+      ]
     },
     "mac": {
       "category": "public.app-category.productivity",
