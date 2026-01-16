@@ -75,27 +75,60 @@ with `prospect-mail --minimized`)
 Via tray menu `settings.json` can be opened and edited. After every save you
 need to click in "Reload settings" to apply changes.
 
+### Available Settings
+
 ```json
 {
- "mainMailServiceUrl":"https://customurl.example/",
- "deeplinkUrls":["customurl.example"],
- "mailServicesUrls":["mailServicesUrls.example"],
- "safelinksUrls": ["safelinksUrls.example"],
- "showWindowFrame":true
+  "urlMainWindow": "https://outlook.office.com/mail",
+  "urlsInternal": [
+    "outlook.live.com/mail/deeplink",
+    "outlook.office365.com/mail/deeplink",
+    "outlook.office.com/mail/deeplink",
+    "outlook.office.com/calendar/deeplink",
+    "to-do.office.com/tasks"
+  ],
+  "urlsExternal": [
+    "outlook.live.com",
+    "outlook.office365.com",
+    "outlook.office.com"
+  ],
+  "safelinksUrls": [
+    "outlook.office.com/mail/safelink.html",
+    "safelinks.protection.outlook.com"
+  ],
+  "showWindowFrame": true,
+  "hideOnClose": true,
+  "hideOnMinimize": true,
+  "customBrowserPath": "microsoft-edge"
 }
 ```
 
-As an example, this configuration will let you use Prospect with personal
-Outlook.com account:
+#### Setting Descriptions
 
+| Setting             | Description                                                                                  | Default                           |
+| ------------------- | -------------------------------------------------------------------------------------------- | --------------------------------- |
+| `urlMainWindow`     | Main Outlook service URL to load                                                             | `https://outlook.office.com/mail` |
+| `urlsInternal`      | Array of URL patterns for deeplinks that open in new app windows                             | See example above                 |
+| `urlsExternal`      | Array of URL patterns for Outlook/Microsoft 365 services that open in the main window       | See example above                 |
+| `safelinksUrls`     | Array of URL patterns for Microsoft Safe Links that open in external browser                 | See example above                 |
+| `showWindowFrame`   | Show/hide window frame and title bar                                                         | `true`                            |
+| `hideOnClose`       | Minimize to tray instead of quitting when closing window                                     | `true`                            |
+| `hideOnMinimize`    | Hide to tray when minimizing window                                                          | `true`                            |
+| `customBrowserPath` | Custom browser for external links. Use command name (e.g., `"firefox"`) or full path        | System default                    |
+
+### Example Configuration for Personal Outlook
+
+This configuration will let you use Prospect with personal Outlook.com account:
+
+> [!WARNING]
 > Please notice that Prospect Mail is only tested in Work/Educational accounts
 > and no issues will be reviewed on use for personal accounts.
 
 ```json
 {
-  "mainMailServiceUrl": "https://login.live.com/login.srf",
-  "deeplinkUrls": ["outlook.com", "live.com"],
-  "mailServicesUrls": ["outlook.com", "live.com"]
+  "urlMainWindow": "https://login.live.com/login.srf",
+  "urlsInternal": ["outlook.com", "live.com"],
+  "urlsExternal": ["outlook.com", "live.com"]
 }
 ```
 

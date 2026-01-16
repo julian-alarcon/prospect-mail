@@ -1,4 +1,5 @@
 const { app, BrowserWindow, shell, ipcMain, Menu } = require("electron");
+const { spawn } = require("child_process");
 const settings = require("electron-settings");
 const getClientFile = require("./client-injector");
 const path = require("path");
@@ -64,6 +65,23 @@ class MailWindowController {
       safelinksUrls: safelinksUrls,
     });
   }
+
+  openExternalLink(url) {
+    const customBrowserPath = settings.getSync("customBrowserPath");
+
+    if (customBrowserPath) {
+      // Use custom browser specified in settings
+      console.log(`Opening URL in custom browser: ${customBrowserPath}`);
+      spawn(customBrowserPath, [url], {
+        detached: true,
+        stdio: "ignore",
+      }).unref();
+    } else {
+      // Fall back to system default browser
+      shell.openExternal(url);
+    }
+  }
+
   init() {
     this.reloadSettings();
 
@@ -156,7 +174,7 @@ class MailWindowController {
             {
               label: "Open Link in Browser",
               click: () => {
-                shell.openExternal(params.linkURL);
+                this.openExternalLink(params.linkURL);
               },
             },
             {
@@ -229,7 +247,7 @@ class MailWindowController {
       }
       // Open MS Safe Links in local browser
       if (new RegExp(safelinksUrls.join("|")).test(url)) {
-        shell.openExternal(url);
+        this.openExternalLink(url);
         return {
           action: "deny",
         };
@@ -252,7 +270,7 @@ class MailWindowController {
           action: "deny",
         };
       }
-      shell.openExternal(url);
+      this.openExternalLink(url);
       return {
         action: "deny",
       };
