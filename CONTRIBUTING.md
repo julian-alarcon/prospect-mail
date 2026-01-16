@@ -311,9 +311,9 @@ git push origin maintenance-release-YYYY-qN
    - The GitHub Actions workflow will automatically build and attach artifacts
 
 6. **Automated builds**: When the release is published, GitHub Actions will:
-   - Build for Linux (x64, arm64, arm): AppImage, deb, pacman, rpm, snap, tar.gz
-   - Build for macOS (arm64): dmg
-   - Build for Windows (x64): exe, msi
+   - Build for Linux (x64, arm64): AppImage, deb, pacman, rpm, snap, flatpak, tar.gz
+   - Build for macOS (arm64, x64): dmg
+   - Build for Windows (x64, arm64): exe, msi
    - Publish to GitHub Releases
    - Publish snap to Snap Store (beta channel)
 
@@ -409,18 +409,18 @@ and include:
 
 - Snap builds use `core22` base with strict confinement
 - Multiple package formats supported: AppImage, deb, pacman, rpm, snap, tar.gz
-- Architectures: x64, arm64, armv7l
+- Architectures: x64, arm64
 - Requires `libarchive-tools` for pacman builds
 
 #### macOS
 
-- Builds for arm64 (Apple Silicon)
+- Builds for arm64 (Apple Silicon) and x64 (Intel)
 - Category: productivity
 - DMG packaging with no update info
 
 #### Windows
 
-- Builds for x64 only
+- Builds for x64 and arm64
 - NSIS and MSI installers available
 - Windows 10+ required
 

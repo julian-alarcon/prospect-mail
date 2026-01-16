@@ -24,26 +24,12 @@ jobs:
     strategy:
       matrix:
         include:
-          # Linux x64
-          - runner: ubuntu-24.04
-            os: ubuntu
-            arch: x64
-          # Linux ARM64 (new native runners)
-          - runner: ubuntu-24.04-arm
-            os: ubuntu
-            arch: arm64
-          # Windows x64
-          - runner: windows-2025
-            os: windows
-            arch: x64
-          # macOS ARM64
-          - runner: macos-15
-            os: macos
-            arch: arm64
-          # macOS Intel x64
-          - runner: macos-15-intel
-            os: macos
-            arch: x64
+          - { runner: ubuntu-24.04,      os: ubuntu,  arch: x64   }  # Linux x64
+          - { runner: ubuntu-24.04-arm,  os: ubuntu,  arch: arm64 }  # Linux ARM64
+          - { runner: windows-2025,      os: windows, arch: x64   }  # Windows x64
+          - { runner: windows-11-arm,    os: windows, arch: arm64 }  # Windows ARM64
+          - { runner: macos-15,          os: macos,   arch: arm64 }  # macOS ARM64
+          - { runner: macos-15-intel,    os: macos,   arch: x64   }  # macOS Intel x64
 
     steps:
       - name: Check out Git repository
@@ -105,10 +91,10 @@ jobs:
         if: |
           github.ref != 'refs/heads/main' &&
           matrix.os == 'windows'
-        run: yarn dist:windows -- --publish never
+        run: yarn dist:windows:${{ matrix.arch }} -- --publish never
 
       - name: Release windows
         if: |
           github.ref == 'refs/heads/main' &&
           matrix.os == 'windows'
-        run: yarn dist:windows -- --publish always
+        run: yarn dist:windows:${{ matrix.arch }} -- --publish always
