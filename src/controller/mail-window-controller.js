@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, ipcMain } = require("electron");
+const { app, BrowserWindow, shell, ipcMain, Menu } = require("electron");
 const settings = require("electron-settings");
 const getClientFile = require("./client-injector");
 const path = require("path");
@@ -121,6 +121,82 @@ class MailWindowController {
     });
 
     console.log("Custom User Agent: " + customUserAgent);
+
+    // Setup context menu for text selection and links
+    this.win.webContents.on("context-menu", (_event, params) => {
+      const menuTemplate = [];
+
+      // Add text editing options if text is selected or in an editable field
+      if (params.isEditable) {
+        menuTemplate.push(
+          { label: "Undo", role: "undo" },
+          { label: "Redo", role: "redo" },
+          { type: "separator" },
+          { label: "Cut", role: "cut", enabled: params.editFlags.canCut },
+          { label: "Copy", role: "copy", enabled: params.editFlags.canCopy },
+          { label: "Paste", role: "paste", enabled: params.editFlags.canPaste },
+          { type: "separator" },
+          { label: "Select All", role: "selectAll" }
+        );
+      } else {
+        // For non-editable content (reading emails)
+        if (params.selectionText) {
+          menuTemplate.push({
+            label: "Copy",
+            role: "copy",
+          });
+        }
+
+        // Add link-specific options
+        if (params.linkURL) {
+          if (menuTemplate.length > 0) {
+            menuTemplate.push({ type: "separator" });
+          }
+          menuTemplate.push(
+            {
+              label: "Open Link in Browser",
+              click: () => {
+                shell.openExternal(params.linkURL);
+              },
+            },
+            {
+              label: "Copy Link Address",
+              click: () => {
+                const { clipboard } = require("electron");
+                clipboard.writeText(params.linkURL);
+              },
+            }
+          );
+        }
+
+        // Add select all if there's text content
+        if (params.selectionText || params.pageURL) {
+          if (menuTemplate.length > 0) {
+            menuTemplate.push({ type: "separator" });
+          }
+          menuTemplate.push({ label: "Select All", role: "selectAll" });
+        }
+      }
+
+      // Add inspect element in development mode
+      if (isDev) {
+        if (menuTemplate.length > 0) {
+          menuTemplate.push({ type: "separator" });
+        }
+        menuTemplate.push({
+          label: "Inspect Element",
+          click: () => {
+            this.win.webContents.inspectElement(params.x, params.y);
+          },
+        });
+      }
+
+      // Only show menu if there are items
+      if (menuTemplate.length > 0) {
+        const menu = Menu.buildFromTemplate(menuTemplate);
+        menu.popup();
+      }
+    });
 
     // Show window handler
     ipcMain.on("show", (event) => {
