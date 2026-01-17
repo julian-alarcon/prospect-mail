@@ -1,6 +1,6 @@
 const { app, BrowserWindow, shell, ipcMain, Menu } = require("electron");
 const { spawn } = require("child_process");
-const settings = require("electron-settings");
+const settings = require("../settings");
 const getClientFile = require("./client-injector");
 const path = require("path");
 
@@ -24,39 +24,23 @@ class MailWindowController {
   }
   reloadSettings() {
     // Get configurations.
-    showWindowFrame =
-      settings.getSync("showWindowFrame") === undefined ||
-      settings.getSync("showWindowFrame") === true;
+    showWindowFrame = settings.get("showWindowFrame");
 
-    mainMailServiceUrl =
-      settings.getSync("urlMainWindow") || "https://outlook.office.com/mail";
-    deeplinkUrls = settings.getSync("urlsInternal") || [
-      "outlook.live.com/mail/deeplink",
-      "outlook.office365.com/mail/deeplink",
-      "outlook.office.com/mail/deeplink",
-      "outlook.office.com/calendar/deeplink",
-      "to-do.office.com/tasks",
-    ];
-    mailServicesUrls = settings.getSync("urlsExternal") || [
-      "outlook.live.com",
-      "outlook.office365.com",
-      "outlook.office.com",
-    ];
+    mainMailServiceUrl = settings.get("urlMainWindow");
+    deeplinkUrls = settings.get("urlsInternal");
+    mailServicesUrls = settings.get("urlsExternal");
     // // Outlook.com personal accounts tests values
     // mainMailServiceUrl =
-    //   settings.getSync("urlMainWindow") || "https://login.live.com/login.srf";
-    // deeplinkUrls = settings.getSync("urlsInternal") || [
+    //   settings.get("urlMainWindow") || "https://login.live.com/login.srf";
+    // deeplinkUrls = settings.get("urlsInternal") || [
     //   "outlook.com",
     //   "live.com",
     // ];
-    // mailServicesUrls = settings.getSync("urlsExternal") || [
+    // mailServicesUrls = settings.get("urlsExternal") || [
     //   "outlook.com",
     //   "live.com",
     // ];
-    safelinksUrls = settings.getSync("safelinksUrls") || [
-      "outlook.office.com/mail/safelink.html",
-      "safelinks.protection.outlook.com",
-    ];
+    safelinksUrls = settings.get("safelinksUrls");
 
     console.log("Loaded settings", {
       mainMailServiceUrl: mainMailServiceUrl,
@@ -67,7 +51,7 @@ class MailWindowController {
   }
 
   openExternalLink(url) {
-    const customBrowserPath = settings.getSync("customBrowserPath");
+    const customBrowserPath = settings.get("customBrowserPath");
 
     if (customBrowserPath) {
       // Use custom browser specified in settings
@@ -280,10 +264,7 @@ class MailWindowController {
     this.win.on("close", (e) => {
       //console.log('Log invoked: ' + this.win.isVisible())
       if (this.win.isVisible()) {
-        if (
-          settings.getSync("hideOnClose") === undefined ||
-          settings.getSync("hideOnClose") === true
-        ) {
+        if (settings.get("hideOnClose")) {
           e.preventDefault();
           this.win.hide();
         }
@@ -292,10 +273,7 @@ class MailWindowController {
 
     // prevent the app minimze, hide the window instead.
     this.win.on("minimize", (e) => {
-      if (
-        settings.getSync("hideOnMinimize") === undefined ||
-        settings.getSync("hideOnMinimize") === true
-      ) {
+      if (settings.get("hideOnMinimize")) {
         e.preventDefault();
         this.win.hide();
       }

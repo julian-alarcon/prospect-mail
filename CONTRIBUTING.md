@@ -400,8 +400,7 @@ and include:
 - **npm**: (comes with Node.js)
 - **Electron**: v39.x
 - **electron-builder**: v26.x
-- **electron-settings**: v4.0.4
-- **about-window**: v1.15.2
+- **electron-store**: v8.2.0
 
 ### Platform-Specific Notes
 

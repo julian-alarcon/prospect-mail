@@ -142,8 +142,8 @@ version: 22.x LTS
 - [electron](https://www.electronjs.org/docs/latest/tutorial/electron-timelines)
 version: 39.x
 - [electron-builder](https://www.electron.build/) version: 26.x
-- [electron-settings](https://github.com/nathanbuchar/electron-settings)
-  version: 4.0.4
+- [electron-store](https://github.com/sindresorhus/electron-store)
+  version: 8.2.0
 
 ## Build
 
