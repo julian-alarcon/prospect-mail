@@ -39,11 +39,11 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v6
 
-      - name: Install Node.js, NPM and yarn
+      - name: Install Node.js and NPM
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
+          cache: 'npm'
 
       - name: Install Linux build dependencies
         if: matrix.os == 'ubuntu'
@@ -56,43 +56,43 @@ jobs:
           sudo flatpak install -y --system flathub org.electronjs.Electron2.BaseApp//24.08
 
       - name: Install dependencies
-        run: yarn --frozen-lockfile
+        run: npm ci
 
       - name: Build for test only linux
         if: |
           github.ref != 'refs/heads/main' &&
           matrix.os == 'ubuntu'
-        run: yarn dist:linux:${{ matrix.arch }} -- --publish never
+        run: npm run dist:linux:${{ matrix.arch }} -- --publish never
 
       - name: Release linux
         if: |
           github.ref == 'refs/heads/main' &&
           matrix.os == 'ubuntu'
-        run: yarn dist:linux:${{ matrix.arch }} -- --publish always
+        run: npm run dist:linux:${{ matrix.arch }} -- --publish always
 
       - name: Build for test only macos
         if: |
           github.ref != 'refs/heads/main' &&
           matrix.os == 'macos'
-        run: yarn dist:mac:${{ matrix.arch }} -- --publish never
+        run: npm run dist:mac:${{ matrix.arch }} -- --publish never
 
       - name: Release macos
         if: |
           github.ref == 'refs/heads/main' &&
           matrix.os == 'macos'
-        run: yarn dist:mac:${{ matrix.arch }} -- --publish always
+        run: npm run dist:mac:${{ matrix.arch }} -- --publish always
 
       - name: Build for test only windows
         if: |
           github.ref != 'refs/heads/main' &&
           matrix.os == 'windows'
-        run: yarn dist:windows:${{ matrix.arch }} -- --publish never
+        run: npm run dist:windows:${{ matrix.arch }} -- --publish never
 
       - name: Release windows
         if: |
           github.ref == 'refs/heads/main' &&
           matrix.os == 'windows'
-        run: yarn dist:windows:${{ matrix.arch }} -- --publish always
+        run: npm run dist:windows:${{ matrix.arch }} -- --publish always
 
   build-and-release-snap-arm64:
     runs-on: ubuntu-24.04-arm
@@ -121,12 +121,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install dependencies
-        run: yarn --frozen-lockfile
+        run: npm ci
 
       - name: Build snap for test only
         if: github.ref != 'refs/heads/main'
-        run: yarn dist:linux:snap:arm64 -- --publish never
+        run: npm run dist:linux:snap:arm64 -- --publish never
 
       - name: Release snap
         if: github.ref == 'refs/heads/main'
-        run: yarn dist:linux:snap:arm64 -- --publish always
+        run: npm run dist:linux:snap:arm64 -- --publish always

@@ -27,8 +27,8 @@ all contributors.
 
 Before you begin:
 
-- Make sure you have [git](https://git-scm.com/), [Node.js](https://nodejs.org/)
-  (v22.x LTS), and [yarn](https://classic.yarnpkg.com/) (v1.x) installed
+- Make sure you have [git](https://git-scm.com/) and [Node.js](https://nodejs.org/)
+  (v22.x LTS) installed (npm comes with Node.js)
 - Familiarize yourself with the project by reading the [README.md](README.md)
 - Check existing [issues](https://github.com/julian-alarcon/prospect-mail/issues)
   and [pull requests](https://github.com/julian-alarcon/prospect-mail/pulls) to
@@ -53,19 +53,19 @@ git remote add upstream https://github.com/julian-alarcon/prospect-mail.git
 4. Install dependencies:
 
 ```shell
-yarn
+npm install
 ```
 
 5. Start the application in development mode:
 
 ```shell
-yarn start
+npm start
 ```
 
 To start the application minimized:
 
 ```shell
-yarn start-minimized
+npm run start-minimized
 ```
 
 ### Troubleshooting Sandbox Issues
@@ -82,7 +82,7 @@ it by:
 #### Option 1: Using environment variable (Recommended)
 
 ```shell
-ELECTRON_DISABLE_SANDBOX=1 yarn start
+ELECTRON_DISABLE_SANDBOX=1 npm start
 ```
 
 #### Option 2: Add to your shell profile
@@ -105,7 +105,7 @@ Different package formats require specific build dependencies:
 
 ```shell
 sudo snap install snapcraft --classic
-yarn dist:linux:snap
+npm run dist:linux:snap
 ```
 
 #### Flatpak packages
@@ -114,21 +114,21 @@ yarn dist:linux:snap
 sudo apt install flatpak flatpak-builder
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install -y --system flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 org.electronjs.Electron2.BaseApp//24.08
-yarn dist:linux:flatpak
+npm run dist:linux:flatpak
 ```
 
 #### Deb packages
 
 ```shell
 sudo apt install fakeroot dpkg
-yarn dist:linux:deb
+npm run dist:linux:deb
 ```
 
 #### Pacman packages
 
 ```shell
 sudo apt install libarchive-tools
-yarn dist:linux:pacman
+npm run dist:linux:pacman
 ```
 
 ## Project Structure
@@ -201,24 +201,24 @@ Before submitting your changes:
 1. Test the application locally by running:
 
 ```shell
-yarn start
+npm start
 ```
 
 2. Build the application for your platform to ensure there are no build errors:
 
 For Linux:
 ```shell
-yarn dist:linux
+npm run dist:linux
 ```
 
 For macOS:
 ```shell
-yarn dist:mac
+npm run dist:mac
 ```
 
 For Windows:
 ```shell
-yarn dist:windows
+npm run dist:windows
 ```
 
 3. Test the functionality you've added or modified
@@ -397,7 +397,7 @@ and include:
 ### Core Components
 
 - **Node.js**: v22.x LTS
-- **Yarn**: v1.x
+- **npm**: (comes with Node.js)
 - **Electron**: v39.x
 - **electron-builder**: v26.x
 - **electron-settings**: v4.0.4

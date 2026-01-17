@@ -138,7 +138,7 @@ The main software architecture components and their versions are this:
 
 - [Node.js](https://nodejs.org/en/about/previous-releases#release-schedule)
 version: 22.x LTS
-- [yarn](https://classic.yarnpkg.com/en/docs) [version: 1.x](https://www.electron.build/index.html#installation)
+- [npm](https://docs.npmjs.com/) (comes with Node.js)
 - [electron](https://www.electronjs.org/docs/latest/tutorial/electron-timelines)
 version: 39.x
 - [electron-builder](https://www.electron.build/) version: 26.x
@@ -148,23 +148,23 @@ version: 39.x
 ## Build
 
 Clone the repository and run in development mode.
-(You need to have [git](https://git-scm.com/), node and yarn installed)
+(You need to have [git](https://git-scm.com/) and node installed)
 
 ```shell
 git clone https://github.com/julian-alarcon/prospect-mail.git
 cd prospect-mail
-yarn
-yarn start
+npm install
+npm start
 ```
 
 **Note:** If you encounter a sandbox error on Linux, run:
-`ELECTRON_DISABLE_SANDBOX=1 yarn start`. See
+`ELECTRON_DISABLE_SANDBOX=1 npm start`. See
 [CONTRIBUTING.md](CONTRIBUTING.md#troubleshooting-sandbox-issues) for details.
 
 Build the application for Linux
 
 ```shell
-yarn dist:linux
+npm run dist:linux
 ```
 
 This will build an AppImage, deb, flatpak and snap files in the dist folder.
@@ -173,21 +173,21 @@ These files can be run in most popular Linux distributions.
 You can specify a specific build type:
 
 ```shell
-yarn dist:linux:snap
-yarn dist:linux:flatpak
-yarn dist:linux:appimage
+npm run dist:linux:snap
+npm run dist:linux:flatpak
+npm run dist:linux:appimage
 ```
 
 Build the application for Mac (It works in versions 10.14 and 10.15)
 
 ```shell
-yarn dist:mac
+npm run dist:mac
 ```
 
 Build it for windows:
 
 ```shell
-yarn dist:windows
+npm run dist:windows
 ```
 
 ### Install developer artifact
