@@ -1,0 +1,113 @@
+name: Generate Release Notes from Commits
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to generate release notes for'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  generate-release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Generate changelog from commits
+        id: changelog
+        run: |
+          # Get the tag name
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+
+          # Get the previous tag
+          # If current tag is a pre-release (beta/alpha/rc), get immediate previous tag
+          # If current tag is stable, skip pre-release tags and get last stable tag
+          if [[ "$TAG" =~ (beta|alpha|rc) ]]; then
+            # For pre-releases, get the immediate previous tag
+            PREV_TAG=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || echo "")
+          else
+            # For stable releases, find the last stable tag (skip pre-releases)
+            PREV_TAG=$(git tag --sort=-version:refname | grep -v -E "(beta|alpha|rc)" | grep -A1 "^${TAG}$" | tail -n1)
+            # If no previous stable tag found, try to get any previous tag
+            if [ -z "$PREV_TAG" ] || [ "$PREV_TAG" = "$TAG" ]; then
+              PREV_TAG=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || echo "")
+            fi
+          fi
+
+          echo "Generating changelog for $TAG (previous: $PREV_TAG)"
+
+          # Make the script executable
+          chmod +x .github/generate-changelog.js
+
+          # Create final release notes with header
+          echo "## What's Changed" > release-notes.md
+          echo "" >> release-notes.md
+
+          # Generate changelog using custom script
+          node .github/generate-changelog.js "$TAG" "$PREV_TAG" >> release-notes.md
+
+          # Add Full Changelog link
+          echo "" >> release-notes.md
+          if [ -n "$PREV_TAG" ]; then
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREV_TAG...$TAG" >> release-notes.md
+          else
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/commits/$TAG" >> release-notes.md
+          fi
+
+          # Show the generated notes
+          echo "Generated release notes:"
+          cat release-notes.md
+
+      - name: Create or Update Release
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+
+          # Remove 'v' prefix for display name
+          RELEASE_NAME="${TAG#v}"
+
+          # Check if this is a prerelease
+          if [[ "$TAG" =~ (beta|alpha|rc) ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          else
+            PRERELEASE_FLAG=""
+          fi
+
+          # Create or edit release
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            # Release exists, update it
+            gh release edit "$TAG" \
+              --title "$RELEASE_NAME" \
+              --notes-file release-notes.md \
+              $PRERELEASE_FLAG
+          else
+            # Create new release
+            gh release create "$TAG" \
+              --title "$RELEASE_NAME" \
+              --notes-file release-notes.md \
+              $PRERELEASE_FLAG
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

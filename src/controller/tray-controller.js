@@ -7,12 +7,10 @@ const {
   ipcMain,
   shell,
 } = require("electron");
-const settings = require("electron-settings");
+const settings = require("../settings");
 const path = require("path");
 const fs = require("fs");
-const { default: openAboutWindow } = require("about-window");
-const about_iconPath = path.join(__dirname, "../../misc/prospect-logo.svg");
-const packageJson = require("../../package.json");
+const { openAboutWindow } = require("./about-window");
 
 const macOS = process.platform === "darwin" ? true : false;
 
@@ -24,8 +22,16 @@ class TrayController {
 
   init() {
     this.tray = new Tray(this.createTrayIcon(""));
-    //console.log('shell', shell)
+    this.buildContextMenu();
 
+    this.tray.on("click", () => this.fireClickEvent());
+
+    ipcMain.on("updateUnread", (_event, value) => {
+      this.tray.setImage(this.createTrayIcon(value));
+    });
+  }
+
+  buildContextMenu() {
     const context = Menu.buildFromTemplate([
       { label: "Show", click: () => this.forceShow() },
       { label: "Reload", click: () => this.reloadWindow() },
@@ -37,34 +43,25 @@ class TrayController {
           {
             label: "Hide on Close",
             type: "checkbox",
-            checked:
-              settings.getSync("hideOnClose") === undefined
-                ? true
-                : settings.getSync("hideOnClose"),
+            checked: settings.get("hideOnClose"),
             click: () => this.toggleHideOnClose(),
           },
           {
             label: "Hide on Minimize",
             type: "checkbox",
-            checked:
-              settings.getSync("hideOnMinimize") === undefined
-                ? true
-                : settings.getSync("hideOnMinimize"),
+            checked: settings.get("hideOnMinimize"),
             click: () => this.toggleHideOnMinimize(),
           },
           {
             label: "Show Window Frame",
             type: "checkbox",
-            checked:
-              settings.getSync("showWindowFrame") === undefined
-                ? true
-                : settings.getSync("showWindowFrame"),
+            checked: settings.get("showWindowFrame"),
             click: () => this.toggleWindowFrame(),
           },
           { type: "separator" },
           {
             label: "Show settings file",
-            click: () => shell.showItemInFolder(path.resolve(settings.file())),
+            click: () => shell.showItemInFolder(path.resolve(settings.path)),
           },
           {
             label: "Restore Default Settings", // previously "Reset configuration"
@@ -80,33 +77,12 @@ class TrayController {
       { type: "separator" },
       {
         label: "About Prospect Mail",
-        click: () =>
-          openAboutWindow({
-            icon_path: about_iconPath,
-            product_name: "Prospect Mail",
-            copyright: [
-              `
-              <p style="text-align: center">Distributed under ${packageJson.license} license</p>
-              <p style="text-align: center"><b>If this App has been useful for you,</p>
-              <p style="text-align: center">consider buying me a coffee  ☕!</p>
-              <p style="text-align: center"><a href="https://github.com/sponsors/julian-alarcon" title="DONATE using Ko-fe, PayPal or GitHub">Donate</a></p>
-              `,
-            ],
-            use_version_info: false,
-            use_inner_html: true,
-            adjust_window_size: true,
-          }),
+        click: () => openAboutWindow(),
       },
       { label: "Quit", click: () => this.cleanupAndQuit() },
     ]);
 
     this.tray.setContextMenu(context);
-
-    this.tray.on("click", () => this.fireClickEvent());
-
-    ipcMain.on("updateUnread", (event, value) => {
-      this.tray.setImage(this.createTrayIcon(value));
-    });
   }
 
   createTrayIcon(value) {
@@ -149,28 +125,22 @@ class TrayController {
   }
 
   toggleWindowFrame() {
-    let orivalue =
-      settings.getSync("showWindowFrame") === undefined
-        ? true
-        : settings.getSync("showWindowFrame");
-    settings.setSync("showWindowFrame", !orivalue);
+    let orivalue = settings.get("showWindowFrame");
+    settings.set("showWindowFrame", !orivalue);
+    this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
     global.preventAutoCloseApp = true;
     this.mailController.win.destroy();
     this.mailController.init();
   }
   toggleHideOnClose() {
-    let orivalue =
-      settings.getSync("hideOnClose") === undefined
-        ? true
-        : settings.getSync("hideOnClose");
-    settings.setSync("hideOnClose", !orivalue);
+    let orivalue = settings.get("hideOnClose");
+    settings.set("hideOnClose", !orivalue);
+    this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
   }
   toggleHideOnMinimize() {
-    let orivalue =
-      settings.getSync("hideOnMinimize") === undefined
-        ? true
-        : settings.getSync("showWindowFrame");
-    settings.setSync("hideOnMinimize", !orivalue);
+    let orivalue = settings.get("hideOnMinimize");
+    settings.set("hideOnMinimize", !orivalue);
+    this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
   }
 
   restoreDefaultSettings() {
@@ -189,12 +159,12 @@ class TrayController {
         if (response === 1) {
           try {
             // Create backup of current settings
-            const settingsPath = settings.file();
+            const settingsPath = settings.path;
             const backupPath = `${settingsPath}.bak-${Date.now()}`;
             fs.copyFileSync(settingsPath, backupPath);
 
             // Reset to defaults
-            settings.setSync({});
+            settings.clear();
 
             // Relaunch application
             app.relaunch();

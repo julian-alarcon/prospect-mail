@@ -13,81 +13,135 @@ permissions:
   packages: write  # For publishing artifacts
 
 env:
+  NODE_VERSION: 22
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
 
 jobs:
-  github-release:
-    runs-on: ${{ matrix.os }}
+  build-and-release:
+    runs-on: ${{ matrix.runner }}
+
+    env:
+      SNAPCRAFT_BUILD_ENVIRONMENT: host
 
     # Platforms to build on/for
     strategy:
       matrix:
-        os: [ubuntu-24.04, windows-2025, macos-15]
-        arch: [x64, arm64, arm]
-        exclude:
-          - os: macos-15
-            arch: arm
-          - os: macos-15
-            arch: x64
-          - os: windows-2025
-            arch: arm
-          - os: windows-2025
-            arch: arm64
+        include:
+          - { runner: ubuntu-24.04,      os: ubuntu,  arch: x64   }  # Linux x64
+          - { runner: ubuntu-24.04-arm,  os: ubuntu,  arch: arm64 }  # Linux ARM64
+          - { runner: windows-2025,      os: windows, arch: x64   }  # Windows x64
+          - { runner: windows-11-arm,    os: windows, arch: arm64 }  # Windows ARM64
+          - { runner: macos-15,          os: macos,   arch: arm64 }  # macOS ARM64
+          - { runner: macos-15-intel,    os: macos,   arch: x64   }  # macOS Intel x64
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Install Node.js, NPM and yarn
-        uses: actions/setup-node@v4
+      - name: Install Node.js and NPM
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
-          cache: 'yarn'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-      - name: Install Snapcraft
-        if: startsWith(matrix.os, 'ubuntu')
-        run: sudo snap install snapcraft --classic
-
-      - name: Install libarchive-tools for pacman build # Related https://github.com/electron-userland/electron-builder/issues/4181
-        if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt-get install libarchive-tools
+      - name: Install Linux build dependencies
+        if: matrix.os == 'ubuntu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libarchive-tools libopenjp2-tools flatpak flatpak-builder
+          sudo snap install snapcraft --classic
+          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y --system flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+          sudo flatpak install -y --system flathub org.electronjs.Electron2.BaseApp//24.08
 
       - name: Install dependencies
-        run: yarn --frozen-lockfile
+        run: npm ci
 
       - name: Build for test only linux
         if: |
-          github.ref != 'refs/heads/main' &&
-          startsWith(matrix.os, 'ubuntu')
-        run: yarn dist:linux:${{ matrix.arch }} -- --publish never
+          !startsWith(github.ref, 'refs/tags/') &&
+          matrix.os == 'ubuntu'
+        run: npm run dist:linux:${{ matrix.arch }} -- --publish never
 
       - name: Release linux
         if: |
-          github.ref == 'refs/heads/main' &&
-          startsWith(matrix.os, 'ubuntu')
-        run: yarn dist:linux:${{ matrix.arch }} -- --publish always
+          startsWith(github.ref, 'refs/tags/') &&
+          matrix.os == 'ubuntu'
+        run: npm run dist:linux:${{ matrix.arch }} -- --publish always
+
+      - name: Upload snap to GitHub Release
+        if: |
+          startsWith(github.ref, 'refs/tags/') &&
+          matrix.os == 'ubuntu' &&
+          matrix.arch == 'x64'
+        run: gh release upload ${{ github.ref_name }} dist/*.snap --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build for test only macos
         if: |
-          github.ref != 'refs/heads/main' &&
-          startsWith(matrix.os, 'macos')
-        run: yarn dist:mac -- --publish never
+          !startsWith(github.ref, 'refs/tags/') &&
+          matrix.os == 'macos'
+        run: npm run dist:mac:${{ matrix.arch }} -- --publish never
 
       - name: Release macos
         if: |
-          github.ref == 'refs/heads/main' &&
-          startsWith(matrix.os, 'macos')
-        run: yarn dist:mac -- --publish always
+          startsWith(github.ref, 'refs/tags/') &&
+          matrix.os == 'macos'
+        run: npm run dist:mac:${{ matrix.arch }} -- --publish always
 
       - name: Build for test only windows
         if: |
-          github.ref != 'refs/heads/main' &&
-          startsWith(matrix.os, 'windows')
-        run: yarn dist:windows -- --publish never
+          !startsWith(github.ref, 'refs/tags/') &&
+          matrix.os == 'windows'
+        run: npm run dist:windows:${{ matrix.arch }} -- --publish never
 
       - name: Release windows
         if: |
-          github.ref == 'refs/heads/main' &&
-          startsWith(matrix.os, 'windows')
-        run: yarn dist:windows -- --publish always
+          startsWith(github.ref, 'refs/tags/') &&
+          matrix.os == 'windows'
+        run: npm run dist:windows:${{ matrix.arch }} -- --publish always
+
+  build-and-release-snap-arm64:
+    runs-on: ubuntu-24.04-arm
+
+    env:
+      SNAPCRAFT_BUILD_ENVIRONMENT: lxd
+
+    steps:
+      - name: Install Snapcraft
+        uses: samuelmeuli/action-snapcraft@v3
+
+      - name: Install and initialize LXD
+        uses: canonical/setup-lxd@v1
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopenjp2-tools
+
+      - name: Check out Git repository
+        uses: actions/checkout@v6
+
+      - name: Install Node.js and NPM
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build snap for test only
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        run: npm run dist:linux:snap:arm64 -- --publish never
+
+      - name: Release snap
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: npm run dist:linux:snap:arm64 -- --publish always
+
+      - name: Upload arm64 snap to GitHub Release
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: gh release upload ${{ github.ref_name }} dist/*.snap --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

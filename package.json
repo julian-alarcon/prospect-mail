@@ -1,7 +1,7 @@
 {
   "name": "prospect-mail",
   "productName": "Prospect Mail",
-  "version": "1.0.0",
+  "version": "1.1.0-beta",
   "main": "src/main.js",
   "description": "Unofficial desktop mail client for Microsoft Outlook",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
@@ -22,7 +22,7 @@
   },
   "author": {
     "name": "Julian Alarcon",
-    "email": "alarconj@gmail.com",
+    "email": "prospect-mail@mail.desentropia.com",
     "url": "https://github.com/julian-alarcon/"
   },
   "license": "MIT",
@@ -35,41 +35,47 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "dist:linux": "electron-builder --linux",
-    "dist:linux:appimage": "electron-builder --x64 --arm64 --armv7l -l AppImage",
+    "dist:linux:x64": "electron-builder --x64 -l AppImage deb pacman rpm flatpak tar.gz snap",
+    "dist:linux:arm64": "electron-builder --arm64 -l AppImage deb pacman rpm flatpak tar.gz",
+    "dist:linux:x64:snap": "electron-builder --x64 -l snap",
+    "dist:linux:arm64:snap": "electron-builder --arm64 -l snap",
+    "dist:linux:snap": "electron-builder -l snap",
+    "dist:linux:snap:x64": "electron-builder --x64 -l snap",
+    "dist:linux:snap:arm64": "electron-builder --arm64 -l snap",
+    "dist:linux:appimage": "electron-builder --x64 --arm64 -l AppImage",
     "dist:linux:appimage:x64": "electron-builder --x64 -l AppImage",
     "dist:linux:appimage:arm64": "electron-builder --arm64 -l AppImage",
-    "dist:linux:appimage:arm": "electron-builder --armv7l -l AppImage",
-    "dist:linux:deb": "electron-builder --x64 --arm64 --armv7l -l deb",
+    "dist:linux:deb": "electron-builder --x64 --arm64 -l deb",
     "dist:linux:deb:x64": "electron-builder --x64 -l deb",
     "dist:linux:deb:arm64": "electron-builder --arm64 -l deb",
-    "dist:linux:deb:arm": "electron-builder --armv7l -l deb",
-    "dist:linux:pacman": "electron-builder --x64 --arm64 --armv7l -l pacman",
+    "dist:linux:pacman": "electron-builder --x64 --arm64 -l pacman",
     "dist:linux:pacman:x64": "electron-builder --x64 -l pacman",
     "dist:linux:pacman:arm64": "electron-builder --arm64 -l pacman",
-    "dist:linux:pacman:arm": "electron-builder --armv7l -l pacman",
-    "dist:linux:rpm": "electron-builder --x64 --arm64 --armv7l -l rpm",
+    "dist:linux:rpm": "electron-builder --x64 --arm64 -l rpm",
     "dist:linux:rpm:x64": "electron-builder --x64 -l rpm",
     "dist:linux:rpm:arm64": "electron-builder --arm64 -l rpm",
-    "dist:linux:rpm:arm": "electron-builder --armv7l -l rpm",
-    "dist:linux:snap": "electron-builder --x64 --armv7l -l snap",
-    "dist:linux:snap:x64": "electron-builder --x64 -l snap",
-    "dist:linux:snap:armv7l": "electron-builder --armv7l -l snap",
-    "dist:linux:targz": "electron-builder --x64 --arm64 --armv7l -l tar.gz",
+    "dist:linux:flatpak": "electron-builder --x64 --arm64 -l flatpak",
+    "dist:linux:flatpak:x64": "electron-builder --x64 -l flatpak",
+    "dist:linux:flatpak:arm64": "electron-builder --arm64 -l flatpak",
+    "dist:linux:targz": "electron-builder --x64 --arm64 -l tar.gz",
     "dist:mac": "electron-builder --mac",
-    "dist:windows": "electron-builder --win --x64",
-    "dist:linux:x64": "electron-builder --x64 -l AppImage deb pacman rpm snap tar.gz",
-    "dist:linux:arm64": "electron-builder --arm64 -l AppImage deb pacman rpm tar.gz",
-    "dist:linux:arm": "electron-builder --armv7l -l AppImage deb pacman rpm snap tar.gz",
+    "dist:mac:arm64": "electron-builder --mac --arm64",
+    "dist:mac:x64": "electron-builder --mac --x64",
+    "dist:windows": "electron-builder --win --x64 --arm64",
+    "dist:windows:x64": "electron-builder --win --x64",
+    "dist:windows:arm64": "electron-builder --win --arm64",
     "release": "electron-builder",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "about-window": "^1.15.2",
-    "electron-settings": "^4.0.4"
+    "electron-store": "^8.2.0"
   },
   "devDependencies": {
     "electron": "^39.2.7",
     "electron-builder": "^26.4.0"
+  },
+  "optionalDependencies": {
+    "dmg-license": "^1.0.11"
   },
   "build": {
     "appId": "io.github.julian-alarcon.prospect-mail",
@@ -84,11 +90,12 @@
         "pacman",
         "rpm",
         "snap",
+        "flatpak",
         "tar.gz"
       ],
       "publish": {
         "provider": "github",
-        "releaseType": "draft"
+        "releaseType": "release"
       }
     },
     "rpm": {
@@ -110,15 +117,30 @@
       ],
       "publish": [
         {
-          "provider": "github",
-          "releaseType": "draft"
-        },
-        {
           "provider": "snapStore",
           "channels": "beta"
         }
       ],
       "allowNativeWayland": true
+    },
+    "flatpak": {
+      "runtime": "org.freedesktop.Platform",
+      "runtimeVersion": "24.08",
+      "sdk": "org.freedesktop.Sdk",
+      "base": "org.electronjs.Electron2.BaseApp",
+      "baseVersion": "24.08",
+      "finishArgs": [
+        "--share=ipc",
+        "--socket=x11",
+        "--socket=wayland",
+        "--socket=pulseaudio",
+        "--share=network",
+        "--device=dri",
+        "--filesystem=xdg-download",
+        "--talk-name=org.freedesktop.Notifications",
+        "--talk-name=org.kde.StatusNotifierWatcher",
+        "--own-name=org.mpris.MediaPlayer2.chromium.*"
+      ]
     },
     "mac": {
       "category": "public.app-category.productivity",
@@ -126,7 +148,7 @@
       "type": "distribution",
       "publish": {
         "provider": "github",
-        "releaseType": "draft"
+        "releaseType": "release"
       }
     },
     "win": {
@@ -136,7 +158,7 @@
       ],
       "publish": {
         "provider": "github",
-        "releaseType": "draft"
+        "releaseType": "release"
       }
     },
     "nsis": {

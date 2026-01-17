@@ -27,8 +27,8 @@ all contributors.
 
 Before you begin:
 
-- Make sure you have [git](https://git-scm.com/), [Node.js](https://nodejs.org/)
-  (v22.x LTS), and [yarn](https://classic.yarnpkg.com/) (v1.x) installed
+- Make sure you have [git](https://git-scm.com/) and [Node.js](https://nodejs.org/)
+  (v22.x LTS) installed (npm comes with Node.js)
 - Familiarize yourself with the project by reading the [README.md](README.md)
 - Check existing [issues](https://github.com/julian-alarcon/prospect-mail/issues)
   and [pull requests](https://github.com/julian-alarcon/prospect-mail/pulls) to
@@ -53,19 +53,19 @@ git remote add upstream https://github.com/julian-alarcon/prospect-mail.git
 4. Install dependencies:
 
 ```shell
-yarn
+npm install
 ```
 
 5. Start the application in development mode:
 
 ```shell
-yarn start
+npm start
 ```
 
 To start the application minimized:
 
 ```shell
-yarn start-minimized
+npm run start-minimized
 ```
 
 ### Troubleshooting Sandbox Issues
@@ -82,7 +82,7 @@ it by:
 #### Option 1: Using environment variable (Recommended)
 
 ```shell
-ELECTRON_DISABLE_SANDBOX=1 yarn start
+ELECTRON_DISABLE_SANDBOX=1 npm start
 ```
 
 #### Option 2: Add to your shell profile
@@ -96,6 +96,40 @@ export ELECTRON_DISABLE_SANDBOX=1
 **Important:** This only affects local development. Production builds
 (AppImage, deb, rpm, snap, etc.) are not affected as electron-builder handles
 sandboxing correctly during the build process.
+
+### Building Linux Packages
+
+Different package formats require specific build dependencies:
+
+#### Snap packages
+
+```shell
+sudo snap install snapcraft --classic
+npm run dist:linux:snap
+```
+
+#### Flatpak packages
+
+```shell
+sudo apt install flatpak flatpak-builder
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install -y --system flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 org.electronjs.Electron2.BaseApp//24.08
+npm run dist:linux:flatpak
+```
+
+#### Deb packages
+
+```shell
+sudo apt install fakeroot dpkg
+npm run dist:linux:deb
+```
+
+#### Pacman packages
+
+```shell
+sudo apt install libarchive-tools
+npm run dist:linux:pacman
+```
 
 ## Project Structure
 
@@ -139,30 +173,15 @@ Branch naming conventions:
 
 1. Make your changes in your feature branch
 2. Test your changes locally
-3. Commit your changes with clear, descriptive commit messages
+3. Commit your changes using conventional commit format (see commit prefixes in
+   [Release Process](#release-process))
 4. Keep commits focused and atomic
 
-### Commit Message Guidelines
+Examples:
 
-Follow these conventions for commit messages:
-
-* `feat:` for new features
-* `fix:` for bug fixes
-* `docs:` for documentation changes
-* `refactor:` for code refactoring
-* `test:` for test additions or modifications
-* `build:` for build system changes
-* `chore:` for maintenance tasks
-
-Example:
-```
+```shell
 feat: add support for custom notification sounds
 fix: resolve tray icon not appearing on Windows
-docs: update installation instructions for Linux
-```
-
-Reference issues in your commits when applicable:
-```
 fix: #123 resolve crash when opening calendar view
 ```
 
@@ -182,24 +201,24 @@ Before submitting your changes:
 1. Test the application locally by running:
 
 ```shell
-yarn start
+npm start
 ```
 
 2. Build the application for your platform to ensure there are no build errors:
 
 For Linux:
 ```shell
-yarn dist:linux
+npm run dist:linux
 ```
 
 For macOS:
 ```shell
-yarn dist:mac
+npm run dist:mac
 ```
 
 For Windows:
 ```shell
-yarn dist:windows
+npm run dist:windows
 ```
 
 3. Test the functionality you've added or modified
@@ -292,9 +311,9 @@ git push origin maintenance-release-YYYY-qN
    - The GitHub Actions workflow will automatically build and attach artifacts
 
 6. **Automated builds**: When the release is published, GitHub Actions will:
-   - Build for Linux (x64, arm64, arm): AppImage, deb, pacman, rpm, snap, tar.gz
-   - Build for macOS (arm64): dmg
-   - Build for Windows (x64): exe, msi
+   - Build for Linux (x64, arm64): AppImage, deb, pacman, rpm, snap, flatpak, tar.gz
+   - Build for macOS (arm64, x64): dmg
+   - Build for Windows (x64, arm64): exe, msi
    - Publish to GitHub Releases
    - Publish snap to Snap Store (beta channel)
 
@@ -378,11 +397,10 @@ and include:
 ### Core Components
 
 - **Node.js**: v22.x LTS
-- **Yarn**: v1.x
+- **npm**: (comes with Node.js)
 - **Electron**: v39.x
 - **electron-builder**: v26.x
-- **electron-settings**: v4.0.4
-- **about-window**: v1.15.2
+- **electron-store**: v8.2.0
 
 ### Platform-Specific Notes
 
@@ -390,18 +408,18 @@ and include:
 
 - Snap builds use `core22` base with strict confinement
 - Multiple package formats supported: AppImage, deb, pacman, rpm, snap, tar.gz
-- Architectures: x64, arm64, armv7l
+- Architectures: x64, arm64
 - Requires `libarchive-tools` for pacman builds
 
 #### macOS
 
-- Builds for arm64 (Apple Silicon)
+- Builds for arm64 (Apple Silicon) and x64 (Intel)
 - Category: productivity
 - DMG packaging with no update info
 
 #### Windows
 
-- Builds for x64 only
+- Builds for x64 and arm64
 - NSIS and MSI installers available
 - Windows 10+ required
 

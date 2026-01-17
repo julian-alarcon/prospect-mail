@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src file: data:; script-src 'unsafe-inline';">
+    <title>About Prospect Mail</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #3dccf2 0%, #667eea 50%, #764ba2 100%);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            padding: 40px 30px;
+            -webkit-app-region: drag;
+        }
+
+        .logo {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 20px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .version {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 18px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .info p:not(:last-child) {
+            margin-bottom: 8px;
+        }
+
+        .links {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            -webkit-app-region: no-drag;
+        }
+
+        .link-button {
+            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .link-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            margin-top: 15px;
+            font-size: 11px;
+            opacity: 0.8;
+            -webkit-app-region: no-drag;
+        }
+
+        .report-link {
+            color: #fff;
+            text-decoration: underline;
+            opacity: 0.7;
+            cursor: pointer;
+        }
+
+        .report-link:hover {
+            opacity: 1;
+        }
+
+        .close-button {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.25);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-app-region: no-drag;
+            z-index: 1000;
+        }
+
+        .close-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <button class="close-button" id="close-btn">×</button>
+    <img src="../misc/prospect-logo.svg" alt="Prospect Mail Logo" class="logo">
+    <h1 id="app-name">Prospect Mail</h1>
+    <div class="version" id="version">Version 1.1.0-beta</div>
+
+    <div class="info">
+        <p>Unofficial desktop email client for Microsoft Outlook</p>
+        <p><strong>Distributed under MIT license</strong></p>
+        <p>If this app has been useful for you,<br>consider buying me a coffee ☕!</p>
+    </div>
+
+    <div class="links">
+        <a href="#" class="link-button" id="github-link">GitHub</a>
+        <a href="#" class="link-button" id="donate-link">Donate</a>
+    </div>
+
+    <div class="footer">
+        <p>Created by Julian Alarcon</p>
+        <a href="#" class="report-link" id="report-link">Report an issue</a>
+    </div>
+
+    <script>
+        // Version and links are passed via URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const version = urlParams.get('version');
+        const githubUrl = urlParams.get('github');
+        const donateUrl = urlParams.get('donate');
+        const issuesUrl = `${githubUrl}/issues`;
+
+        // Set version
+        document.getElementById('version').textContent = `Version ${version}`;
+
+        // Get link elements
+        const githubLink = document.getElementById('github-link');
+        const donateLink = document.getElementById('donate-link');
+        const reportLink = document.getElementById('report-link');
+        const closeBtn = document.getElementById('close-btn');
+
+        // Close button handler
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                if (window.electronAPI && window.electronAPI.closeWindow) {
+                    window.electronAPI.closeWindow();
+                }
+            });
+        }
+
+        // Add click handlers
+        githubLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.electronAPI && window.electronAPI.openExternal) {
+                window.electronAPI.openExternal(githubUrl);
+            }
+        });
+
+        donateLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.electronAPI && window.electronAPI.openExternal) {
+                window.electronAPI.openExternal(donateUrl);
+            }
+        });
+
+        reportLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.electronAPI && window.electronAPI.openExternal) {
+                window.electronAPI.openExternal(issuesUrl);
+            }
+        });
+    </script>
+</body>
+</html>

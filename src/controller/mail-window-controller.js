@@ -1,5 +1,6 @@
-const { app, BrowserWindow, shell, ipcMain } = require("electron");
-const settings = require("electron-settings");
+const { app, BrowserWindow, shell, ipcMain, Menu } = require("electron");
+const { spawn } = require("child_process");
+const settings = require("../settings");
 const getClientFile = require("./client-injector");
 const path = require("path");
 
@@ -23,39 +24,23 @@ class MailWindowController {
   }
   reloadSettings() {
     // Get configurations.
-    showWindowFrame =
-      settings.getSync("showWindowFrame") === undefined ||
-      settings.getSync("showWindowFrame") === true;
+    showWindowFrame = settings.get("showWindowFrame");
 
-    mainMailServiceUrl =
-      settings.getSync("urlMainWindow") || "https://outlook.office.com/mail";
-    deeplinkUrls = settings.getSync("urlsInternal") || [
-      "outlook.live.com/mail/deeplink",
-      "outlook.office365.com/mail/deeplink",
-      "outlook.office.com/mail/deeplink",
-      "outlook.office.com/calendar/deeplink",
-      "to-do.office.com/tasks",
-    ];
-    mailServicesUrls = settings.getSync("urlsExternal") || [
-      "outlook.live.com",
-      "outlook.office365.com",
-      "outlook.office.com",
-    ];
+    mainMailServiceUrl = settings.get("urlMainWindow");
+    deeplinkUrls = settings.get("urlsInternal");
+    mailServicesUrls = settings.get("urlsExternal");
     // // Outlook.com personal accounts tests values
     // mainMailServiceUrl =
-    //   settings.getSync("urlMainWindow") || "https://login.live.com/login.srf";
-    // deeplinkUrls = settings.getSync("urlsInternal") || [
+    //   settings.get("urlMainWindow") || "https://login.live.com/login.srf";
+    // deeplinkUrls = settings.get("urlsInternal") || [
     //   "outlook.com",
     //   "live.com",
     // ];
-    // mailServicesUrls = settings.getSync("urlsExternal") || [
+    // mailServicesUrls = settings.get("urlsExternal") || [
     //   "outlook.com",
     //   "live.com",
     // ];
-    safelinksUrls = settings.getSync("safelinksUrls") || [
-      "outlook.office.com/mail/safelink.html",
-      "safelinks.protection.outlook.com",
-    ];
+    safelinksUrls = settings.get("safelinksUrls");
 
     console.log("Loaded settings", {
       mainMailServiceUrl: mainMailServiceUrl,
@@ -64,6 +49,23 @@ class MailWindowController {
       safelinksUrls: safelinksUrls,
     });
   }
+
+  openExternalLink(url) {
+    const customBrowserPath = settings.get("customBrowserPath");
+
+    if (customBrowserPath) {
+      // Use custom browser specified in settings
+      console.log(`Opening URL in custom browser: ${customBrowserPath}`);
+      spawn(customBrowserPath, [url], {
+        detached: true,
+        stdio: "ignore",
+      }).unref();
+    } else {
+      // Fall back to system default browser
+      shell.openExternal(url);
+    }
+  }
+
   init() {
     this.reloadSettings();
 
@@ -122,6 +124,82 @@ class MailWindowController {
 
     console.log("Custom User Agent: " + customUserAgent);
 
+    // Setup context menu for text selection and links
+    this.win.webContents.on("context-menu", (_event, params) => {
+      const menuTemplate = [];
+
+      // Add text editing options if text is selected or in an editable field
+      if (params.isEditable) {
+        menuTemplate.push(
+          { label: "Undo", role: "undo" },
+          { label: "Redo", role: "redo" },
+          { type: "separator" },
+          { label: "Cut", role: "cut", enabled: params.editFlags.canCut },
+          { label: "Copy", role: "copy", enabled: params.editFlags.canCopy },
+          { label: "Paste", role: "paste", enabled: params.editFlags.canPaste },
+          { type: "separator" },
+          { label: "Select All", role: "selectAll" }
+        );
+      } else {
+        // For non-editable content (reading emails)
+        if (params.selectionText) {
+          menuTemplate.push({
+            label: "Copy",
+            role: "copy",
+          });
+        }
+
+        // Add link-specific options
+        if (params.linkURL) {
+          if (menuTemplate.length > 0) {
+            menuTemplate.push({ type: "separator" });
+          }
+          menuTemplate.push(
+            {
+              label: "Open Link in Browser",
+              click: () => {
+                this.openExternalLink(params.linkURL);
+              },
+            },
+            {
+              label: "Copy Link Address",
+              click: () => {
+                const { clipboard } = require("electron");
+                clipboard.writeText(params.linkURL);
+              },
+            }
+          );
+        }
+
+        // Add select all if there's text content
+        if (params.selectionText || params.pageURL) {
+          if (menuTemplate.length > 0) {
+            menuTemplate.push({ type: "separator" });
+          }
+          menuTemplate.push({ label: "Select All", role: "selectAll" });
+        }
+      }
+
+      // Add inspect element in development mode
+      if (isDev) {
+        if (menuTemplate.length > 0) {
+          menuTemplate.push({ type: "separator" });
+        }
+        menuTemplate.push({
+          label: "Inspect Element",
+          click: () => {
+            this.win.webContents.inspectElement(params.x, params.y);
+          },
+        });
+      }
+
+      // Only show menu if there are items
+      if (menuTemplate.length > 0) {
+        const menu = Menu.buildFromTemplate(menuTemplate);
+        menu.popup();
+      }
+    });
+
     // Show window handler
     ipcMain.on("show", (event) => {
       this.show();
@@ -153,7 +231,7 @@ class MailWindowController {
       }
       // Open MS Safe Links in local browser
       if (new RegExp(safelinksUrls.join("|")).test(url)) {
-        shell.openExternal(url);
+        this.openExternalLink(url);
         return {
           action: "deny",
         };
@@ -176,7 +254,7 @@ class MailWindowController {
           action: "deny",
         };
       }
-      shell.openExternal(url);
+      this.openExternalLink(url);
       return {
         action: "deny",
       };
@@ -186,10 +264,7 @@ class MailWindowController {
     this.win.on("close", (e) => {
       //console.log('Log invoked: ' + this.win.isVisible())
       if (this.win.isVisible()) {
-        if (
-          settings.getSync("hideOnClose") === undefined ||
-          settings.getSync("hideOnClose") === true
-        ) {
+        if (settings.get("hideOnClose")) {
           e.preventDefault();
           this.win.hide();
         }
@@ -198,10 +273,7 @@ class MailWindowController {
 
     // prevent the app minimze, hide the window instead.
     this.win.on("minimize", (e) => {
-      if (
-        settings.getSync("hideOnMinimize") === undefined ||
-        settings.getSync("hideOnMinimize") === true
-      ) {
+      if (settings.get("hideOnMinimize")) {
         e.preventDefault();
         this.win.hide();
       }
