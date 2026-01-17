@@ -70,6 +70,14 @@ jobs:
           matrix.os == 'ubuntu'
         run: npm run dist:linux:${{ matrix.arch }} -- --publish always
 
+      - name: Upload snap to GitHub Release
+        if: |
+          github.ref == 'refs/heads/main' &&
+          matrix.os == 'ubuntu'
+        run: gh release upload ${{ github.ref_name }} dist/*.snap --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build for test only macos
         if: |
           github.ref != 'refs/heads/main' &&
@@ -130,3 +138,9 @@ jobs:
       - name: Release snap
         if: github.ref == 'refs/heads/main'
         run: npm run dist:linux:snap:arm64 -- --publish always
+
+      - name: Upload arm64 snap to GitHub Release
+        if: github.ref == 'refs/heads/main'
+        run: gh release upload ${{ github.ref_name }} dist/*.snap --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
