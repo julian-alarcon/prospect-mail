@@ -77,12 +77,37 @@ jobs:
           echo "Generated release notes:"
           cat release-notes.md
 
-      - name: Update or Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-          body_path: release-notes.md
-          draft: false
-          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
+      - name: Create or Update Release
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+
+          # Remove 'v' prefix for display name
+          RELEASE_NAME="${TAG#v}"
+
+          # Check if this is a prerelease
+          if [[ "$TAG" =~ (beta|alpha|rc) ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          else
+            PRERELEASE_FLAG=""
+          fi
+
+          # Create or edit release
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            # Release exists, update it
+            gh release edit "$TAG" \
+              --title "$RELEASE_NAME" \
+              --notes-file release-notes.md \
+              $PRERELEASE_FLAG
+          else
+            # Create new release
+            gh release create "$TAG" \
+              --title "$RELEASE_NAME" \
+              --notes-file release-notes.md \
+              $PRERELEASE_FLAG
+          fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
