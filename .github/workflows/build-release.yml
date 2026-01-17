@@ -60,19 +60,19 @@ jobs:
 
       - name: Build for test only linux
         if: |
-          github.ref != 'refs/heads/main' &&
+          !startsWith(github.ref, 'refs/tags/') &&
           matrix.os == 'ubuntu'
         run: npm run dist:linux:${{ matrix.arch }} -- --publish never
 
       - name: Release linux
         if: |
-          github.ref == 'refs/heads/main' &&
+          startsWith(github.ref, 'refs/tags/') &&
           matrix.os == 'ubuntu'
         run: npm run dist:linux:${{ matrix.arch }} -- --publish always
 
       - name: Upload snap to GitHub Release
         if: |
-          github.ref == 'refs/heads/main' &&
+          startsWith(github.ref, 'refs/tags/') &&
           matrix.os == 'ubuntu'
         run: gh release upload ${{ github.ref_name }} dist/*.snap --clobber
         env:
@@ -80,25 +80,25 @@ jobs:
 
       - name: Build for test only macos
         if: |
-          github.ref != 'refs/heads/main' &&
+          !startsWith(github.ref, 'refs/tags/') &&
           matrix.os == 'macos'
         run: npm run dist:mac:${{ matrix.arch }} -- --publish never
 
       - name: Release macos
         if: |
-          github.ref == 'refs/heads/main' &&
+          startsWith(github.ref, 'refs/tags/') &&
           matrix.os == 'macos'
         run: npm run dist:mac:${{ matrix.arch }} -- --publish always
 
       - name: Build for test only windows
         if: |
-          github.ref != 'refs/heads/main' &&
+          !startsWith(github.ref, 'refs/tags/') &&
           matrix.os == 'windows'
         run: npm run dist:windows:${{ matrix.arch }} -- --publish never
 
       - name: Release windows
         if: |
-          github.ref == 'refs/heads/main' &&
+          startsWith(github.ref, 'refs/tags/') &&
           matrix.os == 'windows'
         run: npm run dist:windows:${{ matrix.arch }} -- --publish always
 
@@ -132,15 +132,15 @@ jobs:
         run: npm ci
 
       - name: Build snap for test only
-        if: github.ref != 'refs/heads/main'
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         run: npm run dist:linux:snap:arm64 -- --publish never
 
       - name: Release snap
-        if: github.ref == 'refs/heads/main'
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: npm run dist:linux:snap:arm64 -- --publish always
 
       - name: Upload arm64 snap to GitHub Release
-        if: github.ref == 'refs/heads/main'
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: gh release upload ${{ github.ref_name }} dist/*.snap --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
