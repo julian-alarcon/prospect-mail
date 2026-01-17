@@ -68,7 +68,6 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "about-window": "^1.15.2",
     "electron-settings": "^4.0.4"
   },
   "devDependencies": {
