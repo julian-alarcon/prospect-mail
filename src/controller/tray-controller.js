@@ -12,7 +12,7 @@ const path = require("path");
 const fs = require("fs");
 const { openAboutWindow } = require("./about-window");
 
-const macOS = process.platform === "darwin" ? true : false;
+const macOS = process.platform === "darwin";
 
 class TrayController {
   constructor(mailController) {
@@ -114,6 +114,8 @@ class TrayController {
   }
 
   forceShow() {
+    if (!this.mailController.win) return;
+
     if (!this.mailController.win.isVisible()) {
       this.mailController.toggleWindow();
     }

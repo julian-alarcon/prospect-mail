@@ -1,4 +1,4 @@
-let owa_timer;
+let owaTimer;
 const observeUnreadHandlers = {
   owa: () => {
     // TODO Check the number of unread messages for Inbox Folder
@@ -14,14 +14,13 @@ const observeUnreadHandlers = {
     }
     let lastcheck;
     const checkOwa = (checkonlyzerounread) => {
-      if (unreadSpan) {
-        let unread = parseInt(unreadSpan.textContent, 10);
-        console.log(`Found ` + unread + ` unread messages in OWA`);
-      } else {
+      if (!unreadSpan) {
         console.log("Not a valid number for unread messages.");
         return false;
       }
-      unread = parseInt(unreadSpan.textContent, 10);
+
+      const unread = parseInt(unreadSpan.textContent, 10);
+      console.log(`Found ` + unread + ` unread messages in OWA`);
       if (unread > 0 || !checkonlyzerounread) {
         window.electronAPI.updateUnread(unread);
 
@@ -53,7 +52,7 @@ const observeUnreadHandlers = {
     console.log("Begin observe leftPanel: ", leftPanel);
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        waitForFinalEvent(checkOwa, 1000, "mutation detected");
+        debounce(checkOwa, 1000, "mutation detected");
       });
     });
 
@@ -64,10 +63,10 @@ const observeUnreadHandlers = {
     });
 
     //observer cannot catch all changes, use timer to handle ZERO unreadmessages
-    if (owa_timer) {
-      clearInterval(owa_timer);
+    if (owaTimer) {
+      clearInterval(owaTimer);
     }
-    owa_timer = setInterval(() => {
+    owaTimer = setInterval(() => {
       checkOwa(true);
     }, 5000);
 
@@ -77,7 +76,7 @@ const observeUnreadHandlers = {
   },
 
   // @joax implementation, maybe this is an update or consumer
-  consumer_2: () => {
+  consumer2: () => {
     let unreadSpan = document.querySelector(".ki0YS.bSYaw_");
     if (!unreadSpan) {
       console.log(`No notification found for Calendars/Alerts`);
