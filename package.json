@@ -118,6 +118,9 @@
         "screen-inhibit-control",
         "upower-observe"
       ],
+      "environment": {
+        "TMPDIR": "$XDG_RUNTIME_DIR"
+      },
       "publish": [
         {
           "provider": "snapStore",
