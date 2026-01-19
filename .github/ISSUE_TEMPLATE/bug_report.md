@@ -28,6 +28,7 @@ If applicable, add screenshots to help explain your problem.
 - OS: [e.g. Ubuntu 24.04, Windows 11, macOS 15]
 - Installation source: [deb, rpm, snap, AppImage, tar.gz, Snapstore, exe, msi, dmg]
 - Version: [e.g. 0.6.0-beta2]
+- Using Wayland: [e.g. yes / no] (`echo $XDG_SESSION_TYPE`)
 
 **Additional context**
 Add any other context about the problem here.
