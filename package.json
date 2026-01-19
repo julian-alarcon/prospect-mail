@@ -5,7 +5,6 @@
   "main": "src/main.js",
   "description": "Unofficial desktop mail client for Microsoft Outlook",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
-  "type": "commonjs",
   "keywords": [
     "Electron",
     "Outlook",
@@ -84,6 +83,13 @@
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail, unofficial desktop mail client for Microsoft Outlook",
+      "desktop": {
+        "entry": {
+          "Name": "Prospect Mail",
+          "Comment": "Unofficial desktop mail client for Microsoft Outlook",
+          "StartupWMClass": "Prospect Mail"
+        }
+      },
       "target": [
         "AppImage",
         "deb",
@@ -144,7 +150,8 @@
         "--filesystem=xdg-download",
         "--talk-name=org.freedesktop.Notifications",
         "--talk-name=org.kde.StatusNotifierWatcher",
-        "--own-name=org.mpris.MediaPlayer2.chromium.*"
+        "--own-name=org.mpris.MediaPlayer2.chromium.*",
+        "--filesystem=xdg-run/tray-icon:create"
       ]
     },
     "mac": {

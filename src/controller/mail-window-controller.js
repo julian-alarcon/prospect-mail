@@ -222,6 +222,44 @@ class MailWindowController {
       this.show();
     });
 
+    // Native notification handler
+    ipcMain.on("show-notification", (_event, { title, body, icon }) => {
+      const { Notification, nativeImage } = require("electron");
+
+      // Check if notifications are supported
+      if (!Notification.isSupported()) {
+        console.log("Notifications are not supported on this system");
+        return;
+      }
+
+      console.log("[Notification] Request received:", { title, bodyLength: body?.length || 0 });
+
+      // Create notification config
+      const notificationConfig = {
+        title,
+        body,
+      };
+
+      // Handle icon - use nativeImage if it's a data URL, otherwise use file path
+      const iconPath = icon || path.join(__dirname, "../../assets/outlook_linux_black.png");
+      if (iconPath.startsWith("data:")) {
+        notificationConfig.icon = nativeImage.createFromDataURL(iconPath);
+      } else {
+        notificationConfig.icon = iconPath;
+      }
+
+      // Create and show native notification
+      const notification = new Notification(notificationConfig);
+
+      notification.on("click", () => {
+        console.log("[Notification] Clicked - showing main window");
+        this.show();
+      });
+
+      notification.show();
+      console.log("[Notification] Displayed successfully");
+    });
+
     // insert styles
     this.win.webContents.on("dom-ready", () => {
       this.win.webContents.insertCSS(getClientFile("main.css"));
@@ -307,6 +345,7 @@ class MailWindowController {
       global.preventAutoCloseApp = false;
     });
   }
+
   addUnreadNumberObserver() {
     this.win.webContents.executeJavaScript(
       getClientFile("unread-number-observer.js")
@@ -333,7 +372,6 @@ class MailWindowController {
   show() {
     initialMinimization.domReady = false;
     this.win.show();
-    this.win.focus();
   }
 }
 

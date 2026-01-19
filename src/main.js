@@ -7,6 +7,12 @@ const TrayController = require("./controller/tray-controller");
 // This must be set before app is ready
 app.setPath("userData", path.join(app.getPath("appData"), "prospect-mail"));
 
+// Set desktop name for proper notification handling on Linux
+// This prevents the system from showing a separate "app is ready" notification
+if (process.platform === "linux") {
+  app.setDesktopName("Prospect Mail");
+}
+
 //Store commandline for global purpose
 global.cmdLine = process.argv;
 
@@ -44,16 +50,6 @@ class ProspectMail {
       // to stay active until the user quits explicitly with Cmd + Q
       if (process.platform !== "darwin" && !this.mailController) {
         app.quit();
-      }
-    });
-
-    app.on("activate", () => {
-      // On macOS it's common to re-create a window in the app when the
-      // dock icon is clicked and there are no other windows open.
-      if (this.mailController === null) {
-        this.createControllers();
-      } else {
-        this.mailController.show();
       }
     });
   }
