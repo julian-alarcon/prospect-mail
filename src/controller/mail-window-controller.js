@@ -18,7 +18,10 @@ const initialMinimization = {
 class MailWindowController {
   constructor() {
     this.init();
-    initialMinimization.domReady = global.cmdLine.indexOf("--minimized") !== -1;
+    // Check both command-line flag and settings for initial minimization
+    const hasMinimizedFlag = global.cmdLine.indexOf("--minimized") !== -1;
+    const startMinimizedSetting = settings.get("startMinimized");
+    initialMinimization.domReady = hasMinimizedFlag || startMinimizedSetting;
   }
   reloadSettings() {
     // Get configurations.
@@ -252,12 +255,10 @@ class MailWindowController {
       const notification = new Notification(notificationConfig);
 
       notification.on("click", () => {
-        console.log("[Notification] Clicked - showing main window");
         this.show();
       });
 
       notification.show();
-      console.log("[Notification] Displayed successfully");
     });
 
     // insert styles
@@ -371,7 +372,16 @@ class MailWindowController {
 
   show() {
     initialMinimization.domReady = false;
-    this.win.show();
+
+    // Restore if minimized, otherwise just show
+    if (this.win.isMinimized()) {
+      this.win.restore();
+    } else {
+      this.win.show();
+    }
+
+    // Focus the window (works properly on Wayland with activateIgnoringOtherApps)
+    this.win.focus();
   }
 }
 

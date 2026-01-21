@@ -68,6 +68,9 @@ To start the application minimized:
 npm run start-minimized
 ```
 
+Note: You can also enable "Start Minimized" permanently via the tray icon
+Settings menu, or by setting `"startMinimized": true` in settings.json.
+
 ### Troubleshooting Sandbox Issues
 
 If you encounter a sandbox error like:

@@ -41,6 +41,13 @@ class TrayController {
         label: "Settings",
         submenu: [
           {
+            label: "Start Minimized",
+            type: "checkbox",
+            checked: settings.get("startMinimized"),
+            click: () => this.toggleStartMinimized(),
+          },
+          { type: "separator" },
+          {
             label: "Hide on Close",
             type: "checkbox",
             checked: settings.get("hideOnClose"),
@@ -126,6 +133,11 @@ class TrayController {
     this.mailController.reloadWindow();
   }
 
+  toggleStartMinimized() {
+    let orivalue = settings.get("startMinimized");
+    settings.set("startMinimized", !orivalue);
+    this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
+  }
   toggleWindowFrame() {
     let orivalue = settings.get("showWindowFrame");
     settings.set("showWindowFrame", !orivalue);

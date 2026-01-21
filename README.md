@@ -62,8 +62,8 @@ For other distributions please follow your specific steps.
 
 - Check your Outlook Microsoft 365 emails/calendar from the desktop app
 - Close to minimize
-- Start as minimized (you can use the Option in the Tray icon menu or start app
-with `prospect-mail --minimized`)
+- Start minimized: toggle via tray icon Settings menu, or use command-line
+flag `prospect-mail --minimized`
 - Dock tray support
 - System notification
 - Connect to standard or custom Outlook URL
@@ -99,6 +99,7 @@ need to click in "Reload settings" to apply changes.
   "showWindowFrame": true,
   "hideOnClose": true,
   "hideOnMinimize": true,
+  "startMinimized": false,
   "customBrowserPath": "microsoft-edge"
 }
 ```
@@ -114,6 +115,7 @@ need to click in "Reload settings" to apply changes.
 | `showWindowFrame`   | Show/hide window frame and title bar                                                         | `true`                            |
 | `hideOnClose`       | Minimize to tray instead of quitting when closing window                                     | `true`                            |
 | `hideOnMinimize`    | Hide to tray when minimizing window                                                          | `true`                            |
+| `startMinimized`    | Start app minimized to tray (also available via tray menu or `--minimized` flag)             | `false`                           |
 | `customBrowserPath` | Custom browser for external links. Use command name (e.g., `"firefox"`) or full path        | System default                    |
 
 ### Example Configuration for Personal Outlook
