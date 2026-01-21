@@ -29,8 +29,8 @@
     "node": "^22.0.0"
   },
   "scripts": {
-    "start": "electron .",
-    "start-minimized": "electron . --minimized",
+    "start": "electron . --ozone-platform=x11",
+    "start-minimized": "electron . --ozone-platform=x11 --minimized",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "dist:linux": "electron-builder --linux",
@@ -83,6 +83,9 @@
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail, unofficial desktop mail client for Microsoft Outlook",
+      "executableArgs": [
+        "--ozone-platform=x11"
+      ],
       "desktop": {
         "entry": {
           "Name": "Prospect Mail",
@@ -140,6 +143,9 @@
       "sdk": "org.freedesktop.Sdk",
       "base": "org.electronjs.Electron2.BaseApp",
       "baseVersion": "24.08",
+      "executableArgs": [
+        "--ozone-platform=x11"
+      ],
       "finishArgs": [
         "--share=ipc",
         "--socket=x11",
