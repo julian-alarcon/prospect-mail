@@ -28,6 +28,7 @@ const settings = new Store({
     showWindowFrame: true,
     hideOnClose: true,
     hideOnMinimize: true,
+    startMinimized: false,
     customBrowserPath: undefined
   }
 });

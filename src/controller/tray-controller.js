@@ -12,7 +12,7 @@ const path = require("path");
 const fs = require("fs");
 const { openAboutWindow } = require("./about-window");
 
-const macOS = process.platform === "darwin" ? true : false;
+const macOS = process.platform === "darwin";
 
 class TrayController {
   constructor(mailController) {
@@ -40,6 +40,13 @@ class TrayController {
       {
         label: "Settings",
         submenu: [
+          {
+            label: "Start Minimized",
+            type: "checkbox",
+            checked: settings.get("startMinimized"),
+            click: () => this.toggleStartMinimized(),
+          },
+          { type: "separator" },
           {
             label: "Hide on Close",
             type: "checkbox",
@@ -114,6 +121,8 @@ class TrayController {
   }
 
   forceShow() {
+    if (!this.mailController.win) return;
+
     if (!this.mailController.win.isVisible()) {
       this.mailController.toggleWindow();
     }
@@ -124,6 +133,11 @@ class TrayController {
     this.mailController.reloadWindow();
   }
 
+  toggleStartMinimized() {
+    let orivalue = settings.get("startMinimized");
+    settings.set("startMinimized", !orivalue);
+    this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
+  }
   toggleWindowFrame() {
     let orivalue = settings.get("showWindowFrame");
     settings.set("showWindowFrame", !orivalue);

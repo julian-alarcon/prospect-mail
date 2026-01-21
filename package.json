@@ -1,11 +1,10 @@
 {
   "name": "prospect-mail",
   "productName": "Prospect Mail",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "main": "src/main.js",
   "description": "Unofficial desktop mail client for Microsoft Outlook",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
-  "type": "commonjs",
   "keywords": [
     "Electron",
     "Outlook",
@@ -30,8 +29,8 @@
     "node": "^22.0.0"
   },
   "scripts": {
-    "start": "electron .",
-    "start-minimized": "electron . --minimized",
+    "start": "electron . --ozone-platform=x11",
+    "start-minimized": "electron . --ozone-platform=x11 --minimized",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "dist:linux": "electron-builder --linux",
@@ -84,6 +83,16 @@
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail, unofficial desktop mail client for Microsoft Outlook",
+      "executableArgs": [
+        "--ozone-platform=x11"
+      ],
+      "desktop": {
+        "entry": {
+          "Name": "Prospect Mail",
+          "Comment": "Unofficial desktop mail client for Microsoft Outlook",
+          "StartupWMClass": "Prospect Mail"
+        }
+      },
       "target": [
         "AppImage",
         "deb",
@@ -134,6 +143,7 @@
       "sdk": "org.freedesktop.Sdk",
       "base": "org.electronjs.Electron2.BaseApp",
       "baseVersion": "24.08",
+      "useWaylandFlags": true,
       "finishArgs": [
         "--share=ipc",
         "--socket=x11",
@@ -144,7 +154,9 @@
         "--filesystem=xdg-download",
         "--talk-name=org.freedesktop.Notifications",
         "--talk-name=org.kde.StatusNotifierWatcher",
-        "--own-name=org.mpris.MediaPlayer2.chromium.*"
+        "--own-name=org.mpris.MediaPlayer2.chromium.*",
+        "--filesystem=xdg-run/tray-icon:create",
+        "--env=XDG_SESSION_TYPE=x11"
       ]
     },
     "mac": {

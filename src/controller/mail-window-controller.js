@@ -9,7 +9,6 @@ let deeplinkUrls;
 let safelinksUrls;
 let mailServicesUrls;
 let showWindowFrame;
-let $this;
 
 //Setted by cmdLine to initial minimization
 const initialMinimization = {
@@ -18,9 +17,11 @@ const initialMinimization = {
 
 class MailWindowController {
   constructor() {
-    $this = this;
     this.init();
-    initialMinimization.domReady = global.cmdLine.indexOf("--minimized") != -1;
+    // Check both command-line flag and settings for initial minimization
+    const hasMinimizedFlag = global.cmdLine.indexOf("--minimized") !== -1;
+    const startMinimizedSetting = settings.get("startMinimized");
+    initialMinimization.domReady = hasMinimizedFlag || startMinimizedSetting;
   }
   reloadSettings() {
     // Get configurations.
@@ -29,17 +30,6 @@ class MailWindowController {
     mainMailServiceUrl = settings.get("urlMainWindow");
     deeplinkUrls = settings.get("urlsInternal");
     mailServicesUrls = settings.get("urlsExternal");
-    // // Outlook.com personal accounts tests values
-    // mainMailServiceUrl =
-    //   settings.get("urlMainWindow") || "https://login.live.com/login.srf";
-    // deeplinkUrls = settings.get("urlsInternal") || [
-    //   "outlook.com",
-    //   "live.com",
-    // ];
-    // mailServicesUrls = settings.get("urlsExternal") || [
-    //   "outlook.com",
-    //   "live.com",
-    // ];
     safelinksUrls = settings.get("safelinksUrls");
 
     console.log("Loaded settings", {
@@ -48,18 +38,48 @@ class MailWindowController {
       mailServicesUrls: mailServicesUrls,
       safelinksUrls: safelinksUrls,
     });
+
+    // Compile RegExp patterns once for performance and security
+    // Escape special regex characters to prevent ReDoS attacks
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    this.safelinksPattern = new RegExp(safelinksUrls.map(escapeRegex).join("|"));
+    this.deeplinkPattern = new RegExp(deeplinkUrls.map(escapeRegex).join("|"));
+    this.mailServicesPattern = new RegExp(mailServicesUrls.map(escapeRegex).join("|"));
   }
 
   openExternalLink(url) {
+    // Validate URL protocol for security
+    try {
+      const parsed = new URL(url);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        console.warn('Blocked non-HTTP(S) URL:', url);
+        return;
+      }
+    } catch (err) {
+      console.error('Invalid URL:', url, err);
+      return;
+    }
+
     const customBrowserPath = settings.get("customBrowserPath");
 
     if (customBrowserPath) {
       // Use custom browser specified in settings
       console.log(`Opening URL in custom browser: ${customBrowserPath}`);
-      spawn(customBrowserPath, [url], {
-        detached: true,
-        stdio: "ignore",
-      }).unref();
+      try {
+        const child = spawn(customBrowserPath, [url], {
+          detached: true,
+          stdio: "ignore",
+        });
+        child.unref();
+        child.on('error', (err) => {
+          console.error('Failed to spawn custom browser:', err);
+          // Fallback to system default browser
+          shell.openExternal(url);
+        });
+      } catch (err) {
+        console.error('Failed to spawn custom browser:', err);
+        shell.openExternal(url);
+      }
     } else {
       // Fall back to system default browser
       shell.openExternal(url);
@@ -205,6 +225,42 @@ class MailWindowController {
       this.show();
     });
 
+    // Native notification handler
+    ipcMain.on("show-notification", (_event, { title, body, icon }) => {
+      const { Notification, nativeImage } = require("electron");
+
+      // Check if notifications are supported
+      if (!Notification.isSupported()) {
+        console.log("Notifications are not supported on this system");
+        return;
+      }
+
+      console.log("[Notification] Request received:", { title, bodyLength: body?.length || 0 });
+
+      // Create notification config
+      const notificationConfig = {
+        title,
+        body,
+      };
+
+      // Handle icon - use nativeImage if it's a data URL, otherwise use file path
+      const iconPath = icon || path.join(__dirname, "../../assets/outlook_linux_black.png");
+      if (iconPath.startsWith("data:")) {
+        notificationConfig.icon = nativeImage.createFromDataURL(iconPath);
+      } else {
+        notificationConfig.icon = iconPath;
+      }
+
+      // Create and show native notification
+      const notification = new Notification(notificationConfig);
+
+      notification.on("click", () => {
+        this.show();
+      });
+
+      notification.show();
+    });
+
     // insert styles
     this.win.webContents.on("dom-ready", () => {
       this.win.webContents.insertCSS(getClientFile("main.css"));
@@ -220,7 +276,7 @@ class MailWindowController {
 
     this.win.webContents.setWindowOpenHandler(({ url }) => {
       console.log(url);
-      // If url is a detatch from outlook then open in small window
+      // If url is a detach from outlook then open in small window
       if (url === "about:blank") {
         return {
           action: "allow",
@@ -230,14 +286,14 @@ class MailWindowController {
         };
       }
       // Open MS Safe Links in local browser
-      if (new RegExp(safelinksUrls.join("|")).test(url)) {
+      if (this.safelinksPattern && this.safelinksPattern.test(url)) {
         this.openExternalLink(url);
         return {
           action: "deny",
         };
       }
       // If deeplink is detected, open it in new detached window from app
-      if (new RegExp(deeplinkUrls.join("|")).test(url)) {
+      if (this.deeplinkPattern && this.deeplinkPattern.test(url)) {
         return {
           action: "allow",
           overrideBrowserWindowOptions: {
@@ -246,9 +302,8 @@ class MailWindowController {
         };
       }
       // Check if the URL matches any mailServicesUrls for outlook.com
-      if (new RegExp(mailServicesUrls.join("|")).test(url)) {
+      if (this.mailServicesPattern && this.mailServicesPattern.test(url)) {
         // Open main MS365 apps the same window
-        safelinksUrls;
         this.win.loadURL(url);
         return {
           action: "deny",
@@ -291,6 +346,7 @@ class MailWindowController {
       global.preventAutoCloseApp = false;
     });
   }
+
   addUnreadNumberObserver() {
     this.win.webContents.executeJavaScript(
       getClientFile("unread-number-observer.js")
@@ -316,7 +372,15 @@ class MailWindowController {
 
   show() {
     initialMinimization.domReady = false;
-    this.win.show();
+
+    // Restore if minimized, otherwise just show
+    if (this.win.isMinimized()) {
+      this.win.restore();
+    } else {
+      this.win.show();
+    }
+
+    // Focus the window (works properly on Wayland with activateIgnoringOtherApps)
     this.win.focus();
   }
 }
