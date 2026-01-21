@@ -143,9 +143,7 @@
       "sdk": "org.freedesktop.Sdk",
       "base": "org.electronjs.Electron2.BaseApp",
       "baseVersion": "24.08",
-      "executableArgs": [
-        "--ozone-platform=x11"
-      ],
+      "useWaylandFlags": true,
       "finishArgs": [
         "--share=ipc",
         "--socket=x11",
@@ -157,7 +155,8 @@
         "--talk-name=org.freedesktop.Notifications",
         "--talk-name=org.kde.StatusNotifierWatcher",
         "--own-name=org.mpris.MediaPlayer2.chromium.*",
-        "--filesystem=xdg-run/tray-icon:create"
+        "--filesystem=xdg-run/tray-icon:create",
+        "--env=XDG_SESSION_TYPE=x11"
       ]
     },
     "mac": {
