@@ -202,21 +202,6 @@ const observeUnreadHandlers = {
       subtree: true,
     });
 
-    // If notification pane grows in height, show window (likely new reminder)
-    let height = notificationPane.clientHeight;
-    const heightObserver = new MutationObserver(() => {
-      if (notificationPane.clientHeight > height) {
-        window.electronAPI.showWindow();
-      }
-      height = notificationPane.clientHeight;
-    });
-    heightObserver.observe(notificationPane, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['style'],
-    });
-
     // Initial check
     checkNotifications(true);
 

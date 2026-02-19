@@ -3,20 +3,6 @@
 Thank you for your interest in contributing to Prospect Mail! This document
 provides guidelines and information for contributing to the project.
 
-## Table of Contents
-
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Setup](#development-setup)
-- [Project Structure](#project-structure)
-- [Development Workflow](#development-workflow)
-- [Coding Standards](#coding-standards)
-- [Testing](#testing)
-- [Submitting Changes](#submitting-changes)
-- [Release Process](#release-process)
-- [Reporting Issues](#reporting-issues)
-- [Feature Requests](#feature-requests)
-
 ## Code of Conduct
 
 This project welcomes contributions from everyone. Please be respectful and
@@ -27,109 +13,68 @@ all contributors.
 
 Before you begin:
 
-- Make sure you have [git](https://git-scm.com/) and [Node.js](https://nodejs.org/)
-  (v22.x LTS) installed (npm comes with Node.js)
-- Familiarize yourself with the project by reading the [README.md](README.md)
+- Install [git](https://git-scm.com/) and [Node.js](https://nodejs.org/) v22.x LTS
+- Read the [README.md](README.md)
 - Check existing [issues](https://github.com/julian-alarcon/prospect-mail/issues)
   and [pull requests](https://github.com/julian-alarcon/prospect-mail/pulls) to
-  avoid duplicating work
+  avoid duplicate work
 
 ## Development Setup
 
-1. Fork the repository on GitHub
-2. Clone your fork locally:
-
 ```shell
+# Fork on GitHub, then clone your fork
 git clone https://github.com/YOUR-USERNAME/prospect-mail.git
 cd prospect-mail
-```
 
-3. Add the upstream repository as a remote:
-
-```shell
+# Add upstream remote
 git remote add upstream https://github.com/julian-alarcon/prospect-mail.git
-```
 
-4. Install dependencies:
-
-```shell
+# Install and run
 npm install
+npm start                  # Normal start
+npm run start-minimized    # Start minimized
 ```
-
-5. Start the application in development mode:
-
-```shell
-npm start
-```
-
-To start the application minimized:
-
-```shell
-npm run start-minimized
-```
-
-Note: You can also enable "Start Minimized" permanently via the tray icon
-Settings menu, or by setting `"startMinimized": true` in settings.json.
 
 ### Troubleshooting Sandbox Issues
 
-If you encounter a sandbox error like:
+If you get a SUID sandbox error during development,
 
 ```text
 The SUID sandbox helper binary was found, but is not configured correctly
 ```
 
-This is a known development environment issue with Electron. You can resolve
-it by:
-
-#### Option 1: Using environment variable (Recommended)
+disable the sandbox:
 
 ```shell
+# One-time (recommended)
 ELECTRON_DISABLE_SANDBOX=1 npm start
-```
 
-#### Option 2: Add to your shell profile
-
-Add this to your `~/.bashrc` or `~/.zshrc`:
-
-```shell
+# Persistent (add to ~/.bashrc or ~/.zshrc)
 export ELECTRON_DISABLE_SANDBOX=1
 ```
 
-**Important:** This only affects local development. Production builds
-(AppImage, deb, rpm, snap, etc.) are not affected as electron-builder handles
-sandboxing correctly during the build process.
+**Note:** This only affects local development. Production builds handle sandboxing correctly.
 
 ### Building Linux Packages
 
-Different package formats require specific build dependencies:
-
-#### Snap packages
+Install dependencies for your target format, then build:
 
 ```shell
+# Snap
 sudo snap install snapcraft --classic
 npm run dist:linux:snap
-```
 
-#### Flatpak packages
-
-```shell
+# Flatpak
 sudo apt install flatpak flatpak-builder
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install -y --system flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08 org.electronjs.Electron2.BaseApp//24.08
+flatpak install -y --system flathub org.freedesktop.{Platform,Sdk}//24.08 org.electronjs.Electron2.BaseApp//24.08
 npm run dist:linux:flatpak
-```
 
-#### Deb packages
-
-```shell
+# Deb
 sudo apt install fakeroot dpkg
 npm run dist:linux:deb
-```
 
-#### Pacman packages
-
-```shell
+# Pacman
 sudo apt install libarchive-tools
 npm run dist:linux:pacman
 ```
@@ -156,28 +101,18 @@ prospect-mail/
 
 ### Creating a Branch
 
-Create a feature or bug fix branch from the appropriate base branch:
+Create a branch:
 
 ```shell
-git checkout -b feature/your-feature-name
-# or
-git checkout -b fix/issue-description
+git checkout -b your-feature-fix-branch-name
 ```
-
-Branch naming conventions:
-
-* `feature/` for new features
-* `fix/` for bug fixes
-* `docs/` for documentation changes
-* `refactor/` for code refactoring
-* `test/` for test additions or modifications
 
 ### Making Changes
 
 1. Make your changes in your feature branch
 2. Test your changes locally
 3. Commit your changes using conventional commit format (see commit prefixes in
-   [Release Process](#release-process))
+   [changelog generation](#automatic-changelog-generation))
 4. Keep commits focused and atomic
 
 Examples:
@@ -278,46 +213,26 @@ Example: `0.6.0-beta2`
 
 ### Creating a New Release
 
-1. **Create a working branch** for the release:
-
 ```shell
-git checkout -b maintenance-release-YYYY-qN
+# Bump version (choose one):
+npm version prerelease --preid=beta  # Auto-increment beta version
+npm version 1.2.1                    # Stable release
+
+# Push changes and tag (npm version creates tag automatically)
+git push
+git push origin --tags
 ```
 
-2. **Update version** in [package.json](package.json):
+Open a Pull Request for the version update. After merge, the tag push triggers
+automated release.
 
-```json
-{
-  "version": "0.6.0-beta2"
-}
-```
-
-3. **Commit and push changes**:
-
-```shell
-git add package.json
-git commit -m "build: bump version to 0.6.0-beta2"
-git push origin maintenance-release-YYYY-qN
-```
-
-4. **Open a Pull Request** for the version update to the main branch
-
-5. **After PR is merged**, create and publish a release on GitHub:
-   - Go to [Releases](https://github.com/julian-alarcon/prospect-mail/releases)
-   - Click "Draft a new release"
-   - Create a new tag (e.g., `v0.6.0-beta2`)
-   - Click the **"Generate release notes"** button to automatically create changelog
-   - GitHub will categorize all merged PRs based on their labels (see [.github/release.yml](.github/release.yml))
-   - Review and edit the generated notes if needed
-   - Set release title (e.g., "Prospect Mail v0.6.0-beta2")
-   - Publish the release
-   - The GitHub Actions workflow will automatically build and attach artifacts
-
-6. **Automated builds**: When the release is published, GitHub Actions will:
+6. **Automated release process**: When the tag is pushed, GitHub Actions will automatically:
+   - Generate release notes from commits (see `.github/release-notes-from-commits.yml`)
+   - Create GitHub release with changelog
    - Build for Linux (x64, arm64): AppImage, deb, pacman, rpm, snap, flatpak, tar.gz
    - Build for macOS (arm64, x64): dmg
    - Build for Windows (x64, arm64): exe, msi
-   - Publish to GitHub Releases
+   - Attach artifacts to GitHub release
    - Publish snap to Snap Store (beta channel)
 
 7. **Promote Snap Store release**:
@@ -347,10 +262,6 @@ creation, GitHub will:
 
 Note: For breaking changes, you can use the `!` suffix with any commit type
 (e.g., `feat!:`, `fix!:`, `refactor!:`) to indicate a breaking change.
-
-**Important**: Use the conventional commit format in your commit messages
-(as described in [Commit Message Guidelines](#commit-message-guidelines))
-to ensure your changes appear in the correct section of the release notes.
 
 ### Manual Snap Store Release
 
