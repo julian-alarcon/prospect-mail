@@ -1,24 +1,28 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
-title: "[Feature Request]: "
-labels: ["enhancement", "needs-review"]
+about: Package release for UBtouch
+title: "Package release For UbTouch https://ubports.com/ "
+labels: ["enhancement"]
 assignees: ""
 
 ---
 
 **Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. E.g. I'm always frustrated
-when [...].
+No package for UBTouch
+
 
 **Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+Develop package for UBTouch
 
 **Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+I am proposing to integrate Prospectmail in UBtouch
 
 **Version in use**
-Add the version that you are using (if applicable)
+all
 
 **Additional context**
-Add any other context or screenshots about the feature request here.
+I have release a prospectmail ubtouch click package with patches for prospectmail been compliant with touchscreen.
+https://github.com/mathiasmb31/prospectmailut
+Do you agree with that and would to like to propose it on package list ?
+Best Regards.
+
