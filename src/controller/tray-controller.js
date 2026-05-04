@@ -144,7 +144,7 @@ class TrayController {
     this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
     global.preventAutoCloseApp = true;
     this.mailController.win.destroy();
-    this.mailController.init();
+    this.mailController.ready = this.mailController.init();
   }
   toggleHideOnClose() {
     let orivalue = settings.get("hideOnClose");

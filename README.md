@@ -100,7 +100,13 @@ need to click in "Reload settings" to apply changes.
   "hideOnClose": true,
   "hideOnMinimize": true,
   "startMinimized": false,
-  "customBrowserPath": "microsoft-edge"
+  "customBrowserPath": "microsoft-edge",
+  "auth": {
+    "intune": {
+      "enabled": false,
+      "user": ""
+    }
+  }
 }
 ```
 
@@ -117,6 +123,32 @@ need to click in "Reload settings" to apply changes.
 | `hideOnMinimize`    | Hide to tray when minimizing window                                                          | `true`                            |
 | `startMinimized`    | Start app minimized to tray (also available via tray menu or `--minimized` flag)             | `false`                           |
 | `customBrowserPath` | Custom browser for external links. Use command name (e.g., `"firefox"`) or full path        | System default                    |
+| `auth.intune.enabled` | Enable Microsoft Intune / Microsoft Identity Broker SSO bridge                             | `false`                           |
+| `auth.intune.user`  | Optional broker account UPN/email to use for Intune SSO. Empty uses the first broker account | `""`                              |
+
+### Microsoft Intune SSO
+
+Prospect Mail can optionally request a PRT SSO credential from Microsoft
+Identity Broker and attach it to Microsoft login requests. Enable it only on an
+Intune-enrolled Linux device:
+
+```json
+{
+  "auth": {
+    "intune": {
+      "enabled": true,
+      "user": "user@company.com"
+    }
+  }
+}
+```
+
+Prerequisites:
+
+- Microsoft Identity Broker is installed and available on D-Bus.
+- The account is enrolled through Intune Company Portal or equivalent.
+- A valid Primary Refresh Token is available for the account.
+- Debug logs can be checked for `[INTUNE_SSO]` messages.
 
 ### Example Configuration for Personal Outlook
 
