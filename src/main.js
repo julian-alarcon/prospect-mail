@@ -41,8 +41,8 @@ class ProspectMail {
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
-    app.on("ready", () => {
-      this.createControllers();
+    app.on("ready", async () => {
+      await this.createControllers();
     });
     // Quit when all windows are closed.
     app.on("window-all-closed", () => {
@@ -54,8 +54,9 @@ class ProspectMail {
     });
   }
 
-  createControllers() {
+  async createControllers() {
     this.mailController = new MailWindowController();
+    await this.mailController.ready;
     this.trayController = new TrayController(this.mailController);
   }
 }

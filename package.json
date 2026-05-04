@@ -67,6 +67,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "@homebridge/dbus-native": "0.7.4",
     "electron-store": "^8.2.0"
   },
   "devDependencies": {
@@ -154,6 +155,7 @@
         "--filesystem=xdg-download",
         "--talk-name=org.freedesktop.Notifications",
         "--talk-name=org.kde.StatusNotifierWatcher",
+        "--talk-name=com.microsoft.identity.broker1",
         "--own-name=org.mpris.MediaPlayer2.chromium.*",
         "--filesystem=xdg-run/tray-icon:create",
         "--env=XDG_SESSION_TYPE=x11"

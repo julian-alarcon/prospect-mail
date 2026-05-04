@@ -9,6 +9,7 @@ let deeplinkUrls;
 let safelinksUrls;
 let mailServicesUrls;
 let showWindowFrame;
+let intuneSso;
 
 //Setted by cmdLine to initial minimization
 const initialMinimization = {
@@ -17,7 +18,7 @@ const initialMinimization = {
 
 class MailWindowController {
   constructor() {
-    this.init();
+    this.ready = this.init();
     // Check both command-line flag and settings for initial minimization
     const hasMinimizedFlag = global.cmdLine.indexOf("--minimized") !== -1;
     const startMinimizedSetting = settings.get("startMinimized");
@@ -86,8 +87,9 @@ class MailWindowController {
     }
   }
 
-  init() {
+  async init() {
     this.reloadSettings();
+    intuneSso = null;
 
     // Create the browser window.
     this.win = new BrowserWindow({
@@ -106,6 +108,15 @@ class MailWindowController {
         preload: path.join(__dirname, "preload.js"),
       },
     });
+
+    const auth = settings.get("auth") || {};
+    const intuneConfig = auth.intune || {};
+    if (intuneConfig.enabled) {
+      const intuneUser =
+        typeof intuneConfig.user === "string" ? intuneConfig.user.trim() : "";
+      intuneSso = require("./intune-sso");
+      await intuneSso.initSso(intuneUser);
+    }
 
     const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 
@@ -136,6 +147,23 @@ class MailWindowController {
       "Mozilla/5.0 " +
       userAgentOS +
       " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"; // TODO: Updated Edge version
+
+    const filter = { urls: ["https://*/*"] };
+    if (intuneSso) {
+      intuneSso.setupUrlFilter(filter);
+    }
+
+    this.win.webContents.session.webRequest.onBeforeSendHeaders(
+      filter,
+      (detail, callback) => {
+        if (intuneSso?.isSsoUrl(detail.url)) {
+          intuneSso.addSsoCookie(detail, callback);
+          return;
+        }
+
+        callback({ requestHeaders: detail.requestHeaders });
+      }
+    );
 
     // and load the index.html of the app.
     this.win.loadURL(mainMailServiceUrl, {
@@ -354,6 +382,8 @@ class MailWindowController {
   }
 
   toggleWindow() {
+    if (!this.win) return;
+
     console.log("toggleWindow", {
       isFocused: this.win.isFocused(),
       isVisible: this.win.isVisible(),
@@ -366,11 +396,15 @@ class MailWindowController {
     }
   }
   reloadWindow() {
+    if (!this.win) return;
+
     initialMinimization.domReady = false;
     this.win.reload();
   }
 
   show() {
+    if (!this.win) return;
+
     initialMinimization.domReady = false;
 
     // Restore if minimized, otherwise just show

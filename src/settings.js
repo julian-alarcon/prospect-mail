@@ -29,7 +29,13 @@ const settings = new Store({
     hideOnClose: true,
     hideOnMinimize: true,
     startMinimized: false,
-    customBrowserPath: undefined
+    customBrowserPath: undefined,
+    auth: {
+      intune: {
+        enabled: false,
+        user: ""
+      }
+    }
   }
 });
 
