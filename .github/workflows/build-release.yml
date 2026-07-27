@@ -21,9 +21,6 @@ jobs:
   build-and-release:
     runs-on: ${{ matrix.runner }}
 
-    env:
-      SNAPCRAFT_BUILD_ENVIRONMENT: host
-
     # Platforms to build on/for
     strategy:
       matrix:
@@ -54,6 +51,10 @@ jobs:
           sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           sudo flatpak install -y --system flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
           sudo flatpak install -y --system flathub org.electronjs.Electron2.BaseApp//24.08
+
+      - name: Install and initialize LXD
+        if: matrix.os == 'ubuntu'
+        uses: canonical/setup-lxd@v1
 
       - name: Install dependencies
         run: npm ci
@@ -106,21 +107,7 @@ jobs:
   build-and-release-snap-arm64:
     runs-on: ubuntu-24.04-arm
 
-    env:
-      SNAPCRAFT_BUILD_ENVIRONMENT: lxd
-
     steps:
-      - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v3
-
-      - name: Install and initialize LXD
-        uses: canonical/setup-lxd@v1
-
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libopenjp2-tools
-
       - name: Check out Git repository
         uses: actions/checkout@v6
 
@@ -128,6 +115,15 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopenjp2-tools
+          sudo snap install snapcraft --classic
+
+      - name: Install and initialize LXD
+        uses: canonical/setup-lxd@v1
 
       - name: Install dependencies
         run: npm ci

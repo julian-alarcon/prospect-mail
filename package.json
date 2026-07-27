@@ -1,7 +1,7 @@
 {
   "name": "prospect-mail",
   "productName": "Prospect Mail",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "main": "src/main.js",
   "description": "Unofficial desktop mail client for Microsoft Outlook",
   "homepage": "https://github.com/julian-alarcon/prospect-mail",
@@ -29,8 +29,8 @@
     "node": "^24.0.0"
   },
   "scripts": {
-    "start": "electron . --ozone-platform=x11",
-    "start-minimized": "electron . --ozone-platform=x11 --minimized",
+    "start": "electron .",
+    "start-minimized": "electron . --minimized",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "dist:linux": "electron-builder --linux",
@@ -83,9 +83,6 @@
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail, unofficial desktop mail client for Microsoft Outlook",
-      "executableArgs": [
-        "--ozone-platform=x11"
-      ],
       "desktop": {
         "entry": {
           "Name": "Prospect Mail",
@@ -112,30 +109,33 @@
         "--rpm-rpmbuild-define=_build_id_links none"
       ]
     },
-    "snap": {
-      "confinement": "strict",
-      "grade": "stable",
-      "base": "core22",
-      "executableArgs": [
-        "--ozone-platform=x11"
-      ],
-      "plugs": [
-        "default",
-        "cups",
-        "mount-observe",
-        "removable-media",
-        "screen-inhibit-control",
-        "upower-observe"
-      ],
-      "environment": {
-        "TMPDIR": "$XDG_RUNTIME_DIR"
-      },
-      "publish": [
-        {
-          "provider": "snapStore",
-          "channels": "beta"
-        }
-      ]
+    "snapcraft": {
+      "base": "core24",
+      "core24": {
+        "confinement": "strict",
+        "grade": "stable",
+        "useLXD": true,
+        "executableArgs": [
+          "--disable-dev-shm-usage"
+        ],
+        "plugs": [
+          "default",
+          "cups",
+          "mount-observe",
+          "removable-media",
+          "screen-inhibit-control",
+          "upower-observe"
+       ],
+        "environment": {
+          "TMPDIR": "$XDG_RUNTIME_DIR"
+        },
+        "publish": [
+          {
+            "provider": "snapStore",
+            "channels": "beta"
+          }
+        ]
+      }
     },
     "flatpak": {
       "runtime": "org.freedesktop.Platform",
