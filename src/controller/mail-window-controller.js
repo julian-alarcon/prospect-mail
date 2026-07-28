@@ -373,14 +373,17 @@ class MailWindowController {
   show() {
     initialMinimization.domReady = false;
 
-    // Restore if minimized, otherwise just show
+    // Restore if minimized, then show and focus.
     if (this.win.isMinimized()) {
       this.win.restore();
-    } else {
-      this.win.show();
     }
+    this.win.show();
 
-    // Focus the window (works properly on Wayland with activateIgnoringOtherApps)
+    // On GNOME/Wayland, raising a window requires an xdg-activation token.
+    // Electron 42+ auto-forwards the token from libnotify on notification
+    // click, and focus() consumes it to raise the window with no "X is
+    // ready" prompt. moveTop() is a no-op on Wayland and never consumes the
+    // token. See https://github.com/electron/electron/pull/50568
     this.win.focus();
   }
 }
