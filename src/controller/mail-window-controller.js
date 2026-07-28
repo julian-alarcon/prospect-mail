@@ -373,18 +373,19 @@ class MailWindowController {
   show() {
     initialMinimization.domReady = false;
 
-    // Restore if minimized, then show and focus.
+    // Raise with exactly ONE Wayland activation. restore()/show()/focus()
+    // each triggers an xdg-activation, but only the first consumes the token
+    // GNOME forwarded on notification click; extra calls just mint stale
+    // tokens that GNOME rejects with an "X is ready" prompt. moveTop() is a
+    // no-op on Wayland and never consumes the token.
+    // See https://github.com/electron/electron/pull/50568
     if (this.win.isMinimized()) {
-      this.win.restore();
+      this.win.restore(); // also raises + focuses
+    } else if (this.win.isVisible()) {
+      this.win.focus();
+    } else {
+      this.win.show(); // also focuses
     }
-    this.win.show();
-
-    // On GNOME/Wayland, raising a window requires an xdg-activation token.
-    // Electron 42+ auto-forwards the token from libnotify on notification
-    // click, and focus() consumes it to raise the window with no "X is
-    // ready" prompt. moveTop() is a no-op on Wayland and never consumes the
-    // token. See https://github.com/electron/electron/pull/50568
-    this.win.focus();
   }
 }
 

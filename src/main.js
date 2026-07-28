@@ -7,10 +7,24 @@ const TrayController = require("./controller/tray-controller");
 // This must be set before app is ready
 app.setPath("userData", path.join(app.getPath("appData"), "prospect-mail"));
 
-// Set desktop name for proper notification handling on Linux
-// This prevents the system from showing a separate "app is ready" notification
+// Set desktop name so Wayland uses the correct XDG app_id, which lets GNOME
+// match a notification's activation token to our installed .desktop entry and
+// raise the window instead of showing a phantom "app is ready" prompt.
+// The value must be the installed .desktop base filename, which differs per
+// package format.
 if (process.platform === "linux") {
-  app.setDesktopName("Prospect Mail");
+  let desktopName;
+  const snapName = process.env.SNAP_INSTANCE_NAME || process.env.SNAP_NAME;
+  if (snapName) {
+    // snap: <instance>_<app>.desktop
+    desktopName = `${snapName}_${snapName}`;
+  } else if (process.env.FLATPAK_ID) {
+    desktopName = process.env.FLATPAK_ID;
+  } else {
+    // deb/rpm/tar: appId-based .desktop
+    desktopName = "io.github.julian-alarcon.prospect-mail";
+  }
+  app.setDesktopName(`${desktopName}.desktop`);
 }
 
 //Store commandline for global purpose
