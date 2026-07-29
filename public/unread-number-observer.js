@@ -11,6 +11,10 @@ const CONFIG = {
   // Retry delays
   handlerRetryDelayMs: 5000,         // 5 seconds before retrying failed handlers
   handlerRetryAgainDelayMs: 10000,   // 10 seconds for subsequent retry attempts
+
+  // Login-required detection
+  loginRequiredThresholdMs: 60000,   // 60s with no inbox = likely logged out
+  loginCheckIntervalMs: 30000,       // 30s between login-state checks
 };
 
 let unreadCheckTimer;
@@ -28,6 +32,63 @@ const showNotification = (title, body) => {
   // Icon is handled by main process using file path
   window.electronAPI.showNotification(title, body);
   console.log('Native notification request sent to main process');
+};
+
+// ── Login-required detection ──────────────────────────────────────────────
+// When the Outlook session expires the inbox DOM disappears (the page shows
+// a sign-in screen or a stale-session banner). The existing handler retries
+// cover slow loading, but if the inbox never appears we report it to the main
+// process, which can auto-reload to recover via SSO or notify the user.
+let loginRequiredReported = false;
+let monitoringStartTime = Date.now();
+let loginCheckInterval = null;
+
+const LOGIN_URL_PATTERNS = [
+  'login.microsoftonline.com',
+  'login.live.com',
+  'login.microsoft.com',
+];
+
+const isOnLoginPage = () => {
+  try {
+    const href = window.location.href;
+    return LOGIN_URL_PATTERNS.some(p => href.includes(p));
+  } catch {
+    return false;
+  }
+};
+
+const checkLoginRequired = () => {
+  if (loginRequiredReported) return;
+  const elapsed = Date.now() - monitoringStartTime;
+
+  // Definite signal: we've been redirected to a Microsoft login page.
+  // Likely signal: no inbox found for over the threshold (slow load is well
+  // past by then).
+  if (isOnLoginPage() || elapsed > CONFIG.loginRequiredThresholdMs) {
+    console.log('Login required detected, reporting to main process', {
+      onLoginPage: isOnLoginPage(),
+      elapsedMs: elapsed,
+    });
+    loginRequiredReported = true;
+    window.electronAPI.reportLoginRequired();
+  }
+};
+
+const startLoginCheck = () => {
+  if (loginCheckInterval) return;
+  // Immediate check catches the definite login-page redirect without waiting.
+  checkLoginRequired();
+  loginCheckInterval = setInterval(() => {
+    // If the inbox is present, we're logged in — stop checking.
+    if (document.querySelector('[data-folder-name="inbox"]')) {
+      console.log('Inbox found, user is logged in — stopping login check');
+      clearInterval(loginCheckInterval);
+      loginCheckInterval = null;
+      return;
+    }
+    checkLoginRequired();
+  }, CONFIG.loginCheckIntervalMs);
 };
 
 const observeUnreadHandlers = {
@@ -256,6 +317,11 @@ const initializeEmailMonitoring = () => {
     console.log(`No interfaces ready yet, retrying all in ${CONFIG.handlerRetryDelayMs / 1000} seconds...`);
     setTimeout(initializeEmailMonitoring, CONFIG.handlerRetryDelayMs);
   }
+
+  // Start monitoring for a login-required state. This is independent of the
+  // handler retries above: if the inbox never appears (session expired), the
+  // main process is notified so it can auto-reload or warn the user.
+  startLoginCheck();
 };
 
 const debounce = (() => {

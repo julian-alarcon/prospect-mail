@@ -10,6 +10,48 @@ let safelinksUrls;
 let mailServicesUrls;
 let showWindowFrame;
 
+// Microsoft auth domains whose cookies are checked/cleaned for session recovery
+const AUTH_DOMAINS = [
+  "login.microsoftonline.com",
+  "login.microsoft.com",
+  "login.live.com",
+  "outlook.office.com",
+  "outlook.office365.com",
+  "outlook.live.com",
+  "microsoft.com",
+  "office.com",
+  "live.com",
+];
+
+// Azure AD / MSAL / OWA auth cookie names
+const AUTH_COOKIE_NAMES = new Set([
+  "ESTSAUTH",
+  "ESTSAUTHPERSISTENT",
+  "ESTSAUTHLIGHT",
+  "SignInStateCookie",
+  "buid",
+  "fpc",
+  "x-ms-gateway-slice",
+  "stsservicecookie",
+  "CCState",
+  "FedAuth",
+  "rtFa",
+]);
+
+// Login-required recovery state. Lives in the main process so it survives
+// page reloads (renderer state is wiped on each reload).
+let loginRequiredRetryCount = 0;
+let lastLoginRequiredReloadAt = 0;
+const LOGIN_REQUIRED_COOLDOWN_MS = 60 * 1000; // 1 minute between reload attempts
+const MAX_LOGIN_REQUIRED_RETRIES = 3;          // then fall back to notification
+
+// Outlook mail URL patterns — landing here means recovery worked
+const OUTLOOK_URL_PATTERNS = [
+  "outlook.office.com",
+  "outlook.live.com",
+  "outlook.office365.com",
+];
+
 //Setted by cmdLine to initial minimization
 const initialMinimization = {
   domReady: false,
@@ -138,8 +180,12 @@ class MailWindowController {
       " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"; // TODO: Updated Edge version
 
     // and load the index.html of the app.
-    this.win.loadURL(mainMailServiceUrl, {
-      userAgent: customUserAgent,
+    // Clean expired auth cookies first so Outlook starts from a clean session
+    // state, giving SSO the best chance to silently re-authenticate (#419).
+    this.cleanExpiredAuthCookies().finally(() => {
+      this.win.loadURL(mainMailServiceUrl, {
+        userAgent: customUserAgent,
+      });
     });
 
     console.log("Custom User Agent: " + customUserAgent);
@@ -261,6 +307,55 @@ class MailWindowController {
       notification.show();
     });
 
+    // Login-required recovery: the renderer reports that the inbox can't be
+    // found (session expired / redirected to sign-in). We attempt a silent
+    // reload a few times — if Outlook's SSO cookies are still valid the reload
+    // re-authenticates transparently. After max retries we notify the user.
+    ipcMain.on("report-login-required", () => {
+      const now = Date.now();
+
+      if (loginRequiredRetryCount >= MAX_LOGIN_REQUIRED_RETRIES) {
+        console.log("[LoginRequired] Max retries reached, showing notification");
+        this.showAppNotification(
+          "Prospect Mail: Sign in required",
+          "Outlook requires you to sign in again. Click here to open Prospect Mail."
+        );
+        return;
+      }
+
+      if (lastLoginRequiredReloadAt > 0 && now - lastLoginRequiredReloadAt < LOGIN_REQUIRED_COOLDOWN_MS) {
+        console.log("[LoginRequired] Within cooldown, ignoring");
+        return;
+      }
+
+      loginRequiredRetryCount++;
+      lastLoginRequiredReloadAt = now;
+      console.log(
+        `[LoginRequired] Auto-reloading to recover session (attempt ${loginRequiredRetryCount}/${MAX_LOGIN_REQUIRED_RETRIES})`
+      );
+      this.reloadWindow();
+    });
+
+    // Reset the retry counter when we land back on an Outlook mail page —
+    // that means a reload (or manual sign-in) succeeded.
+    this.win.webContents.on("did-navigate", (_event, url) => {
+      if (
+        url &&
+        OUTLOOK_URL_PATTERNS.some((p) => url.includes(p)) &&
+        loginRequiredRetryCount > 0
+      ) {
+        console.log("[LoginRequired] Back on Outlook, resetting retry count");
+        loginRequiredRetryCount = 0;
+      }
+    });
+
+    // After resuming from sleep, cookies may have expired during suspend.
+    // Clean them so Outlook doesn't show a stale session state.
+    const { powerMonitor } = require("electron");
+    powerMonitor.on("resume", () => {
+      this.cleanExpiredAuthCookies();
+    });
+
     // insert styles
     this.win.webContents.on("dom-ready", () => {
       this.win.webContents.insertCSS(getClientFile("main.css"));
@@ -355,6 +450,70 @@ class MailWindowController {
     this.win.webContents.executeJavaScript(
       getClientFile("unread-number-observer.js")
     );
+  }
+
+  /**
+   * Removes expired auth cookies for Microsoft domains. Only cookies past
+   * their expirationDate are removed — valid cookies are preserved. This
+   * prevents Outlook from loading with a stale session that shows the
+   * "sign in again" state instead of auto-authenticating via SSO.
+   */
+  async cleanExpiredAuthCookies() {
+    try {
+      const allCookies = await this.win.webContents.session.cookies.get({});
+      const nowSeconds = Date.now() / 1000;
+
+      const expired = allCookies.filter((cookie) => {
+        const domain = (cookie.domain || "").replace(/^\./, "");
+        const isAuthDomain = AUTH_DOMAINS.some(
+          (d) => domain === d || domain.endsWith("." + d)
+        );
+        return (
+          isAuthDomain &&
+          AUTH_COOKIE_NAMES.has(cookie.name) &&
+          cookie.expirationDate &&
+          cookie.expirationDate < nowSeconds
+        );
+      });
+
+      if (expired.length === 0) {
+        console.log("[Auth] No expired auth cookies found");
+        return;
+      }
+
+      console.log(`[Auth] Removing ${expired.length} expired auth cookie(s)`);
+      for (const cookie of expired) {
+        try {
+          const protocol = cookie.secure ? "https" : "http";
+          const domain = cookie.domain.startsWith(".")
+            ? cookie.domain.substring(1)
+            : cookie.domain;
+          const url = `${protocol}://${domain}${cookie.path || "/"}`;
+          await this.win.webContents.session.cookies.remove(url, cookie.name);
+        } catch (err) {
+          console.warn(`[Auth] Failed to remove cookie ${cookie.name}:`, err.message);
+        }
+      }
+    } catch (err) {
+      console.warn("[Auth] Cookie check failed:", err.message);
+    }
+  }
+
+  /**
+   * Shows a native notification directly from the main process (used for the
+   * login-required fallback when auto-reload is exhausted).
+   */
+  showAppNotification(title, body) {
+    const { Notification } = require("electron");
+    if (!Notification.isSupported()) return;
+
+    const notification = new Notification({
+      title,
+      body,
+      icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
+    });
+    notification.on("click", () => this.show());
+    notification.show();
   }
 
   toggleWindow() {

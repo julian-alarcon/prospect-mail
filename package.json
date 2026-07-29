@@ -87,7 +87,7 @@
         "entry": {
           "Name": "Prospect Mail",
           "Comment": "Unofficial desktop mail client for Microsoft Outlook",
-          "StartupWMClass": "Prospect Mail"
+          "StartupWMClass": "prospect-mail"
         }
       },
       "target": [
