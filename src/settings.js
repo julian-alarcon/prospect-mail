@@ -29,6 +29,7 @@ const settings = new Store({
     hideOnClose: true,
     hideOnMinimize: true,
     startMinimized: false,
+    disableUnreadNotifications: false,
     customBrowserPath: undefined
   }
 });

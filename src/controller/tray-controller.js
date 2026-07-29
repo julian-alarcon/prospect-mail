@@ -67,6 +67,13 @@ class TrayController {
           },
           { type: "separator" },
           {
+            label: "Disable Unread Message Notifications",
+            type: "checkbox",
+            checked: settings.get("disableUnreadNotifications"),
+            click: () => this.toggleDisableUnreadNotifications(),
+          },
+          { type: "separator" },
+          {
             label: "Show settings file",
             click: () => shell.showItemInFolder(path.resolve(settings.path)),
           },
@@ -155,6 +162,13 @@ class TrayController {
     let orivalue = settings.get("hideOnMinimize");
     settings.set("hideOnMinimize", !orivalue);
     this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
+  }
+  toggleDisableUnreadNotifications() {
+    let orivalue = settings.get("disableUnreadNotifications");
+    settings.set("disableUnreadNotifications", !orivalue);
+    this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
+    // Reload the window so the observer picks up the new setting
+    this.mailController.reloadWindow();
   }
 
   restoreDefaultSettings() {

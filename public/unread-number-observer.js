@@ -72,11 +72,15 @@ const observeUnreadHandlers = {
           });
 
           if (!lastUnreadNotificationTime || timeSinceLastNotification > CONFIG.unreadEmailThrottleMs) {
-            showNotification(
-              "Prospect Mail: New Messages",
-              `There are ${unread} unread messages.`
-            );
-            lastUnreadNotificationTime = now;
+            if (window.prospectMailConfig && window.prospectMailConfig.disableUnreadNotifications) {
+              console.log('Unread notification suppressed by user setting (disableUnreadNotifications)');
+            } else {
+              showNotification(
+                "Prospect Mail: New Messages",
+                `There are ${unread} unread messages.`
+              );
+              lastUnreadNotificationTime = now;
+            }
           } else {
             console.log(`Unread notification suppressed by anti-spam (need to wait ${CONFIG.unreadEmailThrottleMs}ms)`);
           }
