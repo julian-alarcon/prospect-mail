@@ -67,7 +67,7 @@ npm run dist:linux:snap
 # Flatpak
 sudo apt install flatpak flatpak-builder
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install -y --system flathub org.freedesktop.{Platform,Sdk}//24.08 org.electronjs.Electron2.BaseApp//24.08
+flatpak install -y --system flathub org.freedesktop.{Platform,Sdk}//25.08 org.electronjs.Electron2.BaseApp//25.08
 npm run dist:linux:flatpak
 
 # Deb
