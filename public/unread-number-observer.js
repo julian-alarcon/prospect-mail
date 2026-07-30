@@ -13,7 +13,8 @@ const CONFIG = {
   handlerRetryAgainDelayMs: 10000,   // 10 seconds for subsequent retry attempts
 
   // Login-required detection
-  loginRequiredThresholdMs: 60000,   // 60s with no inbox = likely logged out
+  loginRequiredInitialGraceMs: 30000, // don't detect login-required in the first 30s (avoids false positives during initial auth redirects)
+  loginRequiredThresholdMs: 60000,   // 60s with no inbox after grace = likely logged out
   loginCheckIntervalMs: 30000,       // 30s between login-state checks
 };
 
@@ -62,7 +63,14 @@ const checkLoginRequired = () => {
   if (loginRequiredReported) return;
   const elapsed = Date.now() - monitoringStartTime;
 
-  // Definite signal: we've been redirected to a Microsoft login page.
+  // Skip detection during the initial grace period to avoid false positives
+  // from transient auth redirects when the page first loads.
+  if (elapsed < CONFIG.loginRequiredInitialGraceMs) {
+    return;
+  }
+
+  // Definite signal: we've been redirected to a Microsoft login page
+  // (only considered valid after the grace period has passed).
   // Likely signal: no inbox found for over the threshold (slow load is well
   // past by then).
   if (isOnLoginPage() || elapsed > CONFIG.loginRequiredThresholdMs) {

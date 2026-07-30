@@ -21,8 +21,9 @@ if (process.platform === "linux") {
   } else if (process.env.FLATPAK_ID) {
     desktopName = process.env.FLATPAK_ID;
   } else {
-    // deb/rpm/tar: appId-based .desktop
-    desktopName = "io.github.julian-alarcon.prospect-mail";
+    // deb/rpm/tar: executableName matches the .desktop file name generated
+    // by electron-builder (build.executableName in package.json).
+    desktopName = "prospect-mail";
   }
   app.setDesktopName(`${desktopName}.desktop`);
 }
