@@ -123,7 +123,14 @@ const observeUnreadHandlers = {
       console.log(`Found ${unread} unread message(s)`);
 
       if (unread > 0 || !checkOnlyZeroUnread) {
-        window.electronAPI.updateUnread(unread);
+        // Only push to the tray when the count actually changed. The periodic
+        // timer and mutation observer both call this every few seconds; sending
+        // an unchanged value makes Electron/Chromium re-publish the tray icon
+        // (new temp dir + NewIcon signal) each time, which races the SNI host on
+        // Wayland/appindicator and leaves the icon blank.
+        if (unread !== lastUnreadCount) {
+          window.electronAPI.updateUnread(unread);
+        }
 
         // Only show notification if unread count increased
         if (unread > lastUnreadCount && !checkOnlyZeroUnread) {

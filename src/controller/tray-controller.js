@@ -23,10 +23,17 @@ class TrayController {
   init() {
     this.tray = new Tray(this.createTrayIcon(""));
     this.buildContextMenu();
+    this.lastUnread = "";
 
     this.tray.on("click", () => this.fireClickEvent());
 
     ipcMain.on("updateUnread", (_event, value) => {
+      // Skip redundant setImage calls: each one makes Chromium write a new temp
+      // icon dir and emit NewIcon, which on Wayland/appindicator races the SNI
+      // host and blanks the tray icon. Only redraw when the state changed.
+      const isUnread = Boolean(value);
+      if (isUnread === Boolean(this.lastUnread)) return;
+      this.lastUnread = value;
       this.tray.setImage(this.createTrayIcon(value));
     });
   }
