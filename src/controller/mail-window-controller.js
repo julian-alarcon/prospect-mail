@@ -174,10 +174,13 @@ class MailWindowController {
         break;
     }
 
+    // Derive the version from the bundled Chromium so the UA stays correct on
+    // Electron bumps. Chrome/Edge freeze the UA to MAJOR.0.0.0 (UA reduction).
+    const chromeMajor = process.versions.chrome.split(".")[0];
     customUserAgent =
       "Mozilla/5.0 " +
       userAgentOS +
-      " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"; // TODO: Updated Edge version
+      ` AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${chromeMajor}.0.0.0 Safari/537.36 Edg/${chromeMajor}.0.0.0`;
 
     // and load the index.html of the app.
     // Clean expired auth cookies first so Outlook starts from a clean session
