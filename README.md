@@ -109,6 +109,7 @@ need to click in "Reload settings" to apply changes.
   "hideOnClose": true,
   "hideOnMinimize": true,
   "startMinimized": false,
+  "startMaximized": false,
   "disableUnreadNotifications": false,
   "customBrowserPath": "microsoft-edge"
 }
@@ -126,6 +127,7 @@ need to click in "Reload settings" to apply changes.
 | `hideOnClose`       | Minimize to tray instead of quitting when closing window                                     | `true`                            |
 | `hideOnMinimize`    | Hide to tray when minimizing window                                                          | `true`                            |
 | `startMinimized`    | Start app minimized to tray (also available via tray menu or `--minimized` flag)             | `false`                           |
+| `startMaximized`    | Start app with the window maximized (also available via tray menu; ignored if `startMinimized` is `true`) | `false`             |
 | `disableUnreadNotifications` | Disable the "new messages" desktop notification while keeping calendar reminders enabled (also available via tray menu) | `false`                  |
 | `customBrowserPath` | Custom browser for external links. Use command name (e.g., `"firefox"`) or full path        | System default                    |
 

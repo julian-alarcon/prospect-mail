@@ -57,6 +57,12 @@ class TrayController {
             checked: settings.get("startMinimized"),
             click: () => this.toggleStartMinimized(),
           },
+          {
+            label: "Start Maximized",
+            type: "checkbox",
+            checked: settings.get("startMaximized"),
+            click: () => this.toggleStartMaximized(),
+          },
           { type: "separator" },
           {
             label: "Hide on Close",
@@ -154,6 +160,11 @@ class TrayController {
   toggleStartMinimized() {
     let orivalue = settings.get("startMinimized");
     settings.set("startMinimized", !orivalue);
+    this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
+  }
+  toggleStartMaximized() {
+    let orivalue = settings.get("startMaximized");
+    settings.set("startMaximized", !orivalue);
     this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
   }
   toggleWindowFrame() {

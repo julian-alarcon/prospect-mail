@@ -36,6 +36,7 @@ const settings = new Store({
     hideOnClose: true,
     hideOnMinimize: true,
     startMinimized: false,
+    startMaximized: false,
     disableUnreadNotifications: false,
     customBrowserPath: undefined
   }

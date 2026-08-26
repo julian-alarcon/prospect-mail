@@ -383,7 +383,13 @@ class MailWindowController {
 
       this.addUnreadNumberObserver();
       if (!initialMinimization.domReady) {
-        this.win.show();
+        // startMinimized takes precedence: if we're here the window isn't being
+        // minimized, so honor startMaximized. maximize() also shows the window.
+        if (settings.get("startMaximized")) {
+          this.win.maximize();
+        } else {
+          this.win.show();
+        }
       }
     });
 
