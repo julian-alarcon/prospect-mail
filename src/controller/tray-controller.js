@@ -14,6 +14,10 @@ const { openAboutWindow } = require("./about-window");
 
 const macOS = process.platform === "darwin";
 
+// Electron is pinned to 42.x (Chromium 148) in package.json. Electron 43+ changed
+// the tray D-Bus path/name in ways snapd's unity7 AppArmor template denies, so the
+// strict snap tray icon never renders. Chromium <=148 uses the whitelisted path.
+// Do NOT bump past 42.x until snapd 2.78 ships the fix. Details: issue #420.
 class TrayController {
   constructor(mailController) {
     this.mailController = mailController;
@@ -23,10 +27,17 @@ class TrayController {
   init() {
     this.tray = new Tray(this.createTrayIcon(""));
     this.buildContextMenu();
+    this.lastUnread = "";
 
     this.tray.on("click", () => this.fireClickEvent());
 
     ipcMain.on("updateUnread", (_event, value) => {
+      // Skip redundant setImage calls: each one makes Chromium write a new temp
+      // icon dir and emit NewIcon, which on Wayland/appindicator races the SNI
+      // host and blanks the tray icon. Only redraw when the state changed.
+      const isUnread = Boolean(value);
+      if (isUnread === Boolean(this.lastUnread)) return;
+      this.lastUnread = value;
       this.tray.setImage(this.createTrayIcon(value));
     });
   }
@@ -64,6 +75,13 @@ class TrayController {
             type: "checkbox",
             checked: settings.get("showWindowFrame"),
             click: () => this.toggleWindowFrame(),
+          },
+          { type: "separator" },
+          {
+            label: "Disable Unread Message Notifications",
+            type: "checkbox",
+            checked: settings.get("disableUnreadNotifications"),
+            click: () => this.toggleDisableUnreadNotifications(),
           },
           { type: "separator" },
           {
@@ -155,6 +173,13 @@ class TrayController {
     let orivalue = settings.get("hideOnMinimize");
     settings.set("hideOnMinimize", !orivalue);
     this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
+  }
+  toggleDisableUnreadNotifications() {
+    let orivalue = settings.get("disableUnreadNotifications");
+    settings.set("disableUnreadNotifications", !orivalue);
+    this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
+    // Reload the window so the observer picks up the new setting
+    this.mailController.reloadWindow();
   }
 
   restoreDefaultSettings() {

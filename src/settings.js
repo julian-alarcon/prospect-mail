@@ -8,8 +8,13 @@ const settings = new Store({
   name: 'settings',
   clearInvalidConfig: true,  // Auto-handle corrupted configs
   defaults: {
-    urlMainWindow: "https://outlook.office.com/mail",
+    // outlook.cloud.microsoft is Microsoft's unified-domain Outlook host and is
+    // now the principal URL. The legacy office.com / office365.com / live.com
+    // hosts remain valid endpoints and are kept for compatibility.
+    urlMainWindow: "https://outlook.cloud.microsoft/mail",
     urlsInternal: [
+      "outlook.cloud.microsoft/mail/deeplink",
+      "outlook.cloud.microsoft/calendar/deeplink",
       "outlook.live.com/mail/deeplink",
       "outlook.office365.com/mail/deeplink",
       "outlook.office.com/mail/deeplink",
@@ -17,11 +22,13 @@ const settings = new Store({
       "to-do.office.com/tasks",
     ],
     urlsExternal: [
+      "outlook.cloud.microsoft",
       "outlook.live.com",
       "outlook.office365.com",
       "outlook.office.com",
     ],
     safelinksUrls: [
+      "outlook.cloud.microsoft/mail/safelink.html",
       "outlook.office.com/mail/safelink.html",
       "safelinks.protection.outlook.com",
     ],
@@ -29,6 +36,7 @@ const settings = new Store({
     hideOnClose: true,
     hideOnMinimize: true,
     startMinimized: false,
+    disableUnreadNotifications: false,
     customBrowserPath: undefined
   }
 });

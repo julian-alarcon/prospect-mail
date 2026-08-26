@@ -11,6 +11,11 @@ const CONFIG = {
   // Retry delays
   handlerRetryDelayMs: 5000,         // 5 seconds before retrying failed handlers
   handlerRetryAgainDelayMs: 10000,   // 10 seconds for subsequent retry attempts
+
+  // Login-required detection
+  loginRequiredInitialGraceMs: 30000, // don't detect login-required in the first 30s (avoids false positives during initial auth redirects)
+  loginRequiredThresholdMs: 60000,   // 60s with no inbox after grace = likely logged out
+  loginCheckIntervalMs: 30000,       // 30s between login-state checks
 };
 
 let unreadCheckTimer;
@@ -28,6 +33,76 @@ const showNotification = (title, body) => {
   // Icon is handled by main process using file path
   window.electronAPI.showNotification(title, body);
   console.log('Native notification request sent to main process');
+};
+
+// ── Login-required detection ──────────────────────────────────────────────
+// When the Outlook session expires the inbox DOM disappears (the page shows
+// a sign-in screen or a stale-session banner). The existing handler retries
+// cover slow loading, but if the inbox never appears we report it to the main
+// process, which can auto-reload to recover via SSO or notify the user.
+let loginRequiredReported = false;
+let monitoringStartTime = Date.now();
+let loginCheckInterval = null;
+
+const LOGIN_URL_PATTERNS = [
+  'login.microsoftonline.com',
+  'login.live.com',
+  'login.microsoft.com',
+];
+
+const isOnLoginPage = () => {
+  try {
+    const href = window.location.href;
+    return LOGIN_URL_PATTERNS.some(p => href.includes(p));
+  } catch {
+    return false;
+  }
+};
+
+const checkLoginRequired = () => {
+  if (loginRequiredReported) return;
+  const elapsed = Date.now() - monitoringStartTime;
+
+  // Skip detection during the initial grace period to avoid false positives
+  // from transient auth redirects when the page first loads.
+  if (elapsed < CONFIG.loginRequiredInitialGraceMs) {
+    return;
+  }
+
+  // Two distinct signals, reported with a reason so the main process can react
+  // differently:
+  //   'login-page' — we're sitting on a Microsoft sign-in page. The user must
+  //     sign in manually; auto-reloading would wipe a half-entered form or break
+  //     an MFA flow, so the main process only notifies for this case.
+  //   'no-inbox'   — the page loaded but no inbox appeared for over the
+  //     threshold (stuck/blank). SSO cookies may still be valid, so the main
+  //     process reloads to attempt silent recovery.
+  const onLoginPage = isOnLoginPage();
+  if (onLoginPage || elapsed > CONFIG.loginRequiredThresholdMs) {
+    const reason = onLoginPage ? 'login-page' : 'no-inbox';
+    console.log('Login required detected, reporting to main process', {
+      reason,
+      elapsedMs: elapsed,
+    });
+    loginRequiredReported = true;
+    window.electronAPI.reportLoginRequired(reason);
+  }
+};
+
+const startLoginCheck = () => {
+  if (loginCheckInterval) return;
+  // Immediate check catches the definite login-page redirect without waiting.
+  checkLoginRequired();
+  loginCheckInterval = setInterval(() => {
+    // If the inbox is present, we're logged in — stop checking.
+    if (document.querySelector('[data-folder-name="inbox"]')) {
+      console.log('Inbox found, user is logged in — stopping login check');
+      clearInterval(loginCheckInterval);
+      loginCheckInterval = null;
+      return;
+    }
+    checkLoginRequired();
+  }, CONFIG.loginCheckIntervalMs);
 };
 
 const observeUnreadHandlers = {
@@ -54,7 +129,14 @@ const observeUnreadHandlers = {
       console.log(`Found ${unread} unread message(s)`);
 
       if (unread > 0 || !checkOnlyZeroUnread) {
-        window.electronAPI.updateUnread(unread);
+        // Only push to the tray when the count actually changed. The periodic
+        // timer and mutation observer both call this every few seconds; sending
+        // an unchanged value makes Electron/Chromium re-publish the tray icon
+        // (new temp dir + NewIcon signal) each time, which races the SNI host on
+        // Wayland/appindicator and leaves the icon blank.
+        if (unread !== lastUnreadCount) {
+          window.electronAPI.updateUnread(unread);
+        }
 
         // Only show notification if unread count increased
         if (unread > lastUnreadCount && !checkOnlyZeroUnread) {
@@ -72,11 +154,15 @@ const observeUnreadHandlers = {
           });
 
           if (!lastUnreadNotificationTime || timeSinceLastNotification > CONFIG.unreadEmailThrottleMs) {
-            showNotification(
-              "Prospect Mail: New Messages",
-              `There are ${unread} unread messages.`
-            );
-            lastUnreadNotificationTime = now;
+            if (window.prospectMailConfig && window.prospectMailConfig.disableUnreadNotifications) {
+              console.log('Unread notification suppressed by user setting (disableUnreadNotifications)');
+            } else {
+              showNotification(
+                "Prospect Mail: New Messages",
+                `There are ${unread} unread messages.`
+              );
+              lastUnreadNotificationTime = now;
+            }
           } else {
             console.log(`Unread notification suppressed by anti-spam (need to wait ${CONFIG.unreadEmailThrottleMs}ms)`);
           }
@@ -252,6 +338,11 @@ const initializeEmailMonitoring = () => {
     console.log(`No interfaces ready yet, retrying all in ${CONFIG.handlerRetryDelayMs / 1000} seconds...`);
     setTimeout(initializeEmailMonitoring, CONFIG.handlerRetryDelayMs);
   }
+
+  // Start monitoring for a login-required state. This is independent of the
+  // handler retries above: if the inbox never appears (session expired), the
+  // main process is notified so it can auto-reload or warn the user.
+  startLoginCheck();
 };
 
 const debounce = (() => {

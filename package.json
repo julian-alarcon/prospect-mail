@@ -26,11 +26,11 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "^22.0.0"
+    "node": "^24.0.0"
   },
   "scripts": {
-    "start": "electron . --ozone-platform=x11",
-    "start-minimized": "electron . --ozone-platform=x11 --minimized",
+    "start": "electron .",
+    "start-minimized": "electron . --minimized",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "dist:linux": "electron-builder --linux",
@@ -70,8 +70,8 @@
     "electron-store": "^8.2.0"
   },
   "devDependencies": {
-    "electron": "^39.2.7",
-    "electron-builder": "^26.4.0"
+    "electron": "^42.10.1",
+    "electron-builder": "^26.15.7"
   },
   "optionalDependencies": {
     "dmg-license": "^1.0.11"
@@ -83,14 +83,11 @@
       "packageCategory": "net",
       "executableName": "prospect-mail",
       "synopsis": "Prospect Mail, unofficial desktop mail client for Microsoft Outlook",
-      "executableArgs": [
-        "--ozone-platform=x11"
-      ],
       "desktop": {
         "entry": {
           "Name": "Prospect Mail",
           "Comment": "Unofficial desktop mail client for Microsoft Outlook",
-          "StartupWMClass": "Prospect Mail"
+          "StartupWMClass": "prospect-mail"
         }
       },
       "target": [
@@ -112,38 +109,40 @@
         "--rpm-rpmbuild-define=_build_id_links none"
       ]
     },
-    "snap": {
-      "confinement": "strict",
-      "grade": "stable",
-      "base": "core22",
-      "executableArgs": [
-        "--ozone-platform=x11"
-      ],
-      "plugs": [
-        "default",
-        "cups",
-        "mount-observe",
-        "removable-media",
-        "screen-inhibit-control",
-        "upower-observe"
-      ],
-      "environment": {
-        "TMPDIR": "$XDG_RUNTIME_DIR"
-      },
-      "publish": [
-        {
-          "provider": "snapStore",
-          "channels": "beta"
-        }
-      ]
+    "snapcraft": {
+      "base": "core24",
+      "core24": {
+        "confinement": "strict",
+        "grade": "stable",
+        "useLXD": true,
+        "executableArgs": [
+          "--disable-dev-shm-usage"
+        ],
+        "plugs": [
+          "default",
+          "cups",
+          "mount-observe",
+          "removable-media",
+          "screen-inhibit-control",
+          "upower-observe"
+        ],
+        "environment": {
+          "TMPDIR": "$XDG_RUNTIME_DIR"
+        },
+        "publish": [
+          {
+            "provider": "snapStore",
+            "channels": "beta"
+          }
+        ]
+      }
     },
     "flatpak": {
       "runtime": "org.freedesktop.Platform",
-      "runtimeVersion": "24.08",
+      "runtimeVersion": "25.08",
       "sdk": "org.freedesktop.Sdk",
       "base": "org.electronjs.Electron2.BaseApp",
-      "baseVersion": "24.08",
-      "useWaylandFlags": true,
+      "baseVersion": "25.08",
       "finishArgs": [
         "--share=ipc",
         "--socket=x11",
@@ -155,8 +154,7 @@
         "--talk-name=org.freedesktop.Notifications",
         "--talk-name=org.kde.StatusNotifierWatcher",
         "--own-name=org.mpris.MediaPlayer2.chromium.*",
-        "--filesystem=xdg-run/tray-icon:create",
-        "--env=XDG_SESSION_TYPE=x11"
+        "--filesystem=xdg-run/tray-icon:create"
       ]
     },
     "mac": {

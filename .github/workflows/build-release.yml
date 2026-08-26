@@ -13,7 +13,7 @@ permissions:
   packages: write  # For publishing artifacts
 
 env:
-  NODE_VERSION: 22
+  NODE_VERSION: 24
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
 
@@ -21,15 +21,12 @@ jobs:
   build-and-release:
     runs-on: ${{ matrix.runner }}
 
-    env:
-      SNAPCRAFT_BUILD_ENVIRONMENT: host
-
     # Platforms to build on/for
     strategy:
       matrix:
         include:
-          - { runner: ubuntu-24.04,      os: ubuntu,  arch: x64   }  # Linux x64
-          - { runner: ubuntu-24.04-arm,  os: ubuntu,  arch: arm64 }  # Linux ARM64
+          - { runner: ubuntu-26.04,      os: ubuntu,  arch: x64   }  # Linux x64
+          - { runner: ubuntu-26.04-arm,  os: ubuntu,  arch: arm64 }  # Linux ARM64 (arm runner in preview)
           - { runner: windows-2025,      os: windows, arch: x64   }  # Windows x64
           - { runner: windows-11-arm,    os: windows, arch: arm64 }  # Windows ARM64
           - { runner: macos-15,          os: macos,   arch: arm64 }  # macOS ARM64
@@ -37,10 +34,10 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install Node.js and NPM
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -52,8 +49,12 @@ jobs:
           sudo apt-get install -y libarchive-tools libopenjp2-tools flatpak flatpak-builder
           sudo snap install snapcraft --classic
           sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y --system flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
-          sudo flatpak install -y --system flathub org.electronjs.Electron2.BaseApp//24.08
+          sudo flatpak install -y --system flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
+          sudo flatpak install -y --system flathub org.electronjs.Electron2.BaseApp//25.08
+
+      - name: Install and initialize LXD
+        if: matrix.os == 'ubuntu'
+        uses: canonical/setup-lxd@v1
 
       - name: Install dependencies
         run: npm ci
@@ -104,30 +105,25 @@ jobs:
         run: npm run dist:windows:${{ matrix.arch }} -- --publish always
 
   build-and-release-snap-arm64:
-    runs-on: ubuntu-24.04-arm
-
-    env:
-      SNAPCRAFT_BUILD_ENVIRONMENT: lxd
+    runs-on: ubuntu-26.04-arm
 
     steps:
-      - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v3
+      - name: Check out Git repository
+        uses: actions/checkout@v7
 
-      - name: Install and initialize LXD
-        uses: canonical/setup-lxd@v1
+      - name: Install Node.js and NPM
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libopenjp2-tools
+          sudo snap install snapcraft --classic
 
-      - name: Check out Git repository
-        uses: actions/checkout@v6
-
-      - name: Install Node.js and NPM
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
+      - name: Install and initialize LXD
+        uses: canonical/setup-lxd@v1
 
       - name: Install dependencies
         run: npm ci

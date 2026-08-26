@@ -69,6 +69,10 @@ flag `prospect-mail --minimized`
 - Connect to standard or custom Outlook URL
 - Spellcheck using native Outlook MS Editor
 - Visualize files (pdf) in emails
+- Automatic session recovery: expired auth cookies are cleaned at startup and
+  on wake-from-sleep; if the Outlook session expires, the app auto-reloads to
+  silently re-authenticate via SSO, and falls back to a desktop notification if
+  re-login is still needed
 
 ## Settings
 
@@ -100,6 +104,7 @@ need to click in "Reload settings" to apply changes.
   "hideOnClose": true,
   "hideOnMinimize": true,
   "startMinimized": false,
+  "disableUnreadNotifications": false,
   "customBrowserPath": "microsoft-edge"
 }
 ```
@@ -116,6 +121,7 @@ need to click in "Reload settings" to apply changes.
 | `hideOnClose`       | Minimize to tray instead of quitting when closing window                                     | `true`                            |
 | `hideOnMinimize`    | Hide to tray when minimizing window                                                          | `true`                            |
 | `startMinimized`    | Start app minimized to tray (also available via tray menu or `--minimized` flag)             | `false`                           |
+| `disableUnreadNotifications` | Disable the "new messages" desktop notification while keeping calendar reminders enabled (also available via tray menu) | `false`                  |
 | `customBrowserPath` | Custom browser for external links. Use command name (e.g., `"firefox"`) or full path        | System default                    |
 
 ### Example Configuration for Personal Outlook

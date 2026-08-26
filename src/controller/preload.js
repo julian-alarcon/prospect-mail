@@ -7,4 +7,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.send("unread-messages-notification", notification),
   showNotification: (title, body, icon = null) =>
     ipcRenderer.send("show-notification", { title, body, icon }),
+  reportLoginRequired: (reason) =>
+    ipcRenderer.send("report-login-required", reason),
 });
