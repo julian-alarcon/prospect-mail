@@ -160,8 +160,8 @@ const observeUnreadHandlers = {
           });
 
           if (!lastUnreadNotificationTime || timeSinceLastNotification > CONFIG.unreadEmailThrottleMs) {
-            if (window.prospectMailConfig && window.prospectMailConfig.disableUnreadNotifications) {
-              console.log('Unread notification suppressed by user setting (disableUnreadNotifications)');
+            if (window.prospectMailConfig && window.prospectMailConfig.showUnreadNotifications === false) {
+              console.log('Unread notification suppressed by user setting (showUnreadNotifications=false)');
             } else {
               showNotification(
                 "Prospect Mail: New Messages",

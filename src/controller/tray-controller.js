@@ -53,27 +53,23 @@ class TrayController {
         submenu: [
           // Startup state is a single choice, so use a radio group: normal,
           // minimized, or maximized. This makes the mutual exclusivity explicit
-          // (you can't be both minimized and maximized). startMinimized wins
-          // when both flags are somehow set, so the "Maximized" radio is only
-          // active when not also minimized.
+          // (you can't be both minimized and maximized).
           {
             label: "Start Normal",
             type: "radio",
-            checked:
-              !settings.get("startMinimized") && !settings.get("startMaximized"),
+            checked: settings.get("startupWindowState") === "normal",
             click: () => this.setStartupState("normal"),
           },
           {
             label: "Start Minimized",
             type: "radio",
-            checked: settings.get("startMinimized"),
+            checked: settings.get("startupWindowState") === "minimized",
             click: () => this.setStartupState("minimized"),
           },
           {
             label: "Start Maximized",
             type: "radio",
-            checked:
-              settings.get("startMaximized") && !settings.get("startMinimized"),
+            checked: settings.get("startupWindowState") === "maximized",
             click: () => this.setStartupState("maximized"),
           },
           { type: "separator" },
@@ -97,12 +93,11 @@ class TrayController {
           },
           { type: "separator" },
           {
-            // Positive phrasing: checked = notifications on. The underlying
-            // setting stays "disableUnreadNotifications" (negated here).
+            // Positive phrasing: checked = notifications on.
             label: "Unread Message Notifications",
             type: "checkbox",
-            checked: !settings.get("disableUnreadNotifications"),
-            click: () => this.toggleDisableUnreadNotifications(),
+            checked: settings.get("showUnreadNotifications"),
+            click: () => this.toggleUnreadNotifications(),
           },
           { type: "separator" },
           {
@@ -174,10 +169,8 @@ class TrayController {
   }
 
   setStartupState(state) {
-    // "normal" | "minimized" | "maximized" — mutually exclusive, so set both
-    // flags from the single choice.
-    settings.set("startMinimized", state === "minimized");
-    settings.set("startMaximized", state === "maximized");
+    // "normal" | "minimized" | "maximized"
+    settings.set("startupWindowState", state);
     this.buildContextMenu(); // Rebuild menu to reflect new radio state
   }
   toggleWindowFrame() {
@@ -198,9 +191,9 @@ class TrayController {
     settings.set("hideOnMinimize", !orivalue);
     this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
   }
-  toggleDisableUnreadNotifications() {
-    let orivalue = settings.get("disableUnreadNotifications");
-    settings.set("disableUnreadNotifications", !orivalue);
+  toggleUnreadNotifications() {
+    let orivalue = settings.get("showUnreadNotifications");
+    settings.set("showUnreadNotifications", !orivalue);
     this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
     // Reload the window so the observer picks up the new setting
     this.mailController.reloadWindow();

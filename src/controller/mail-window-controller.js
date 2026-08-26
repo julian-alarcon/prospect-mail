@@ -65,7 +65,7 @@ class MailWindowController {
     this.init();
     // Check both command-line flag and settings for initial minimization
     const hasMinimizedFlag = global.cmdLine.indexOf("--minimized") !== -1;
-    const startMinimizedSetting = settings.get("startMinimized");
+    const startMinimizedSetting = settings.get("startupWindowState") === "minimized";
     initialMinimization.domReady = hasMinimizedFlag || startMinimizedSetting;
   }
   reloadSettings() {
@@ -383,9 +383,9 @@ class MailWindowController {
 
       this.addUnreadNumberObserver();
       if (!initialMinimization.domReady) {
-        // startMinimized takes precedence: if we're here the window isn't being
-        // minimized, so honor startMaximized. maximize() also shows the window.
-        if (settings.get("startMaximized")) {
+        // A minimized startup keeps the window hidden, so if we're here we only
+        // need to honor the maximized case. maximize() also shows the window.
+        if (settings.get("startupWindowState") === "maximized") {
           this.win.maximize();
         } else {
           this.win.show();
@@ -467,9 +467,9 @@ class MailWindowController {
   }
 
   addUnreadNumberObserver() {
-    const disableUnreadNotifications = settings.get("disableUnreadNotifications");
+    const showUnreadNotifications = settings.get("showUnreadNotifications");
     this.win.webContents.executeJavaScript(
-      `window.prospectMailConfig = Object.assign(window.prospectMailConfig || {}, { disableUnreadNotifications: ${JSON.stringify(disableUnreadNotifications)} });`
+      `window.prospectMailConfig = Object.assign(window.prospectMailConfig || {}, { showUnreadNotifications: ${JSON.stringify(showUnreadNotifications)} });`
     );
     this.win.webContents.executeJavaScript(
       getClientFile("unread-number-observer.js")
