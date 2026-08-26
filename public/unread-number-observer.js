@@ -200,12 +200,17 @@ const observeUnreadHandlers = {
       subtree: true,
     });
 
-    // Timer to catch zero unread changes that observer might miss
+    // Periodic safety net for changes the mutation observer might miss.
+    // Runs a full check (checkOnlyZeroUnread=false) so it can also notify on a
+    // real increase. Passing true here silently advanced lastUnreadCount without
+    // notifying, so when the poll fired before the observer's debounced check a
+    // newly-arrived mail was swallowed (see #415). The unread>lastUnreadCount
+    // guard plus the anti-spam throttle still prevent duplicate notifications.
     if (unreadCheckTimer) {
       clearInterval(unreadCheckTimer);
     }
     unreadCheckTimer = setInterval(() => {
-      checkUnread(true);
+      checkUnread(false);
     }, CONFIG.unreadCheckIntervalMs);
 
     // Initial check
