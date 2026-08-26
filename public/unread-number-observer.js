@@ -69,17 +69,23 @@ const checkLoginRequired = () => {
     return;
   }
 
-  // Definite signal: we've been redirected to a Microsoft login page
-  // (only considered valid after the grace period has passed).
-  // Likely signal: no inbox found for over the threshold (slow load is well
-  // past by then).
-  if (isOnLoginPage() || elapsed > CONFIG.loginRequiredThresholdMs) {
+  // Two distinct signals, reported with a reason so the main process can react
+  // differently:
+  //   'login-page' — we're sitting on a Microsoft sign-in page. The user must
+  //     sign in manually; auto-reloading would wipe a half-entered form or break
+  //     an MFA flow, so the main process only notifies for this case.
+  //   'no-inbox'   — the page loaded but no inbox appeared for over the
+  //     threshold (stuck/blank). SSO cookies may still be valid, so the main
+  //     process reloads to attempt silent recovery.
+  const onLoginPage = isOnLoginPage();
+  if (onLoginPage || elapsed > CONFIG.loginRequiredThresholdMs) {
+    const reason = onLoginPage ? 'login-page' : 'no-inbox';
     console.log('Login required detected, reporting to main process', {
-      onLoginPage: isOnLoginPage(),
+      reason,
       elapsedMs: elapsed,
     });
     loginRequiredReported = true;
-    window.electronAPI.reportLoginRequired();
+    window.electronAPI.reportLoginRequired(reason);
   }
 };
 

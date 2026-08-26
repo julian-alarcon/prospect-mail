@@ -314,8 +314,20 @@ class MailWindowController {
     // found (session expired / redirected to sign-in). We attempt a silent
     // reload a few times — if Outlook's SSO cookies are still valid the reload
     // re-authenticates transparently. After max retries we notify the user.
-    ipcMain.on("report-login-required", () => {
+    ipcMain.on("report-login-required", (_event, reason) => {
       const now = Date.now();
+
+      // On a real sign-in page: reloading can't recover the session (silent SSO
+      // already failed) and would interrupt the user typing credentials or doing
+      // MFA. Just notify so a minimized/tray user knows to sign in.
+      if (reason === "login-page") {
+        console.log("[LoginRequired] On sign-in page, notifying (no reload)");
+        this.showAppNotification(
+          "Prospect Mail: Sign in required",
+          "Outlook requires you to sign in again. Click here to open Prospect Mail."
+        );
+        return;
+      }
 
       if (loginRequiredRetryCount >= MAX_LOGIN_REQUIRED_RETRIES) {
         console.log("[LoginRequired] Max retries reached, showing notification");
