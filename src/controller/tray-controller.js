@@ -51,11 +51,26 @@ class TrayController {
       {
         label: "Settings",
         submenu: [
+          // Startup state is a single choice, so use a radio group: normal,
+          // minimized, or maximized. This makes the mutual exclusivity explicit
+          // (you can't be both minimized and maximized).
+          {
+            label: "Start Normal",
+            type: "radio",
+            checked: settings.get("startupWindowState") === "normal",
+            click: () => this.setStartupState("normal"),
+          },
           {
             label: "Start Minimized",
-            type: "checkbox",
-            checked: settings.get("startMinimized"),
-            click: () => this.toggleStartMinimized(),
+            type: "radio",
+            checked: settings.get("startupWindowState") === "minimized",
+            click: () => this.setStartupState("minimized"),
+          },
+          {
+            label: "Start Maximized",
+            type: "radio",
+            checked: settings.get("startupWindowState") === "maximized",
+            click: () => this.setStartupState("maximized"),
           },
           { type: "separator" },
           {
@@ -78,22 +93,24 @@ class TrayController {
           },
           { type: "separator" },
           {
-            label: "Disable Unread Message Notifications",
+            // Positive phrasing: checked = notifications on.
+            label: "Unread Message Notifications",
             type: "checkbox",
-            checked: settings.get("disableUnreadNotifications"),
-            click: () => this.toggleDisableUnreadNotifications(),
+            checked: settings.get("showUnreadNotifications"),
+            click: () => this.toggleUnreadNotifications(),
           },
           { type: "separator" },
           {
-            label: "Show settings file",
+            label: "Show Settings File",
             click: () => shell.showItemInFolder(path.resolve(settings.path)),
           },
           {
-            label: "Restore Default Settings", // previously "Reset configuration"
+            // Trailing ellipsis (HIG convention): opens a confirmation dialog.
+            label: "Restore Default Settings…", // previously "Reset configuration"
             click: () => this.restoreDefaultSettings(),
           },
           {
-            label: "Reset Application Data", // previously "Fully reset"
+            label: "Reset Application Data…", // previously "Fully reset"
             click: () => this.confirmFullReset(),
           },
         ],
@@ -151,10 +168,10 @@ class TrayController {
     this.mailController.reloadWindow();
   }
 
-  toggleStartMinimized() {
-    let orivalue = settings.get("startMinimized");
-    settings.set("startMinimized", !orivalue);
-    this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
+  setStartupState(state) {
+    // "normal" | "minimized" | "maximized"
+    settings.set("startupWindowState", state);
+    this.buildContextMenu(); // Rebuild menu to reflect new radio state
   }
   toggleWindowFrame() {
     let orivalue = settings.get("showWindowFrame");
@@ -174,9 +191,9 @@ class TrayController {
     settings.set("hideOnMinimize", !orivalue);
     this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
   }
-  toggleDisableUnreadNotifications() {
-    let orivalue = settings.get("disableUnreadNotifications");
-    settings.set("disableUnreadNotifications", !orivalue);
+  toggleUnreadNotifications() {
+    let orivalue = settings.get("showUnreadNotifications");
+    settings.set("showUnreadNotifications", !orivalue);
     this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
     // Reload the window so the observer picks up the new setting
     this.mailController.reloadWindow();

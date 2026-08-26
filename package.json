@@ -78,6 +78,9 @@
   },
   "build": {
     "appId": "io.github.julian-alarcon.prospect-mail",
+    "toolsets": {
+      "appimage": "1.0.3"
+    },
     "linux": {
       "category": "Email;Network;Office",
       "packageCategory": "net",

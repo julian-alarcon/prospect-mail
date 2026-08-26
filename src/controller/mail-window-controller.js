@@ -65,7 +65,7 @@ class MailWindowController {
     this.init();
     // Check both command-line flag and settings for initial minimization
     const hasMinimizedFlag = global.cmdLine.indexOf("--minimized") !== -1;
-    const startMinimizedSetting = settings.get("startMinimized");
+    const startMinimizedSetting = settings.get("startupWindowState") === "minimized";
     initialMinimization.domReady = hasMinimizedFlag || startMinimizedSetting;
   }
   reloadSettings() {
@@ -149,6 +149,11 @@ class MailWindowController {
       webPreferences: {
         contextIsolation: true,
         preload: path.join(__dirname, "preload.js"),
+        // Keep the injected unread observer's timers running while the window is
+        // hidden to tray (hideOnClose/hideOnMinimize). Chromium throttles timers
+        // in hidden windows by default, which stopped new-mail detection in the
+        // tray (#415).
+        backgroundThrottling: false,
       },
     });
 
@@ -383,7 +388,13 @@ class MailWindowController {
 
       this.addUnreadNumberObserver();
       if (!initialMinimization.domReady) {
-        this.win.show();
+        // A minimized startup keeps the window hidden, so if we're here we only
+        // need to honor the maximized case. maximize() also shows the window.
+        if (settings.get("startupWindowState") === "maximized") {
+          this.win.maximize();
+        } else {
+          this.win.show();
+        }
       }
     });
 
@@ -461,9 +472,10 @@ class MailWindowController {
   }
 
   addUnreadNumberObserver() {
-    const disableUnreadNotifications = settings.get("disableUnreadNotifications");
+    const showUnreadNotifications = settings.get("showUnreadNotifications");
+    const unreadNotificationSource = settings.get("unreadNotificationSource");
     this.win.webContents.executeJavaScript(
-      `window.prospectMailConfig = Object.assign(window.prospectMailConfig || {}, { disableUnreadNotifications: ${JSON.stringify(disableUnreadNotifications)} });`
+      `window.prospectMailConfig = Object.assign(window.prospectMailConfig || {}, { showUnreadNotifications: ${JSON.stringify(showUnreadNotifications)}, unreadNotificationSource: ${JSON.stringify(unreadNotificationSource)} });`
     );
     this.win.webContents.executeJavaScript(
       getClientFile("unread-number-observer.js")
