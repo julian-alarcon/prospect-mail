@@ -70,7 +70,7 @@
     "electron-store": "^8.2.0"
   },
   "devDependencies": {
-    "electron": "^42.10.1",
+    "electron": "^43.4.1",
     "electron-builder": "^26.15.7"
   },
   "optionalDependencies": {
