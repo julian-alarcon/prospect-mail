@@ -13,7 +13,7 @@ permissions:
   packages: write  # For publishing artifacts
 
 env:
-  NODE_VERSION: 22
+  NODE_VERSION: 24
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
 
@@ -25,8 +25,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - { runner: ubuntu-24.04,      os: ubuntu,  arch: x64   }  # Linux x64
-          - { runner: ubuntu-24.04-arm,  os: ubuntu,  arch: arm64 }  # Linux ARM64
+          - { runner: ubuntu-26.04,      os: ubuntu,  arch: x64   }  # Linux x64
+          - { runner: ubuntu-26.04-arm,  os: ubuntu,  arch: arm64 }  # Linux ARM64 (arm runner in preview)
           - { runner: windows-2025,      os: windows, arch: x64   }  # Windows x64
           - { runner: windows-11-arm,    os: windows, arch: arm64 }  # Windows ARM64
           - { runner: macos-15,          os: macos,   arch: arm64 }  # macOS ARM64
@@ -105,7 +105,7 @@ jobs:
         run: npm run dist:windows:${{ matrix.arch }} -- --publish always
 
   build-and-release-snap-arm64:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
 
     steps:
       - name: Check out Git repository
