@@ -13,7 +13,7 @@ all contributors.
 
 Before you begin:
 
-- Install [git](https://git-scm.com/) and [Node.js](https://nodejs.org/) v22.x LTS
+- Install [git](https://git-scm.com/) and [Node.js](https://nodejs.org/) v24.x LTS
 - Read the [README.md](README.md)
 - Check existing [issues](https://github.com/julian-alarcon/prospect-mail/issues)
   and [pull requests](https://github.com/julian-alarcon/prospect-mail/pulls) to
@@ -213,31 +213,48 @@ Example: `0.6.0-beta2`
 
 ### Creating a New Release
 
-```shell
-# Bump version (choose one):
-npm version prerelease --preid=beta  # Auto-increment beta version
-npm version 1.2.1                    # Stable release
+Always bump the version with `npm version` (never edit `package.json` by hand):
+it updates `package.json` and `package-lock.json`, creates the commit, and
+creates the matching git tag in one step. The tree must be clean first.
 
-# Push changes and tag (npm version creates tag automatically)
-git push
-git push origin --tags
+Use explicit version strings so the tag matches the `MAJOR.MINOR.PATCH-beta#`
+convention. A typical cycle ships a beta first, then the stable release:
+
+```shell
+# 1. Beta (from a clean, up-to-date main)
+git checkout main && git pull
+npm version 1.3.0-beta1
+git push --follow-tags        # pushes the commit and the tag together
+
+# 2. After testing the beta, cut the stable release
+git checkout main && git pull
+npm version 1.3.0
+git push --follow-tags
 ```
 
-Open a Pull Request for the version update. After merge, the tag push triggers
-automated release.
+> If `main` is protected (requires PRs), run `npm version` on a short-lived
+> branch, open a PR, and push the tag after merge. The tag is what triggers the
+> release.
 
-6. **Automated release process**: When the tag is pushed, GitHub Actions will automatically:
-   - Generate release notes from commits (see `.github/release-notes-from-commits.yml`)
-   - Create GitHub release with changelog
-   - Build for Linux (x64, arm64): AppImage, deb, pacman, rpm, snap, flatpak, tar.gz
-   - Build for macOS (arm64, x64): dmg
-   - Build for Windows (x64, arm64): exe, msi
-   - Attach artifacts to GitHub release
-   - Publish snap to Snap Store (beta channel)
+When the tag is pushed, GitHub Actions automatically:
 
-7. **Promote Snap Store release**:
-   - Go to [Snap Store releases](https://snapcraft.io/prospect-mail/releases)
-   - Move the release from beta to stable channel
+- Generates release notes from commit prefixes (see `.github/release.yml`)
+- Creates the GitHub release (marked pre-release for `-beta` tags)
+- Builds Linux (x64, arm64): AppImage, deb, pacman, rpm, snap, flatpak, tar.gz
+- Builds macOS (arm64, x64): dmg
+- Builds Windows (x64, arm64): exe, msi
+- Attaches all artifacts to the GitHub release
+- Publishes the snap to the Snap Store **beta** channel
+
+Snap always publishes to the **beta** channel (configured in `package.json`),
+including stable version tags. To ship a stable snap, promote it manually:
+
+- Go to [Snap Store releases](https://snapcraft.io/prospect-mail/releases)
+- Move the release from **beta** to **stable**
+
+> The Snap Store publish step needs a valid `SNAPCRAFT_TOKEN` repository secret.
+> These tokens expire; if the release job fails with "Exported credentials are
+> no longer valid", rotate it (see [Manual Snap Store Release](#manual-snap-store-release)).
 
 ### Automatic Changelog Generation
 
@@ -265,12 +282,32 @@ Note: For breaking changes, you can use the `!` suffix with any commit type
 
 ### Manual Snap Store Release
 
-If needed, you can manually release to the Snap Store:
+If needed, you can manually upload and release a snap:
 
 ```shell
 snapcraft login
-snapcraft upload --release=edge prospect-mail_x.y.z_arch.snap
+snapcraft upload --release=beta prospect-mail_x.y.z_arch.snap
 ```
+
+#### Rotating the CI Snap Store token
+
+The automated release uses the `SNAPCRAFT_TOKEN` repository secret. Store tokens
+expire, so regenerate and update it when a release job fails to publish:
+
+```shell
+snapcraft login
+snapcraft export-login \
+  --channels beta,stable \
+  --acls package_access,package_push,package_release \
+  --expires 2027-12-31 \
+  snapcraft-token.txt
+gh secret set SNAPCRAFT_TOKEN --repo julian-alarcon/prospect-mail < snapcraft-token.txt
+rm snapcraft-token.txt
+```
+
+> Update the secret **before** re-running a failed job. GitHub injects secrets
+> when a job starts, so a re-run that began before the update still uses the old
+> token.
 
 ## Reporting Issues
 
@@ -310,9 +347,9 @@ and include:
 
 ### Core Components
 
-- **Node.js**: v22.x LTS
+- **Node.js**: v24.x LTS
 - **npm**: (comes with Node.js)
-- **Electron**: v39.x
+- **Electron**: v42.x (pinned; see `src/controller/tray-controller.js` for why)
 - **electron-builder**: v26.x
 - **electron-store**: v8.2.0
 
@@ -320,8 +357,9 @@ and include:
 
 #### Linux
 
-- Snap builds use `core22` base with strict confinement
-- Multiple package formats supported: AppImage, deb, pacman, rpm, snap, tar.gz
+- Snap builds use `core24` base with strict confinement (built via LXD)
+- Flatpak builds use the `25.08` runtime
+- Multiple package formats supported: AppImage, deb, pacman, rpm, snap, flatpak, tar.gz
 - Architectures: x64, arm64
 - Requires `libarchive-tools` for pacman builds
 

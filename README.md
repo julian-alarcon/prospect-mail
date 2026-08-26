@@ -13,6 +13,7 @@ Microsoft/Office 365 accounts, don't use it for personal Outlook.com accounts.
 
 Available for Linux, Windows (10+) and macOS.
 
+> [!IMPORTANT]
 > This project has NO DIRECT AFFILIATION with Microsoft, Microsoft 365 or any
 > product made by Microsoft.
 
@@ -83,8 +84,10 @@ need to click in "Reload settings" to apply changes.
 
 ```json
 {
-  "urlMainWindow": "https://outlook.office.com/mail",
+  "urlMainWindow": "https://outlook.cloud.microsoft/mail",
   "urlsInternal": [
+    "outlook.cloud.microsoft/mail/deeplink",
+    "outlook.cloud.microsoft/calendar/deeplink",
     "outlook.live.com/mail/deeplink",
     "outlook.office365.com/mail/deeplink",
     "outlook.office.com/mail/deeplink",
@@ -92,11 +95,13 @@ need to click in "Reload settings" to apply changes.
     "to-do.office.com/tasks"
   ],
   "urlsExternal": [
+    "outlook.cloud.microsoft",
     "outlook.live.com",
     "outlook.office365.com",
     "outlook.office.com"
   ],
   "safelinksUrls": [
+    "outlook.cloud.microsoft/mail/safelink.html",
     "outlook.office.com/mail/safelink.html",
     "safelinks.protection.outlook.com"
   ],
@@ -113,7 +118,7 @@ need to click in "Reload settings" to apply changes.
 
 | Setting             | Description                                                                                  | Default                           |
 | ------------------- | -------------------------------------------------------------------------------------------- | --------------------------------- |
-| `urlMainWindow`     | Main Outlook service URL to load                                                             | `https://outlook.office.com/mail` |
+| `urlMainWindow`     | Main Outlook service URL to load                                                             | `https://outlook.cloud.microsoft/mail` |
 | `urlsInternal`      | Array of URL patterns for deeplinks that open in new app windows                             | See example above                 |
 | `urlsExternal`      | Array of URL patterns for Outlook/Microsoft 365 services that open in the main window       | See example above                 |
 | `safelinksUrls`     | Array of URL patterns for Microsoft Safe Links that open in external browser                 | See example above                 |
@@ -123,6 +128,12 @@ need to click in "Reload settings" to apply changes.
 | `startMinimized`    | Start app minimized to tray (also available via tray menu or `--minimized` flag)             | `false`                           |
 | `disableUnreadNotifications` | Disable the "new messages" desktop notification while keeping calendar reminders enabled (also available via tray menu) | `false`                  |
 | `customBrowserPath` | Custom browser for external links. Use command name (e.g., `"firefox"`) or full path        | System default                    |
+
+> [!NOTE]
+> `outlook.cloud.microsoft` is Microsoft's unified-domain Outlook host and is
+> now the default. The legacy `office.com` / `office365.com` / `live.com` hosts
+> still work. Existing installs keep their saved `urlMainWindow`; use "Restore
+> Default Settings" in the tray menu to adopt the new default.
 
 ### Example Configuration for Personal Outlook
 
@@ -145,10 +156,10 @@ This configuration will let you use Prospect with personal Outlook.com account:
 The main software architecture components and their versions are this:
 
 - [Node.js](https://nodejs.org/en/about/previous-releases#release-schedule)
-version: 22.x LTS
+version: 24.x LTS
 - [npm](https://docs.npmjs.com/) (comes with Node.js)
 - [electron](https://www.electronjs.org/docs/latest/tutorial/electron-timelines)
-version: 39.x
+version: 42.x (pinned)
 - [electron-builder](https://www.electron.build/) version: 26.x
 - [electron-store](https://github.com/sindresorhus/electron-store)
   version: 8.2.0
@@ -175,8 +186,8 @@ Build the application for Linux
 npm run dist:linux
 ```
 
-This will build an AppImage, deb, flatpak and snap files in the dist folder.
-These files can be run in most popular Linux distributions.
+This will build AppImage, deb, pacman, rpm, flatpak, snap and tar.gz files in
+the dist folder. These files can be run in most popular Linux distributions.
 
 You can specify a specific build type:
 
@@ -186,7 +197,7 @@ npm run dist:linux:flatpak
 npm run dist:linux:appimage
 ```
 
-Build the application for Mac (It works in versions 10.14 and 10.15)
+Build the application for macOS (arm64 and x64)
 
 ```shell
 npm run dist:mac

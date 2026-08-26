@@ -111,6 +111,12 @@
     },
     "snapcraft": {
       "base": "core24",
+      "publish": [
+        {
+          "provider": "snapStore",
+          "channels": "beta"
+        }
+      ],
       "core24": {
         "confinement": "strict",
         "grade": "stable",
@@ -128,13 +134,7 @@
         ],
         "environment": {
           "TMPDIR": "$XDG_RUNTIME_DIR"
-        },
-        "publish": [
-          {
-            "provider": "snapStore",
-            "channels": "beta"
-          }
-        ]
+        }
       }
     },
     "flatpak": {
