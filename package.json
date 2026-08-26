@@ -70,7 +70,7 @@
     "electron-store": "^8.2.0"
   },
   "devDependencies": {
-    "electron": "^43.2.0",
+    "electron": "^42.10.1",
     "electron-builder": "^26.15.7"
   },
   "optionalDependencies": {
@@ -125,7 +125,7 @@
           "removable-media",
           "screen-inhibit-control",
           "upower-observe"
-       ],
+        ],
         "environment": {
           "TMPDIR": "$XDG_RUNTIME_DIR"
         },

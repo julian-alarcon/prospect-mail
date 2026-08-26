@@ -14,6 +14,10 @@ const { openAboutWindow } = require("./about-window");
 
 const macOS = process.platform === "darwin";
 
+// Electron is pinned to 42.x (Chromium 148) in package.json. Electron 43+ changed
+// the tray D-Bus path/name in ways snapd's unity7 AppArmor template denies, so the
+// strict snap tray icon never renders. Chromium <=148 uses the whitelisted path.
+// Do NOT bump past 42.x until snapd 2.78 ships the fix. Details: issue #420.
 class TrayController {
   constructor(mailController) {
     this.mailController = mailController;

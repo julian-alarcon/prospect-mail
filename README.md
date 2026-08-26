@@ -69,6 +69,10 @@ flag `prospect-mail --minimized`
 - Connect to standard or custom Outlook URL
 - Spellcheck using native Outlook MS Editor
 - Visualize files (pdf) in emails
+- Automatic session recovery: expired auth cookies are cleaned at startup and
+  on wake-from-sleep; if the Outlook session expires, the app auto-reloads to
+  silently re-authenticate via SSO, and falls back to a desktop notification if
+  re-login is still needed
 
 ## Settings
 
