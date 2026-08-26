@@ -121,9 +121,15 @@ const observeUnreadHandlers = {
         return false;
       }
 
-      // Extract unread count from title attribute: "Inbox - 263 items (217 unread)"
+      // Extract unread count from title attribute. Outlook localizes the word
+      // ("unread"/"ungelesen"/"non lus"/...), but the count is always the first
+      // number inside the parentheses, so match the digits after the opening
+      // paren instead of the English word:
+      //   "Inbox - 263 items (217 unread)" / "Posteingang - 263 Elemente (217 ungelesen)"
+      // A folder with no unread messages omits the parenthetical, so no match
+      // correctly yields 0.
       const title = inboxElement.getAttribute('title');
-      const unreadMatch = title?.match(/\((\d+)\s+unread\)/);
+      const unreadMatch = title?.match(/\((\d+)/);
       const unread = unreadMatch ? parseInt(unreadMatch[1], 10) : 0;
 
       console.log(`Found ${unread} unread message(s)`);
