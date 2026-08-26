@@ -86,13 +86,19 @@ prospect-mail/
 ├── .github/          # GitHub workflows, issue templates, and configuration
 ├── build/            # Build assets (icons, etc.)
 ├── misc/             # Miscellaneous files (screenshots, etc.)
+├── public/           # Scripts injected into the Outlook web app (unread observer, etc.)
+├── assets/           # Runtime icons (tray, notifications)
 ├── src/              # Source code
 │   ├── controller/   # Application controllers
+│   │   ├── about-preload.js
+│   │   ├── about-window.js
 │   │   ├── client-injector.js
 │   │   ├── mail-window-controller.js
 │   │   ├── preload.js
 │   │   └── tray-controller.js
-│   └── main.js       # Main application entry point
+│   ├── about.html    # About window markup
+│   ├── main.js       # Main application entry point
+│   └── settings.js   # Centralized settings store (defaults + migration)
 ├── package.json      # Project configuration and dependencies
 └── README.md         # Project documentation
 ```
