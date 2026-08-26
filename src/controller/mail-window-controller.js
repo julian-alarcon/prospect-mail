@@ -15,9 +15,11 @@ const AUTH_DOMAINS = [
   "login.microsoftonline.com",
   "login.microsoft.com",
   "login.live.com",
+  "outlook.cloud.microsoft",
   "outlook.office.com",
   "outlook.office365.com",
   "outlook.live.com",
+  "cloud.microsoft",
   "microsoft.com",
   "office.com",
   "live.com",
@@ -47,6 +49,7 @@ const MAX_LOGIN_REQUIRED_RETRIES = 3;          // then fall back to notification
 
 // Outlook mail URL patterns — landing here means recovery worked
 const OUTLOOK_URL_PATTERNS = [
+  "outlook.cloud.microsoft",
   "outlook.office.com",
   "outlook.live.com",
   "outlook.office365.com",
