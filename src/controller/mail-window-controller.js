@@ -149,6 +149,11 @@ class MailWindowController {
       webPreferences: {
         contextIsolation: true,
         preload: path.join(__dirname, "preload.js"),
+        // Keep the injected unread observer's timers running while the window is
+        // hidden to tray (hideOnClose/hideOnMinimize). Chromium throttles timers
+        // in hidden windows by default, which stopped new-mail detection in the
+        // tray (#415).
+        backgroundThrottling: false,
       },
     });
 
