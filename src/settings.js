@@ -42,6 +42,10 @@ const settings = new Store({
     startupWindowState: "normal",
     // Positive phrasing: true = show desktop notifications for new mail.
     showUnreadNotifications: true,
+    // Which folders drive the unread badge and new-mail notifications:
+    //   "inbox"     — the Inbox folder only (default, original behaviour)
+    //   "favorites" — sum of unread across the Outlook Favorites folders
+    unreadNotificationSource: "inbox",
     customBrowserPath: undefined
   }
 });

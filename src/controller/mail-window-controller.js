@@ -473,8 +473,9 @@ class MailWindowController {
 
   addUnreadNumberObserver() {
     const showUnreadNotifications = settings.get("showUnreadNotifications");
+    const unreadNotificationSource = settings.get("unreadNotificationSource");
     this.win.webContents.executeJavaScript(
-      `window.prospectMailConfig = Object.assign(window.prospectMailConfig || {}, { showUnreadNotifications: ${JSON.stringify(showUnreadNotifications)} });`
+      `window.prospectMailConfig = Object.assign(window.prospectMailConfig || {}, { showUnreadNotifications: ${JSON.stringify(showUnreadNotifications)}, unreadNotificationSource: ${JSON.stringify(unreadNotificationSource)} });`
     );
     this.win.webContents.executeJavaScript(
       getClientFile("unread-number-observer.js")

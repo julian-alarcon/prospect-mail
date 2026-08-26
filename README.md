@@ -110,6 +110,7 @@ need to click in "Reload settings" to apply changes.
   "hideOnMinimize": false,
   "startupWindowState": "normal",
   "showUnreadNotifications": true,
+  "unreadNotificationSource": "inbox",
   "customBrowserPath": "microsoft-edge"
 }
 ```
@@ -127,6 +128,7 @@ need to click in "Reload settings" to apply changes.
 | `hideOnMinimize`    | Hide to tray when minimizing (off by default: minimize stays in the taskbar; restore via tray → Show if enabled) | `false`     |
 | `startupWindowState`| Window state on startup: `"normal"`, `"minimized"`, or `"maximized"` (also available via tray menu; `--minimized` flag forces minimized) | `"normal"`     |
 | `showUnreadNotifications` | Show the "new messages" desktop notification (calendar reminders are unaffected; also available via tray menu) | `true`                  |
+| `unreadNotificationSource` | Which folders drive the unread badge and new-mail notifications: `"inbox"` (Inbox only) or `"favorites"` (sum of unread across your Outlook Favorites) | `"inbox"`     |
 | `customBrowserPath` | Custom browser for external links. Use command name (e.g., `"firefox"`) or full path        | System default                    |
 
 > [!NOTE]
