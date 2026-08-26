@@ -34,7 +34,10 @@ const settings = new Store({
     ],
     showWindowFrame: true,
     hideOnClose: true,
-    hideOnMinimize: true,
+    // Default off so minimize behaves like a standard window (stays in the
+    // taskbar), mirroring Teams for Linux. hideOnClose still sends the app to
+    // the tray, which is the more useful "keep running in background" case.
+    hideOnMinimize: false,
     // Startup window state is a single choice: "normal" | "minimized" | "maximized".
     startupWindowState: "normal",
     // Positive phrasing: true = show desktop notifications for new mail.

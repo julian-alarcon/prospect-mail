@@ -107,7 +107,7 @@ need to click in "Reload settings" to apply changes.
   ],
   "showWindowFrame": true,
   "hideOnClose": true,
-  "hideOnMinimize": true,
+  "hideOnMinimize": false,
   "startupWindowState": "normal",
   "showUnreadNotifications": true,
   "customBrowserPath": "microsoft-edge"
@@ -124,7 +124,7 @@ need to click in "Reload settings" to apply changes.
 | `safelinksUrls`     | Array of URL patterns for Microsoft Safe Links that open in external browser                 | See example above                 |
 | `showWindowFrame`   | Show/hide window frame and title bar                                                         | `true`                            |
 | `hideOnClose`       | Minimize to tray instead of quitting when closing window                                     | `true`                            |
-| `hideOnMinimize`    | Hide to tray when minimizing window                                                          | `true`                            |
+| `hideOnMinimize`    | Hide to tray when minimizing (off by default: minimize stays in the taskbar; restore via tray → Show if enabled) | `false`     |
 | `startupWindowState`| Window state on startup: `"normal"`, `"minimized"`, or `"maximized"` (also available via tray menu; `--minimized` flag forces minimized) | `"normal"`     |
 | `showUnreadNotifications` | Show the "new messages" desktop notification (calendar reminders are unaffected; also available via tray menu) | `true`                  |
 | `customBrowserPath` | Custom browser for external links. Use command name (e.g., `"firefox"`) or full path        | System default                    |
