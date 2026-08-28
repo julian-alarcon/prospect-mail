@@ -41,7 +41,11 @@ const showNotification = (title, body) => {
 // cover slow loading, but if the inbox never appears we report it to the main
 // process, which can auto-reload to recover via SSO or notify the user.
 let loginRequiredReported = false;
-let monitoringStartTime = Date.now();
+// Timestamp of when the Outlook mail UI was last confirmed present. While the
+// UI is visible we keep pushing this forward, so only a *sustained* absence
+// (the session really expired) accumulates toward the threshold. A brief moment
+// where the inbox node isn't in the DOM can no longer trigger a reload (#428).
+let lastLoggedInAt = Date.now();
 let loginCheckInterval = null;
 
 const LOGIN_URL_PATTERNS = [
@@ -59,50 +63,69 @@ const isOnLoginPage = () => {
   }
 };
 
+// True when the Outlook web app shell is rendered, i.e. we're signed in. The
+// shell tags its major regions with `data-app-section` (NavigationPane,
+// MessageList, NotificationPane, ...) and the folder tree exposes the inbox
+// node; the Microsoft sign-in pages use neither. ANY of these counts as
+// "logged in" on purpose: a narrow single-selector check was the root cause of
+// the reload loop, so we deliberately err toward not reloading.
+const isLoggedIn = () => {
+  try {
+    return !!document.querySelector('[data-folder-name="inbox"], [data-app-section]');
+  } catch {
+    return false;
+  }
+};
+
 const checkLoginRequired = () => {
   if (loginRequiredReported) return;
-  const elapsed = Date.now() - monitoringStartTime;
 
-  // Skip detection during the initial grace period to avoid false positives
-  // from transient auth redirects when the page first loads.
-  if (elapsed < CONFIG.loginRequiredInitialGraceMs) {
+  // As long as the mail UI is present we're logged in: advance the clock and
+  // bail. This is what stops transient missing-DOM moments (view switches,
+  // virtualized panes, the window hidden to tray) from ever accumulating
+  // toward the logged-out threshold.
+  if (isLoggedIn()) {
+    lastLoggedInAt = Date.now();
     return;
   }
 
-  // Two distinct signals, reported with a reason so the main process can react
-  // differently:
-  //   'login-page' — we're sitting on a Microsoft sign-in page. The user must
-  //     sign in manually; auto-reloading would wipe a half-entered form or break
-  //     an MFA flow, so the main process only notifies for this case.
-  //   'no-inbox'   — the page loaded but no inbox appeared for over the
-  //     threshold (stuck/blank). SSO cookies may still be valid, so the main
-  //     process reloads to attempt silent recovery.
-  const onLoginPage = isOnLoginPage();
-  if (onLoginPage || elapsed > CONFIG.loginRequiredThresholdMs) {
-    const reason = onLoginPage ? 'login-page' : 'no-inbox';
-    console.log('Login required detected, reporting to main process', {
-      reason,
+  const elapsed = Date.now() - lastLoggedInAt;
+
+  // Grace period avoids false positives from transient auth redirects right
+  // after a (re)load, before the app shell has had a chance to render.
+  if (elapsed < CONFIG.loginRequiredInitialGraceMs) return;
+
+  // On a real Microsoft sign-in page the user must sign in manually; auto-
+  // reloading would wipe a half-entered form or break MFA, so we only notify.
+  if (isOnLoginPage()) {
+    console.log('Login required detected (sign-in page), notifying main process', {
       elapsedMs: elapsed,
     });
     loginRequiredReported = true;
-    window.electronAPI.reportLoginRequired(reason);
+    window.electronAPI.reportLoginRequired('login-page');
+    return;
+  }
+
+  // Not on a sign-in page and the mail UI has been absent past the threshold:
+  // the page is stuck/blank but SSO cookies may still be valid, so ask the main
+  // process to reload for a silent recovery.
+  if (elapsed > CONFIG.loginRequiredThresholdMs) {
+    console.log('Login required detected (no mail UI), reporting to main process', {
+      elapsedMs: elapsed,
+    });
+    loginRequiredReported = true;
+    window.electronAPI.reportLoginRequired('no-inbox');
   }
 };
 
 const startLoginCheck = () => {
   if (loginCheckInterval) return;
-  // Immediate check catches the definite login-page redirect without waiting.
+  // Immediate check catches an initial sign-in-page redirect without waiting.
   checkLoginRequired();
-  loginCheckInterval = setInterval(() => {
-    // If the inbox is present, we're logged in — stop checking.
-    if (document.querySelector('[data-folder-name="inbox"]')) {
-      console.log('Inbox found, user is logged in — stopping login check');
-      clearInterval(loginCheckInterval);
-      loginCheckInterval = null;
-      return;
-    }
-    checkLoginRequired();
-  }, CONFIG.loginCheckIntervalMs);
+  // Keep checking for the whole session: checkLoginRequired() is a no-op while
+  // logged in and self-latches once it reports, so this stays cheap yet can
+  // still catch a session that expires later on.
+  loginCheckInterval = setInterval(checkLoginRequired, CONFIG.loginCheckIntervalMs);
 };
 
 const observeUnreadHandlers = {
@@ -396,4 +419,26 @@ const debounce = (() => {
   };
 })();
 
-initializeEmailMonitoring();
+// Auto-start only in the page (where this script is injected via
+// executeJavaScript). In a Node test harness `window` is absent, so we skip the
+// browser bootstrap and instead expose the detection helpers for unit tests.
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  initializeEmailMonitoring();
+} else if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    CONFIG,
+    isLoggedIn,
+    isOnLoginPage,
+    checkLoginRequired,
+    startLoginCheck,
+    // Test hook: reset the module's login-detection state between scenarios.
+    _resetLoginStateForTest() {
+      loginRequiredReported = false;
+      lastLoggedInAt = Date.now();
+      if (loginCheckInterval) {
+        clearInterval(loginCheckInterval);
+        loginCheckInterval = null;
+      }
+    },
+  };
+}

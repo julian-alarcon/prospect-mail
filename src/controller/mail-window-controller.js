@@ -44,16 +44,14 @@ const AUTH_COOKIE_NAMES = new Set([
 // page reloads (renderer state is wiped on each reload).
 let loginRequiredRetryCount = 0;
 let lastLoginRequiredReloadAt = 0;
+let loginRequiredResetTimer = null;
 const LOGIN_REQUIRED_COOLDOWN_MS = 60 * 1000; // 1 minute between reload attempts
 const MAX_LOGIN_REQUIRED_RETRIES = 3;          // then fall back to notification
-
-// Outlook mail URL patterns — landing here means recovery worked
-const OUTLOOK_URL_PATTERNS = [
-  "outlook.cloud.microsoft",
-  "outlook.office.com",
-  "outlook.live.com",
-  "outlook.office365.com",
-];
+// Quiet window after a recovery reload with no further login-required report
+// before we treat recovery as successful and reset the retry counter. Resetting
+// on every navigation (the reload itself navigates to Outlook) let the loop run
+// forever, defeating the retry cap (#428).
+const LOGIN_REQUIRED_RESET_QUIET_MS = 2 * LOGIN_REQUIRED_COOLDOWN_MS;
 
 //Setted by cmdLine to initial minimization
 const initialMinimization = {
@@ -357,19 +355,22 @@ class MailWindowController {
         `[LoginRequired] Auto-reloading to recover session (attempt ${loginRequiredRetryCount}/${MAX_LOGIN_REQUIRED_RETRIES})`
       );
       this.reloadWindow();
-    });
 
-    // Reset the retry counter when we land back on an Outlook mail page —
-    // that means a reload (or manual sign-in) succeeded.
-    this.win.webContents.on("did-navigate", (_event, url) => {
-      if (
-        url &&
-        OUTLOOK_URL_PATTERNS.some((p) => url.includes(p)) &&
-        loginRequiredRetryCount > 0
-      ) {
-        console.log("[LoginRequired] Back on Outlook, resetting retry count");
-        loginRequiredRetryCount = 0;
+      // Consider recovery successful only if no further login-required report
+      // arrives for a sustained quiet period, then reset the counter so a
+      // genuine future logout gets a fresh set of retries. Each new report
+      // re-arms this, so a real persistent logout still stops after the cap
+      // instead of looping (#428).
+      if (loginRequiredResetTimer) {
+        clearTimeout(loginRequiredResetTimer);
       }
+      loginRequiredResetTimer = setTimeout(() => {
+        if (loginRequiredRetryCount > 0) {
+          console.log("[LoginRequired] Recovery stable, resetting retry count");
+          loginRequiredRetryCount = 0;
+        }
+        loginRequiredResetTimer = null;
+      }, LOGIN_REQUIRED_RESET_QUIET_MS);
     });
 
     // After resuming from sleep, cookies may have expired during suspend.
