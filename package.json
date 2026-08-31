@@ -31,6 +31,7 @@
   "scripts": {
     "start": "electron .",
     "start-minimized": "electron . --minimized",
+    "test": "node --test",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "dist:linux": "electron-builder --linux",
