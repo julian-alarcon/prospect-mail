@@ -33,3 +33,7 @@ If applicable, add screenshots to help explain your problem.
 **Additional context**
 Add any other context about the problem here.
 Also, did you try another build (AppImage, deb, rpm)?
+And, did you tried checking the Developer Tools messages? Use
+Ctrl + Shift + I shortcut to show the Developer tools
+`export NODE_ENV="development" && prospect-mail` to open Prospect-Mail
+with the developer tools panel and check the logs in the console tab.

@@ -330,6 +330,8 @@ When reporting bugs, please use the [bug report template](.github/ISSUE_TEMPLATE
   - Installation source (deb, rpm, snap, AppImage, tar.gz, Snapstore, exe, msi, dmg)
   - Version (e.g., 0.6.0-beta2)
 - Any additional context
+- Use shortcut Ctrl + Shift + I, or open with command
+  `export NODE_ENV="development" && prospect-mail` to view Developer Tools.
 
 Check if the issue occurs with different build types (AppImage, deb, rpm, etc.).
 
