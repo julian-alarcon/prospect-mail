@@ -40,18 +40,28 @@ const AUTH_COOKIE_NAMES = new Set([
   "rtFa",
 ]);
 
-// Login-required recovery state. Lives in the main process so it survives
-// page reloads (renderer state is wiped on each reload).
-let loginRequiredRetryCount = 0;
-let lastLoginRequiredReloadAt = 0;
-let loginRequiredResetTimer = null;
-const LOGIN_REQUIRED_COOLDOWN_MS = 60 * 1000; // 1 minute between reload attempts
-const MAX_LOGIN_REQUIRED_RETRIES = 3;          // then fall back to notification
-// Quiet window after a recovery reload with no further login-required report
-// before we treat recovery as successful and reset the retry counter. Resetting
-// on every navigation (the reload itself navigates to Outlook) let the loop run
-// forever, defeating the retry cap (#428).
-const LOGIN_REQUIRED_RESET_QUIET_MS = 2 * LOGIN_REQUIRED_COOLDOWN_MS;
+// Network-recovery state. Lives in the main process so it survives renderer
+// reloads. A dropped connection surfaces as a main-frame `did-fail-load`; we
+// reload once, debounced, so a burst of failures triggers a single reload.
+let lastNetworkReloadAt = 0;
+const NETWORK_RELOAD_MIN_INTERVAL_MS = 5 * 1000;
+// Chromium net error codes worth reloading for (transient connectivity). We
+// deliberately exclude ERR_ABORTED (-3, normal SPA navigation) and cert/HTTP
+// errors, which a reload won't fix.
+const RECOVERABLE_NET_ERRORS = new Set([
+  -2,   // ERR_FAILED
+  -21,  // ERR_NETWORK_CHANGED
+  -100, // ERR_CONNECTION_CLOSED
+  -101, // ERR_CONNECTION_RESET
+  -102, // ERR_CONNECTION_REFUSED
+  -104, // ERR_CONNECTION_FAILED
+  -105, // ERR_NAME_NOT_RESOLVED
+  -106, // ERR_INTERNET_DISCONNECTED
+  -109, // ERR_ADDRESS_UNREACHABLE
+  -118, // ERR_CONNECTION_TIMED_OUT
+  -130, // ERR_PROXY_CONNECTION_FAILED
+  -137, // ERR_NAME_RESOLUTION_FAILED
+]);
 
 //Setted by cmdLine to initial minimization
 const initialMinimization = {
@@ -316,62 +326,38 @@ class MailWindowController {
       notification.show();
     });
 
-    // Login-required recovery: the renderer reports that the inbox can't be
-    // found (session expired / redirected to sign-in). We attempt a silent
-    // reload a few times — if Outlook's SSO cookies are still valid the reload
-    // re-authenticates transparently. After max retries we notify the user.
+    // Session-expiry / sign-in required: the renderer detects that Outlook needs
+    // an interactive sign-in (an expired session — the red banner — or a
+    // Microsoft sign-in page). Silent SSO has already failed at this point, so a
+    // reload can't recover it and would only loop or wipe a half-entered login.
+    // We just notify, so a tray/minimized user knows to open the window and sign
+    // in (the in-page banner has its own Sign in button). A stuck/blank page
+    // from a dropped connection is a different problem, handled by did-fail-load.
     ipcMain.on("report-login-required", (_event, reason) => {
-      const now = Date.now();
-
-      // On a real sign-in page: reloading can't recover the session (silent SSO
-      // already failed) and would interrupt the user typing credentials or doing
-      // MFA. Just notify so a minimized/tray user knows to sign in.
-      if (reason === "login-page") {
-        console.log("[LoginRequired] On sign-in page, notifying (no reload)");
-        this.showAppNotification(
-          "Prospect Mail: Sign in required",
-          "Outlook requires you to sign in again. Click here to open Prospect Mail."
-        );
-        return;
-      }
-
-      if (loginRequiredRetryCount >= MAX_LOGIN_REQUIRED_RETRIES) {
-        console.log("[LoginRequired] Max retries reached, showing notification");
-        this.showAppNotification(
-          "Prospect Mail: Sign in required",
-          "Outlook requires you to sign in again. Click here to open Prospect Mail."
-        );
-        return;
-      }
-
-      if (lastLoginRequiredReloadAt > 0 && now - lastLoginRequiredReloadAt < LOGIN_REQUIRED_COOLDOWN_MS) {
-        console.log("[LoginRequired] Within cooldown, ignoring");
-        return;
-      }
-
-      loginRequiredRetryCount++;
-      lastLoginRequiredReloadAt = now;
-      console.log(
-        `[LoginRequired] Auto-reloading to recover session (attempt ${loginRequiredRetryCount}/${MAX_LOGIN_REQUIRED_RETRIES})`
+      console.log(`[LoginRequired] Sign-in required (${reason}), notifying`);
+      this.showAppNotification(
+        "Prospect Mail: Sign in required",
+        "Outlook requires you to sign in again. Click here to open Prospect Mail."
       );
-      this.reloadWindow();
-
-      // Consider recovery successful only if no further login-required report
-      // arrives for a sustained quiet period, then reset the counter so a
-      // genuine future logout gets a fresh set of retries. Each new report
-      // re-arms this, so a real persistent logout still stops after the cap
-      // instead of looping (#428).
-      if (loginRequiredResetTimer) {
-        clearTimeout(loginRequiredResetTimer);
-      }
-      loginRequiredResetTimer = setTimeout(() => {
-        if (loginRequiredRetryCount > 0) {
-          console.log("[LoginRequired] Recovery stable, resetting retry count");
-          loginRequiredRetryCount = 0;
-        }
-        loginRequiredResetTimer = null;
-      }, LOGIN_REQUIRED_RESET_QUIET_MS);
     });
+
+    // Network recovery: reload when the main frame fails to load with a
+    // transient connectivity error (e.g. after sleep or a network change).
+    // Debounced so a burst of failures triggers a single reload; sub-frame and
+    // non-recoverable errors (aborts, cert/HTTP) are ignored.
+    this.win.webContents.on(
+      "did-fail-load",
+      (_event, errorCode, errorDescription, _validatedURL, isMainFrame) => {
+        if (!isMainFrame || !RECOVERABLE_NET_ERRORS.has(errorCode)) return;
+        const now = Date.now();
+        if (now - lastNetworkReloadAt < NETWORK_RELOAD_MIN_INTERVAL_MS) return;
+        lastNetworkReloadAt = now;
+        console.log(
+          `[Network] Main frame failed to load (${errorCode} ${errorDescription}), reloading`
+        );
+        this.reloadWindow();
+      }
+    );
 
     // After resuming from sleep, cookies may have expired during suspend.
     // Clean them so Outlook doesn't show a stale session state.
@@ -531,8 +517,8 @@ class MailWindowController {
   }
 
   /**
-   * Shows a native notification directly from the main process (used for the
-   * login-required fallback when auto-reload is exhausted).
+   * Shows a native notification directly from the main process (used to tell a
+   * tray/minimized user that Outlook needs an interactive sign-in).
    */
   showAppNotification(title, body) {
     const { Notification } = require("electron");

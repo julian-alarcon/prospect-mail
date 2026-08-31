@@ -12,10 +12,10 @@ const CONFIG = {
   handlerRetryDelayMs: 5000,         // 5 seconds before retrying failed handlers
   handlerRetryAgainDelayMs: 10000,   // 10 seconds for subsequent retry attempts
 
-  // Login-required detection
-  loginRequiredInitialGraceMs: 30000, // don't detect login-required in the first 30s (avoids false positives during initial auth redirects)
-  loginRequiredThresholdMs: 60000,   // 60s with no inbox after grace = likely logged out
-  loginCheckIntervalMs: 30000,       // 30s between login-state checks
+  // Session-expiry / sign-in detection (see the detection block below)
+  authNeededWindowMs: 20000, // window over which repeated AuthNeeded errors are counted
+  authNeededMinHits: 2,      // AuthNeeded rejections within the window before we notify
+  loginPageConfirmMs: 8000,  // a sign-in URL must persist this long to count (ignores SSO bounces)
 };
 
 let unreadCheckTimer;
@@ -35,18 +35,19 @@ const showNotification = (title, body) => {
   console.log('Native notification request sent to main process');
 };
 
-// ── Login-required detection ──────────────────────────────────────────────
-// When the Outlook session expires the inbox DOM disappears (the page shows
-// a sign-in screen or a stale-session banner). The existing handler retries
-// cover slow loading, but if the inbox never appears we report it to the main
-// process, which can auto-reload to recover via SSO or notify the user.
+// ── Session-expiry / sign-in detection ─────────────────────────────────────
+// Outlook Web never surfaces MSAL's `interaction_required`. Instead its data
+// layer rejects failed calls with "<operation> failed: AuthNeeded" while the
+// session is expired (the red "Your session has expired" banner, with the mail
+// UI still fully rendered). That `AuthNeeded` token is our language-independent
+// signal. The other case is a hard redirect to a Microsoft sign-in page.
+//
+// Neither auto-reloads: silent SSO has already failed, so only an interactive
+// sign-in recovers, and a blind reload would loop or wipe a half-entered login.
+// We just notify the main process, which can warn a tray/minimized user. A
+// stuck/blank page from a dropped connection is handled separately, in the main
+// process, via `did-fail-load` (a real network error, not a login problem).
 let loginRequiredReported = false;
-// Timestamp of when the Outlook mail UI was last confirmed present. While the
-// UI is visible we keep pushing this forward, so only a *sustained* absence
-// (the session really expired) accumulates toward the threshold. A brief moment
-// where the inbox node isn't in the DOM can no longer trigger a reload (#428).
-let lastLoggedInAt = Date.now();
-let loginCheckInterval = null;
 
 const LOGIN_URL_PATTERNS = [
   'login.microsoftonline.com',
@@ -54,78 +55,62 @@ const LOGIN_URL_PATTERNS = [
   'login.microsoft.com',
 ];
 
+const isOnLoginPageUrl = (href) =>
+  !!href && LOGIN_URL_PATTERNS.some((p) => href.includes(p));
+
 const isOnLoginPage = () => {
   try {
-    const href = window.location.href;
-    return LOGIN_URL_PATTERNS.some(p => href.includes(p));
+    return isOnLoginPageUrl(window.location.href);
   } catch {
     return false;
   }
 };
 
-// True when the Outlook web app shell is rendered, i.e. we're signed in. The
-// shell tags its major regions with `data-app-section` (NavigationPane,
-// MessageList, NotificationPane, ...) and the folder tree exposes the inbox
-// node; the Microsoft sign-in pages use neither. ANY of these counts as
-// "logged in" on purpose: a narrow single-selector check was the root cause of
-// the reload loop, so we deliberately err toward not reloading.
-const isLoggedIn = () => {
-  try {
-    return !!document.querySelector('[data-folder-name="inbox"], [data-app-section]');
-  } catch {
-    return false;
-  }
+// Pull a string message out of whatever a promise rejected with.
+const rejectionMessage = (reason) => {
+  if (!reason) return '';
+  if (typeof reason === 'string') return reason;
+  return reason.message || reason.errorMessage || String(reason);
 };
 
-const checkLoginRequired = () => {
+// OWA marks an expired session by rejecting data calls with a "...: AuthNeeded"
+// error. Match the whole token so an unrelated word can't false-match.
+const isAuthNeededRejection = (reason) => /\bAuthNeeded\b/.test(rejectionMessage(reason));
+
+const reportLoginRequired = (reason) => {
   if (loginRequiredReported) return;
+  loginRequiredReported = true;
+  console.log('Login required detected, reporting to main process', { reason });
+  window.electronAPI.reportLoginRequired(reason);
+};
 
-  // As long as the mail UI is present we're logged in: advance the clock and
-  // bail. This is what stops transient missing-DOM moments (view switches,
-  // virtualized panes, the window hidden to tray) from ever accumulating
-  // toward the logged-out threshold.
-  if (isLoggedIn()) {
-    lastLoggedInAt = Date.now();
-    return;
-  }
-
-  const elapsed = Date.now() - lastLoggedInAt;
-
-  // Grace period avoids false positives from transient auth redirects right
-  // after a (re)load, before the app shell has had a chance to render.
-  if (elapsed < CONFIG.loginRequiredInitialGraceMs) return;
-
-  // On a real Microsoft sign-in page the user must sign in manually; auto-
-  // reloading would wipe a half-entered form or break MFA, so we only notify.
-  if (isOnLoginPage()) {
-    console.log('Login required detected (sign-in page), notifying main process', {
-      elapsedMs: elapsed,
-    });
-    loginRequiredReported = true;
-    window.electronAPI.reportLoginRequired('login-page');
-    return;
-  }
-
-  // Not on a sign-in page and the mail UI has been absent past the threshold:
-  // the page is stuck/blank but SSO cookies may still be valid, so ask the main
-  // process to reload for a silent recovery.
-  if (elapsed > CONFIG.loginRequiredThresholdMs) {
-    console.log('Login required detected (no mail UI), reporting to main process', {
-      elapsedMs: elapsed,
-    });
-    loginRequiredReported = true;
-    window.electronAPI.reportLoginRequired('no-inbox');
-  }
+// Require a few AuthNeeded rejections within a short window before notifying: a
+// single one can occur transiently during a normal token refresh, but a
+// genuinely expired session keeps emitting them as OWA retries its data calls.
+let authNeededHits = [];
+const recordAuthNeeded = (now = Date.now()) => {
+  authNeededHits = authNeededHits.filter((t) => now - t < CONFIG.authNeededWindowMs);
+  authNeededHits.push(now);
+  return authNeededHits.length >= CONFIG.authNeededMinHits;
 };
 
 const startLoginCheck = () => {
-  if (loginCheckInterval) return;
-  // Immediate check catches an initial sign-in-page redirect without waiting.
-  checkLoginRequired();
-  // Keep checking for the whole session: checkLoginRequired() is a no-op while
-  // logged in and self-latches once it reports, so this stays cheap yet can
-  // still catch a session that expires later on.
-  loginCheckInterval = setInterval(checkLoginRequired, CONFIG.loginCheckIntervalMs);
+  // Genuine session expiry: OWA's data layer rejects with AuthNeeded.
+  window.addEventListener('unhandledrejection', (event) => {
+    if (isAuthNeededRejection(event.reason) && recordAuthNeeded()) {
+      reportLoginRequired('session-expired');
+    }
+  });
+
+  // Hard redirect to a Microsoft sign-in page. Confirm it persists so a brief
+  // SSO bounce during initial load doesn't fire a false notification: if the
+  // page navigates on to Outlook, this script's context is gone and the timer
+  // never runs.
+  if (isOnLoginPage()) {
+    setTimeout(() => {
+      if (isOnLoginPage()) reportLoginRequired('login-page');
+    }, CONFIG.loginPageConfirmMs);
+  }
 };
 
 const observeUnreadHandlers = {
@@ -402,9 +387,8 @@ const initializeEmailMonitoring = () => {
     setTimeout(initializeEmailMonitoring, CONFIG.handlerRetryDelayMs);
   }
 
-  // Start monitoring for a login-required state. This is independent of the
-  // handler retries above: if the inbox never appears (session expired), the
-  // main process is notified so it can auto-reload or warn the user.
+  // Start watching for a session-expiry / sign-in-required state, independent
+  // of the handler retries above, so a tray/minimized user gets notified.
   startLoginCheck();
 };
 
@@ -427,18 +411,17 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
 } else if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     CONFIG,
-    isLoggedIn,
+    isOnLoginPageUrl,
     isOnLoginPage,
-    checkLoginRequired,
+    rejectionMessage,
+    isAuthNeededRejection,
+    recordAuthNeeded,
+    reportLoginRequired,
     startLoginCheck,
     // Test hook: reset the module's login-detection state between scenarios.
     _resetLoginStateForTest() {
       loginRequiredReported = false;
-      lastLoggedInAt = Date.now();
-      if (loginCheckInterval) {
-        clearInterval(loginCheckInterval);
-        loginCheckInterval = null;
-      }
+      authNeededHits = [];
     },
   };
 }
