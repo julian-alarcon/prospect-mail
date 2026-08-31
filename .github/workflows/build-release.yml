@@ -18,7 +18,27 @@ env:
   SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
 
 jobs:
+  # Fast gate: unit tests must pass before any build/release job runs.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v7
+
+      - name: Install Node.js and NPM
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
   build-and-release:
+    needs: test
     runs-on: ${{ matrix.runner }}
 
     # Platforms to build on/for
@@ -105,6 +125,7 @@ jobs:
         run: npm run dist:windows:${{ matrix.arch }} -- --publish always
 
   build-and-release-snap-arm64:
+    needs: test
     runs-on: ubuntu-26.04-arm
 
     steps:
