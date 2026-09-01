@@ -63,6 +63,15 @@ const RECOVERABLE_NET_ERRORS = new Set([
   -137, // ERR_NAME_RESOLUTION_FAILED
 ]);
 
+// Session-recovery state. A transient expired-session banner (OWA rejects data
+// calls with AuthNeeded) usually clears on a fresh load, because OWA re-runs
+// silent SSO. We try that ONCE per cooldown and only while the user isn't
+// actively in the window; if the banner returns within the cooldown, the
+// session is really gone, so we notify instead of looping. Lives in the main
+// process so it survives the reload.
+let lastAuthRecoveryReloadAt = 0;
+const AUTH_RECOVERY_COOLDOWN_MS = 3 * 60 * 1000; // 3 minutes
+
 //Setted by cmdLine to initial minimization
 const initialMinimization = {
   domReady: false,
@@ -164,6 +173,10 @@ class MailWindowController {
         backgroundThrottling: false,
       },
     });
+
+    // Set true right before a silent recovery reload so the dom-ready handler
+    // doesn't re-show a hidden/background window (see reloadWindowSilently).
+    this.suppressReloadShow = false;
 
     const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 
@@ -326,19 +339,57 @@ class MailWindowController {
       notification.show();
     });
 
-    // Session-expiry / sign-in required: the renderer detects that Outlook needs
-    // an interactive sign-in (an expired session — the red banner — or a
-    // Microsoft sign-in page). Silent SSO has already failed at this point, so a
-    // reload can't recover it and would only loop or wipe a half-entered login.
-    // We just notify, so a tray/minimized user knows to open the window and sign
-    // in (the in-page banner has its own Sign in button). A stuck/blank page
-    // from a dropped connection is a different problem, handled by did-fail-load.
+    // Session-expiry / sign-in handling. The renderer reports two cases:
+    //   "session-expired": OWA's data calls reject with AuthNeeded (the red
+    //     "your session has expired" banner, mail UI still rendered). One reload
+    //     usually clears it, since OWA re-runs silent SSO on a fresh load.
+    //   "login-page": a hard redirect to a Microsoft sign-in page, needing
+    //     interactive login.
+    //
+    // Recovery policy (see AUTH_RECOVERY_* above):
+    //   - login-page: always just notify. A reload can't help and could wipe a
+    //     half-entered login form.
+    //   - session-expired while the window is focused: notify only, so a reload
+    //     never interrupts something the user is doing (e.g. composing a draft).
+    //   - session-expired while hidden/unfocused: try one silent reload per
+    //     cooldown. If the banner returns within the cooldown, the reload didn't
+    //     fix it (session really gone), so notify instead of looping.
+    // A stuck/blank page from a dropped connection is handled by did-fail-load.
     ipcMain.on("report-login-required", (_event, reason) => {
-      console.log(`[LoginRequired] Sign-in required (${reason}), notifying`);
-      this.showAppNotification(
-        "Prospect Mail: Sign in required",
-        "Outlook requires you to sign in again. Click here to open Prospect Mail."
+      const notify = () =>
+        this.showAppNotification(
+          "Prospect Mail: Sign in required",
+          "Outlook requires you to sign in again. Click here to open Prospect Mail."
+        );
+
+      if (reason !== "session-expired") {
+        console.log(`[LoginRequired] Sign-in required (${reason}), notifying`);
+        notify();
+        return;
+      }
+
+      // Don't touch the window while the user is actively in it.
+      if (this.win.isFocused()) {
+        console.log("[LoginRequired] Session expired while in use, notifying");
+        notify();
+        return;
+      }
+
+      // Banner already came back soon after our reload: it didn't recover.
+      const now = Date.now();
+      if (now - lastAuthRecoveryReloadAt < AUTH_RECOVERY_COOLDOWN_MS) {
+        console.log(
+          "[LoginRequired] Session still expired after recovery reload, notifying"
+        );
+        notify();
+        return;
+      }
+
+      lastAuthRecoveryReloadAt = now;
+      console.log(
+        "[LoginRequired] Session expired, attempting silent recovery reload"
       );
+      this.reloadWindowSilently();
     });
 
     // Network recovery: reload when the main frame fails to load with a
@@ -374,7 +425,10 @@ class MailWindowController {
       }
 
       this.addUnreadNumberObserver();
-      if (!initialMinimization.domReady) {
+      if (this.suppressReloadShow) {
+        // A silent session-recovery reload must not change window visibility.
+        this.suppressReloadShow = false;
+      } else if (!initialMinimization.domReady) {
         // A minimized startup keeps the window hidden, so if we're here we only
         // need to honor the maximized case. maximize() also shows the window.
         if (settings.get("startupWindowState") === "maximized") {
@@ -548,6 +602,14 @@ class MailWindowController {
   reloadWindow() {
     initialMinimization.domReady = false;
     this.win.reload();
+  }
+
+  // Reload without changing window visibility. Used for background session
+  // recovery while the window is hidden/unfocused: unlike reloadWindow(), it
+  // does not force the window to show on the next dom-ready.
+  reloadWindowSilently() {
+    this.suppressReloadShow = true;
+    this.win.webContents.reload();
   }
 
   show() {
