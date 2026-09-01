@@ -1,6 +1,14 @@
-const { app, BrowserWindow, shell, ipcMain, Menu } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  shell,
+  ipcMain,
+  Menu,
+  nativeImage,
+} = require("electron");
 const { spawn } = require("child_process");
 const settings = require("../settings");
+const appIcon = require("../app-icon");
 const getClientFile = require("./client-injector");
 const path = require("path");
 
@@ -162,7 +170,7 @@ class MailWindowController {
 
       show: false,
       title: "Prospect Mail",
-      icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
+      icon: appIcon.getWindowIconPath(),
       webPreferences: {
         contextIsolation: true,
         preload: path.join(__dirname, "preload.js"),
@@ -177,6 +185,10 @@ class MailWindowController {
     // Set true right before a silent recovery reload so the dom-ready handler
     // doesn't re-show a hidden/background window (see reloadWindowSilently).
     this.suppressReloadShow = false;
+
+    // Only when a custom icon is configured: with none, the window icon above
+    // is already right and the dock must keep the icon from the app bundle.
+    if (appIcon.hasCustomIcon()) this.updateAppIcon();
 
     const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 
@@ -305,7 +317,7 @@ class MailWindowController {
 
     // Native notification handler
     ipcMain.on("show-notification", (_event, { title, body, icon }) => {
-      const { Notification, nativeImage } = require("electron");
+      const { Notification } = require("electron");
 
       // Check if notifications are supported
       if (!Notification.isSupported()) {
@@ -585,6 +597,24 @@ class MailWindowController {
     });
     notification.on("click", () => this.show());
     notification.show();
+  }
+
+  /**
+   * Applies the current app icon (custom or bundled) to the window and, on
+   * macOS, to the dock. Called at startup and whenever the icon is changed
+   * from the tray menu's "App Icon" submenu.
+   */
+  updateAppIcon() {
+    if (this.win && !this.win.isDestroyed()) {
+      // A no-op on macOS, where the dock icon below *is* the app icon.
+      this.win.setIcon(nativeImage.createFromPath(appIcon.getWindowIconPath()));
+    }
+    if (!app.dock) return;
+    // An empty image restores the icon from the app bundle, which is the right
+    // macOS default: the assets used above are 16-64px tray artwork.
+    app.dock.setIcon(
+      appIcon.hasCustomIcon() ? appIcon.getDockIcon() : nativeImage.createEmpty()
+    );
   }
 
   toggleWindow() {
