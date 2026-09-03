@@ -66,6 +66,8 @@ For other distributions please follow your specific steps.
 - Start minimized: toggle via tray icon Settings menu, or use command-line
 flag `prospect-mail --minimized`
 - Dock tray support
+- Custom app icon: tray icon → "App Icon" → "Choose App Icon…" (any PNG; also
+  applies to the window icon on Windows/Linux and the dock on macOS)
 - System notification
 - Connect to standard or custom Outlook URL
 - Spellcheck using native Outlook MS Editor
@@ -111,6 +113,7 @@ need to click in "Reload settings" to apply changes.
   "startupWindowState": "normal",
   "showUnreadNotifications": true,
   "unreadNotificationSource": "inbox",
+  "appIcon": "",
   "customBrowserPath": "microsoft-edge"
 }
 ```
@@ -129,6 +132,7 @@ need to click in "Reload settings" to apply changes.
 | `startupWindowState`| Window state on startup: `"normal"`, `"minimized"`, or `"maximized"` (also available via tray menu; `--minimized` flag forces minimized) | `"normal"`     |
 | `showUnreadNotifications` | Show the "new messages" desktop notification (calendar reminders are unaffected; also available via tray menu) | `true`                  |
 | `unreadNotificationSource` | Which folders drive the unread badge and new-mail notifications: `"inbox"` (Inbox only) or `"favorites"` (sum of unread across your Outlook Favorites) | `"inbox"`     |
+| `appIcon`           | Absolute path to a custom PNG for the tray icon, the window icon on Windows/Linux and the dock on macOS (also available via tray menu → App Icon). Empty uses the bundled icons | `""`      |
 | `customBrowserPath` | Custom browser for external links. Use command name (e.g., `"firefox"`) or full path        | System default                    |
 
 > [!NOTE]
