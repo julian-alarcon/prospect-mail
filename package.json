@@ -91,7 +91,14 @@
         "entry": {
           "Name": "Prospect Mail",
           "Comment": "Unofficial desktop mail client for Microsoft Outlook",
-          "StartupWMClass": "prospect-mail"
+          "StartupWMClass": "prospect-mail",
+          "Actions": "new-window;"
+        },
+        "desktopActions": {
+          "new-window": {
+            "Name": "New Window",
+            "Exec": "prospect-mail --new-window"
+          }
         }
       },
       "target": [

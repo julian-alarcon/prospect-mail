@@ -74,6 +74,10 @@ flag `prospect-mail --minimized`
   on wake-from-sleep; if the Outlook session expires, the app auto-reloads to
   silently re-authenticate via SSO, and falls back to a desktop notification if
   re-login is still needed
+- Zoom the whole UI with `Ctrl +`, `Ctrl -`, `Ctrl 0` or `Ctrl` + mouse wheel
+- Multiple windows: `Ctrl Shift N`, tray menu "New Window",
+  `prospect-mail --new-window`, launching the app again, or Outlook's own
+  "Open in new window"
 
 ## Settings
 
@@ -130,6 +134,9 @@ need to click in "Reload settings" to apply changes.
 | `showUnreadNotifications` | Show the "new messages" desktop notification (calendar reminders are unaffected; also available via tray menu) | `true`                  |
 | `unreadNotificationSource` | Which folders drive the unread badge and new-mail notifications: `"inbox"` (Inbox only) or `"favorites"` (sum of unread across your Outlook Favorites) | `"inbox"`     |
 | `customBrowserPath` | Custom browser for external links. Use command name (e.g., `"firefox"`) or full path        | System default                    |
+| `zoomFactor` | Zoom factor of the whole UI (`1` = 100%). Changed with `Ctrl +/-/0` or `Ctrl` + wheel | `1` |
+| `openOutlookLinksInNewWindow` | Outlook's "Open in new window" opens a separate app window (`false` = load in the current window, the old behaviour) | `true` |
+| `secondInstanceOpensNewWindow` | Launching the app while it runs opens another window when the main window is visible (`false` = only raise the main window). `--new-window` always opens one | `true` |
 
 > [!NOTE]
 > Settings from before 1.3.0 are migrated automatically on first launch:

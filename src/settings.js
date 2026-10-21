@@ -46,7 +46,21 @@ const settings = new Store({
     //   "inbox"     — the Inbox folder only (default, original behaviour)
     //   "favorites" — sum of unread across the Outlook Favorites folders
     unreadNotificationSource: "inbox",
-    customBrowserPath: undefined
+    customBrowserPath: undefined,
+
+    // ---- Multi-window & zoom ----
+    // Zoom factor for the whole Outlook UI (1 = 100%). Changed with Ctrl +/-,
+    // Ctrl+0 or Ctrl+mouse wheel and persisted across restarts.
+    zoomFactor: 1,
+    // window.open() calls that target an Outlook URL (e.g. Calendar context
+    // menu > "Open in new window") open a new app window instead of replacing
+    // the content of the current one.
+    openOutlookLinksInNewWindow: true,
+    // Launching the app again while it is already running opens another
+    // window when the main window is visible, instead of only raising it.
+    // "prospect-mail --new-window" always opens a new window.
+    secondInstanceOpensNewWindow: true,
+
   }
 });
 
