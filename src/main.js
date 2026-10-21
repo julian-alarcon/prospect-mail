@@ -31,6 +31,12 @@ if (process.platform === "linux") {
 //Store commandline for global purpose
 global.cmdLine = process.argv;
 
+// Compatibility switches (passkeys, rendering backend). See compat.js. When
+// the backend switch has to be added the app relaunches itself and this
+// process exits.
+const { applyCompatibilitySwitches } = require("./compat");
+const relaunching = applyCompatibilitySwitches();
+
 class ProspectMail {
   constructor() {
     this.mailController = null;
@@ -75,4 +81,4 @@ class ProspectMail {
   }
 }
 
-new ProspectMail().init();
+if (!relaunching) new ProspectMail().init();

@@ -74,6 +74,10 @@ flag `prospect-mail --minimized`
   on wake-from-sleep; if the Outlook session expires, the app auto-reloads to
   silently re-authenticate via SSO, and falls back to a desktop notification if
   re-login is still needed
+- Compatibility toggles in the tray menu (Settings > Compatibility): disable
+  passkey sign-in when Microsoft's "Face, fingerprint, PIN or security key"
+  page hangs, and pick the rendering backend (Auto / Wayland / X11) when the
+  GPU process crashes on NVIDIA + Wayland
 
 ## Settings
 
@@ -130,6 +134,8 @@ need to click in "Reload settings" to apply changes.
 | `showUnreadNotifications` | Show the "new messages" desktop notification (calendar reminders are unaffected; also available via tray menu) | `true`                  |
 | `unreadNotificationSource` | Which folders drive the unread badge and new-mail notifications: `"inbox"` (Inbox only) or `"favorites"` (sum of unread across your Outlook Favorites) | `"inbox"`     |
 | `customBrowserPath` | Custom browser for external links. Use command name (e.g., `"firefox"`) or full path        | System default                    |
+| `disableWebAuthn` | Disable passkeys (WebAuthn) so Microsoft falls back to password sign-in. Needs restart. Also in tray menu > Settings > Compatibility | `true` on Linux |
+| `renderingBackend` | Linux rendering backend: `"auto"` (X11 when the NVIDIA driver is loaded in a Wayland session, otherwise Electron's default), `"wayland"` or `"x11"`. Needs restart. Also in tray menu > Settings > Compatibility | `"auto"` |
 
 > [!NOTE]
 > Settings from before 1.3.0 are migrated automatically on first launch:

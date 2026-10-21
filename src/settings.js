@@ -46,7 +46,20 @@ const settings = new Store({
     //   "inbox"     — the Inbox folder only (default, original behaviour)
     //   "favorites" — sum of unread across the Outlook Favorites folders
     unreadNotificationSource: "inbox",
-    customBrowserPath: undefined
+    customBrowserPath: undefined,
+
+    // ---- Compatibility (changes need an app restart) ----
+    // Disable WebAuthn / passkeys in the embedded browser. Electron on Linux
+    // has no passkey UI, so accounts with a registered passkey hang forever on
+    // Microsoft's "Face, fingerprint, PIN or security key" page. With WebAuthn
+    // disabled Microsoft falls back to password sign-in.
+    disableWebAuthn: process.platform === "linux",
+    // Rendering backend on Linux: "auto" | "wayland" | "x11".
+    // Native Wayland on NVIDIA crashes the GPU process repeatedly and leaves
+    // Chromium in slow software rendering; "auto" uses X11 (XWayland) when
+    // the NVIDIA driver is loaded in a Wayland session and Electron's default
+    // otherwise. The other values force a backend.
+    renderingBackend: "auto",
   }
 });
 
