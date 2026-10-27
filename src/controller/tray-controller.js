@@ -29,6 +29,9 @@ class TrayController {
     this.buildContextMenu();
     this.lastUnread = "";
 
+    // Keep the "Zoom" submenu label in sync with Ctrl +/- changes.
+    this.mailController.onZoomChanged = () => this.buildContextMenu();
+
     this.tray.on("click", () => this.fireClickEvent());
 
     ipcMain.on("updateUnread", (_event, value) => {
@@ -45,7 +48,21 @@ class TrayController {
   buildContextMenu() {
     const context = Menu.buildFromTemplate([
       { label: "Show", click: () => this.forceShow() },
+      {
+        label: "New Window",
+        click: () => this.mailController.openNewWindow(),
+      },
       { label: "Reload", click: () => this.reloadWindow() },
+      { type: "separator" },
+
+      {
+        label: `Zoom (${this.mailController.zoomPercent()}%)`,
+        submenu: [
+          { label: "Zoom In", accelerator: "CmdOrCtrl+=", click: () => this.mailController.zoomIn() },
+          { label: "Zoom Out", accelerator: "CmdOrCtrl+-", click: () => this.mailController.zoomOut() },
+          { label: "Reset Zoom", accelerator: "CmdOrCtrl+0", click: () => this.mailController.zoomReset() },
+        ],
+      },
       { type: "separator" },
 
       {
@@ -98,6 +115,19 @@ class TrayController {
             type: "checkbox",
             checked: settings.get("showUnreadNotifications"),
             click: () => this.toggleUnreadNotifications(),
+          },
+          { type: "separator" },
+          {
+            label: "Open Outlook Links in New Window",
+            type: "checkbox",
+            checked: settings.get("openOutlookLinksInNewWindow"),
+            click: () => this.toggleSetting("openOutlookLinksInNewWindow"),
+          },
+          {
+            label: "Second Launch Opens New Window",
+            type: "checkbox",
+            checked: settings.get("secondInstanceOpensNewWindow"),
+            click: () => this.toggleSetting("secondInstanceOpensNewWindow"),
           },
           { type: "separator" },
           {
@@ -191,6 +221,11 @@ class TrayController {
     settings.set("hideOnMinimize", !orivalue);
     this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
   }
+  toggleSetting(key) {
+    settings.set(key, !settings.get(key));
+    this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
+  }
+
   toggleUnreadNotifications() {
     let orivalue = settings.get("showUnreadNotifications");
     settings.set("showUnreadNotifications", !orivalue);

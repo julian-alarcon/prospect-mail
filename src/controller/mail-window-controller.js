@@ -72,13 +72,29 @@ const RECOVERABLE_NET_ERRORS = new Set([
 let lastAuthRecoveryReloadAt = 0;
 const AUTH_RECOVERY_COOLDOWN_MS = 3 * 60 * 1000; // 3 minutes
 
+// Zoom steps for the whole UI (same ladder Chromium uses). Ctrl +/- walk this
+// list; Ctrl+0 jumps back to 1.
+const ZOOM_STEPS = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+const ZOOM_MIN = ZOOM_STEPS[0];
+const ZOOM_MAX = ZOOM_STEPS[ZOOM_STEPS.length - 1];
+const WHEEL_ZOOM_DEBOUNCE_MS = 80;
+
 //Setted by cmdLine to initial minimization
 const initialMinimization = {
   domReady: false,
 };
 
+// Guard so the process-wide IPC / powerMonitor listeners are registered once,
+// even though init() can run again (e.g. toggling the window frame).
+let globalHandlersRegistered = false;
+
 class MailWindowController {
   constructor() {
+    // Every window that shows Outlook content: the main window, extra windows
+    // opened with "New Window" / --new-window / second launches, and the
+    // windows Outlook itself opens (pop-out compose, "Open in new window").
+    this.windows = new Set();
+    this.lastWheelZoomAt = 0;
     this.init();
     // Check both command-line flag and settings for initial minimization
     const hasMinimizedFlag = global.cmdLine.indexOf("--minimized") !== -1;
@@ -148,19 +164,13 @@ class MailWindowController {
     }
   }
 
-  init() {
-    this.reloadSettings();
-
-    // Create the browser window.
-    this.win = new BrowserWindow({
-      x: 100,
-      y: 100,
+  // BrowserWindow options shared by every Outlook window (main and extra).
+  mailWindowOptions() {
+    return {
       width: 1400,
       height: 900,
       frame: showWindowFrame,
       autoHideMenuBar: true,
-
-      show: false,
       title: "Prospect Mail",
       icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
       webPreferences: {
@@ -172,22 +182,12 @@ class MailWindowController {
         // tray (#415).
         backgroundThrottling: false,
       },
-    });
+    };
+  }
 
-    // Set true right before a silent recovery reload so the dom-ready handler
-    // doesn't re-show a hidden/background window (see reloadWindowSilently).
-    this.suppressReloadShow = false;
-
-    const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
-
-    // Open DevTools in development mode
-    if (isDev) {
-      this.win.webContents.openDevTools();
-    }
-
+  buildUserAgent() {
     const platform = process.platform;
     let userAgentOS;
-    let customUserAgent;
 
     // Set OS-specific part of the user agent
     switch (platform) {
@@ -206,97 +206,128 @@ class MailWindowController {
     // Derive the version from the bundled Chromium so the UA stays correct on
     // Electron bumps. Chrome/Edge freeze the UA to MAJOR.0.0.0 (UA reduction).
     const chromeMajor = process.versions.chrome.split(".")[0];
-    customUserAgent =
+    return (
       "Mozilla/5.0 " +
       userAgentOS +
-      ` AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${chromeMajor}.0.0.0 Safari/537.36 Edg/${chromeMajor}.0.0.0`;
+      ` AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${chromeMajor}.0.0.0 Safari/537.36 Edg/${chromeMajor}.0.0.0`
+    );
+  }
+
+  init() {
+    this.reloadSettings();
+
+    // Create the main browser window.
+    this.win = new BrowserWindow({
+      ...this.mailWindowOptions(),
+      x: 100,
+      y: 100,
+      show: false,
+    });
+
+    // Set true right before a silent recovery reload so the dom-ready handler
+    // doesn't re-show a hidden/background window (see reloadWindowSilently).
+    this.suppressReloadShow = false;
+
+    this.isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
+
+    // Open DevTools in development mode
+    if (this.isDev) {
+      this.win.webContents.openDevTools();
+    }
+
+    this.customUserAgent = this.buildUserAgent();
+    // Set the UA on the session so every window (including the ones Outlook
+    // opens itself) presents the same browser identity.
+    this.win.webContents.session.setUserAgent(this.customUserAgent);
+    console.log("Custom User Agent: " + this.customUserAgent);
 
     // and load the index.html of the app.
     // Clean expired auth cookies first so Outlook starts from a clean session
     // state, giving SSO the best chance to silently re-authenticate (#419).
     this.cleanExpiredAuthCookies().finally(() => {
       this.win.loadURL(mainMailServiceUrl, {
-        userAgent: customUserAgent,
+        userAgent: this.customUserAgent,
       });
     });
 
-    console.log("Custom User Agent: " + customUserAgent);
+    this.registerGlobalHandlers();
+    this.decorateWindow(this.win, { isMain: true });
 
-    // Setup context menu for text selection and links
-    this.win.webContents.on("context-menu", (_event, params) => {
-      const menuTemplate = [];
+    // Main-window-only behaviour -------------------------------------------
 
-      // Add text editing options if text is selected or in an editable field
-      if (params.isEditable) {
-        menuTemplate.push(
-          { label: "Undo", role: "undo" },
-          { label: "Redo", role: "redo" },
-          { type: "separator" },
-          { label: "Cut", role: "cut", enabled: params.editFlags.canCut },
-          { label: "Copy", role: "copy", enabled: params.editFlags.canCopy },
-          { label: "Paste", role: "paste", enabled: params.editFlags.canPaste },
-          { type: "separator" },
-          { label: "Select All", role: "selectAll" }
-        );
-      } else {
-        // For non-editable content (reading emails)
-        if (params.selectionText) {
-          menuTemplate.push({
-            label: "Copy",
-            role: "copy",
-          });
+    // insert styles
+    this.win.webContents.on("dom-ready", () => {
+      this.addUnreadNumberObserver();
+      if (this.suppressReloadShow) {
+        // A silent session-recovery reload must not change window visibility.
+        this.suppressReloadShow = false;
+      } else if (!initialMinimization.domReady) {
+        // A minimized startup keeps the window hidden, so if we're here we only
+        // need to honor the maximized case. maximize() also shows the window.
+        if (settings.get("startupWindowState") === "maximized") {
+          this.win.maximize();
+        } else {
+          this.win.show();
         }
-
-        // Add link-specific options
-        if (params.linkURL) {
-          if (menuTemplate.length > 0) {
-            menuTemplate.push({ type: "separator" });
-          }
-          menuTemplate.push(
-            {
-              label: "Open Link in Browser",
-              click: () => {
-                this.openExternalLink(params.linkURL);
-              },
-            },
-            {
-              label: "Copy Link Address",
-              click: () => {
-                const { clipboard } = require("electron");
-                clipboard.writeText(params.linkURL);
-              },
-            }
-          );
-        }
-
-        // Add select all if there's text content
-        if (params.selectionText || params.pageURL) {
-          if (menuTemplate.length > 0) {
-            menuTemplate.push({ type: "separator" });
-          }
-          menuTemplate.push({ label: "Select All", role: "selectAll" });
-        }
-      }
-
-      // Add inspect element in development mode
-      if (isDev) {
-        if (menuTemplate.length > 0) {
-          menuTemplate.push({ type: "separator" });
-        }
-        menuTemplate.push({
-          label: "Inspect Element",
-          click: () => {
-            this.win.webContents.inspectElement(params.x, params.y);
-          },
-        });
-      }
-
-      // Only show menu if there are items
-      if (menuTemplate.length > 0) {
-        const menu = Menu.buildFromTemplate(menuTemplate);
-        menu.popup();
       }
     });
+
+    // Network recovery: reload when the main frame fails to load with a
+    // transient connectivity error (e.g. after sleep or a network change).
+    // Debounced so a burst of failures triggers a single reload; sub-frame and
+    // non-recoverable errors (aborts, cert/HTTP) are ignored.
+    this.win.webContents.on(
+      "did-fail-load",
+      (_event, errorCode, errorDescription, _validatedURL, isMainFrame) => {
+        if (!isMainFrame || !RECOVERABLE_NET_ERRORS.has(errorCode)) return;
+        const now = Date.now();
+        if (now - lastNetworkReloadAt < NETWORK_RELOAD_MIN_INTERVAL_MS) return;
+        lastNetworkReloadAt = now;
+        console.log(
+          `[Network] Main frame failed to load (${errorCode} ${errorDescription}), reloading`
+        );
+        this.reloadWindow();
+      }
+    );
+
+    // prevent the app quit, hide the window instead.
+    this.win.on("close", (e) => {
+      //console.log('Log invoked: ' + this.win.isVisible())
+      if (this.win.isVisible()) {
+        if (settings.get("hideOnClose")) {
+          e.preventDefault();
+          this.win.hide();
+        }
+      }
+    });
+
+    // prevent the app minimze, hide the window instead.
+    this.win.on("minimize", (e) => {
+      if (settings.get("hideOnMinimize")) {
+        e.preventDefault();
+        this.win.hide();
+      }
+    });
+
+    // Emitted when the window is closed.
+    this.win.on("closed", () => {
+      // The main window owns the tray/unread integration, so closing it still
+      // quits the app (and with it any extra windows). With the default
+      // hideOnClose=true the window is only hidden, so this is the explicit
+      // "really close" path.
+      this.win = null;
+      if (!global.preventAutoCloseApp) {
+        app.exit(0); //dont should the app exit is mainWindow is closed?
+      }
+      global.preventAutoCloseApp = false;
+    });
+  }
+
+  // Process-wide listeners (IPC from any renderer, power events). Registered
+  // once; the handlers always act on the current main window.
+  registerGlobalHandlers() {
+    if (globalHandlersRegistered) return;
+    globalHandlersRegistered = true;
 
     // Show window handler
     ipcMain.on("show", (event) => {
@@ -369,7 +400,7 @@ class MailWindowController {
       }
 
       // Don't touch the window while the user is actively in it.
-      if (this.win.isFocused()) {
+      if (!this.win || this.win.isFocused()) {
         console.log("[LoginRequired] Session expired while in use, notifying");
         notify();
         return;
@@ -392,125 +423,307 @@ class MailWindowController {
       this.reloadWindowSilently();
     });
 
-    // Network recovery: reload when the main frame fails to load with a
-    // transient connectivity error (e.g. after sleep or a network change).
-    // Debounced so a burst of failures triggers a single reload; sub-frame and
-    // non-recoverable errors (aborts, cert/HTTP) are ignored.
-    this.win.webContents.on(
-      "did-fail-load",
-      (_event, errorCode, errorDescription, _validatedURL, isMainFrame) => {
-        if (!isMainFrame || !RECOVERABLE_NET_ERRORS.has(errorCode)) return;
-        const now = Date.now();
-        if (now - lastNetworkReloadAt < NETWORK_RELOAD_MIN_INTERVAL_MS) return;
-        lastNetworkReloadAt = now;
-        console.log(
-          `[Network] Main frame failed to load (${errorCode} ${errorDescription}), reloading`
-        );
-        this.reloadWindow();
-      }
-    );
-
     // After resuming from sleep, cookies may have expired during suspend.
     // Clean them so Outlook doesn't show a stale session state.
     const { powerMonitor } = require("electron");
     powerMonitor.on("resume", () => {
       this.cleanExpiredAuthCookies();
     });
+  }
 
-    // insert styles
-    this.win.webContents.on("dom-ready", () => {
-      this.win.webContents.insertCSS(getClientFile("main.css"));
-      if (!showWindowFrame) {
-        this.win.webContents.insertCSS(getClientFile("no-frame.css"));
+  // Behaviour every Outlook window gets: context menu, injected CSS, zoom,
+  // keyboard shortcuts and the window.open() policy. Used for the main
+  // window, extra windows and the windows Outlook opens by itself.
+  decorateWindow(win, { isMain = false } = {}) {
+    this.windows.add(win);
+    const wc = win.webContents;
+
+    // Setup context menu for text selection and links
+    wc.on("context-menu", (_event, params) => {
+      const menuTemplate = [];
+
+      // Add text editing options if text is selected or in an editable field
+      if (params.isEditable) {
+        menuTemplate.push(
+          { label: "Undo", role: "undo" },
+          { label: "Redo", role: "redo" },
+          { type: "separator" },
+          { label: "Cut", role: "cut", enabled: params.editFlags.canCut },
+          { label: "Copy", role: "copy", enabled: params.editFlags.canCopy },
+          { label: "Paste", role: "paste", enabled: params.editFlags.canPaste },
+          { type: "separator" },
+          { label: "Select All", role: "selectAll" }
+        );
+      } else {
+        // For non-editable content (reading emails)
+        if (params.selectionText) {
+          menuTemplate.push({
+            label: "Copy",
+            role: "copy",
+          });
+        }
+
+        // Add link-specific options
+        if (params.linkURL) {
+          if (menuTemplate.length > 0) {
+            menuTemplate.push({ type: "separator" });
+          }
+          menuTemplate.push(
+            {
+              label: "Open Link in Browser",
+              click: () => {
+                this.openExternalLink(params.linkURL);
+              },
+            },
+            {
+              label: "Copy Link Address",
+              click: () => {
+                const { clipboard } = require("electron");
+                clipboard.writeText(params.linkURL);
+              },
+            }
+          );
+        }
+
+        // Add select all if there's text content
+        if (params.selectionText || params.pageURL) {
+          if (menuTemplate.length > 0) {
+            menuTemplate.push({ type: "separator" });
+          }
+          menuTemplate.push({ label: "Select All", role: "selectAll" });
+        }
       }
 
-      this.addUnreadNumberObserver();
-      if (this.suppressReloadShow) {
-        // A silent session-recovery reload must not change window visibility.
-        this.suppressReloadShow = false;
-      } else if (!initialMinimization.domReady) {
-        // A minimized startup keeps the window hidden, so if we're here we only
-        // need to honor the maximized case. maximize() also shows the window.
-        if (settings.get("startupWindowState") === "maximized") {
-          this.win.maximize();
-        } else {
-          this.win.show();
+      // Window / zoom actions, available everywhere
+      if (menuTemplate.length > 0) {
+        menuTemplate.push({ type: "separator" });
+      }
+      menuTemplate.push(
+        {
+          label: "New Window",
+          accelerator: "CmdOrCtrl+Shift+N",
+          click: () => this.openNewWindow(),
+        },
+        { type: "separator" },
+        { label: "Zoom In", accelerator: "CmdOrCtrl+=", click: () => this.zoomIn() },
+        { label: "Zoom Out", accelerator: "CmdOrCtrl+-", click: () => this.zoomOut() },
+        {
+          label: `Reset Zoom (${this.zoomPercent()}%)`,
+          accelerator: "CmdOrCtrl+0",
+          click: () => this.zoomReset(),
         }
+      );
+
+      // Add inspect element in development mode
+      if (this.isDev) {
+        menuTemplate.push({ type: "separator" });
+        menuTemplate.push({
+          label: "Inspect Element",
+          click: () => {
+            wc.inspectElement(params.x, params.y);
+          },
+        });
+      }
+
+      // Only show menu if there are items
+      if (menuTemplate.length > 0) {
+        const menu = Menu.buildFromTemplate(menuTemplate);
+        menu.popup({ window: win });
       }
     });
 
-    this.win.webContents.setWindowOpenHandler(({ url }) => {
-      console.log(url);
-      // If url is a detach from outlook then open in small window
-      if (url === "about:blank") {
-        return {
-          action: "allow",
-          overrideBrowserWindowOptions: {
-            autoHideMenuBar: true,
-          },
-        };
+    // insert styles
+    wc.on("dom-ready", () => {
+      wc.insertCSS(getClientFile("main.css"));
+      if (!showWindowFrame) {
+        wc.insertCSS(getClientFile("no-frame.css"));
       }
-      // Open MS Safe Links in local browser
-      if (this.safelinksPattern && this.safelinksPattern.test(url)) {
-        this.openExternalLink(url);
-        return {
-          action: "deny",
-        };
+      this.applyZoom(win);
+    });
+    // Zoom is per-origin in Chromium; re-apply after every navigation so the
+    // sign-in pages and Outlook itself share the user's zoom.
+    wc.on("did-navigate", () => this.applyZoom(win));
+
+    // Keyboard shortcuts for the whole UI. Handled in the main process so they
+    // work regardless of which element inside Outlook has focus. The event is
+    // consumed so Outlook's reading-pane-only zoom doesn't also fire.
+    wc.on("before-input-event", (event, input) => {
+      if (input.type !== "keyDown") return;
+      const mod = process.platform === "darwin" ? input.meta : input.control;
+      if (!mod || input.alt) return;
+
+      const key = input.key;
+      if (key === "+" || key === "=" || input.code === "NumpadAdd") {
+        event.preventDefault();
+        this.zoomIn();
+      } else if (key === "-" || key === "_" || input.code === "NumpadSubtract") {
+        event.preventDefault();
+        this.zoomOut();
+      } else if (key === "0" || input.code === "Numpad0") {
+        event.preventDefault();
+        this.zoomReset();
+      } else if (input.shift && key.toUpperCase() === "N") {
+        event.preventDefault();
+        this.openNewWindow();
       }
-      // If deeplink is detected, open it in new detached window from app
-      if (this.deeplinkPattern && this.deeplinkPattern.test(url)) {
-        return {
-          action: "allow",
-          overrideBrowserWindowOptions: {
-            autoHideMenuBar: true,
-          },
-        };
-      }
-      // Check if the URL matches any mailServicesUrls for outlook.com
-      if (this.mailServicesPattern && this.mailServicesPattern.test(url)) {
-        // Open main MS365 apps the same window
-        this.win.loadURL(url);
-        return {
-          action: "deny",
-        };
-      }
+    });
+
+    // Ctrl + mouse wheel / trackpad pinch. Chromium reports the request here
+    // instead of zooming by itself. One wheel notch arrives as two events a
+    // few ms apart, so collapse anything inside a short window into one step.
+    wc.on("zoom-changed", (_event, zoomDirection) => {
+      const now = Date.now();
+      if (now - this.lastWheelZoomAt < WHEEL_ZOOM_DEBOUNCE_MS) return;
+      this.lastWheelZoomAt = now;
+      if (zoomDirection === "in") this.zoomIn();
+      else if (zoomDirection === "out") this.zoomOut();
+    });
+
+    wc.setWindowOpenHandler(({ url }) => this.handleWindowOpen(win, url));
+
+    // Windows Outlook opens through window.open() (pop-out compose,
+    // "Open in new window", deeplinks) get the same treatment.
+    wc.on("did-create-window", (childWindow) => {
+      this.decorateWindow(childWindow, { isMain: false });
+    });
+
+    win.on("closed", () => {
+      this.windows.delete(win);
+    });
+
+    if (!isMain) {
+      // Extra windows don't own the tray; closing them is just closing them.
+      win.setMenuBarVisibility(false);
+    }
+  }
+
+  // Policy for window.open() calls coming from `sourceWin`.
+  handleWindowOpen(sourceWin, url) {
+    console.log("[WindowOpen]", url);
+    // If url is a detach from outlook then open in small window
+    if (url === "about:blank") {
+      return {
+        action: "allow",
+        overrideBrowserWindowOptions: {
+          autoHideMenuBar: true,
+          icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
+        },
+      };
+    }
+    // Open MS Safe Links in local browser
+    if (this.safelinksPattern && this.safelinksPattern.test(url)) {
       this.openExternalLink(url);
       return {
         action: "deny",
       };
-    });
-
-    // prevent the app quit, hide the window instead.
-    this.win.on("close", (e) => {
-      //console.log('Log invoked: ' + this.win.isVisible())
-      if (this.win.isVisible()) {
-        if (settings.get("hideOnClose")) {
-          e.preventDefault();
-          this.win.hide();
-        }
+    }
+    // If deeplink is detected, open it in new detached window from app
+    if (this.deeplinkPattern && this.deeplinkPattern.test(url)) {
+      return {
+        action: "allow",
+        overrideBrowserWindowOptions: {
+          autoHideMenuBar: true,
+          icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
+        },
+      };
+    }
+    // Check if the URL matches any mailServicesUrls for outlook.com
+    if (this.mailServicesPattern && this.mailServicesPattern.test(url)) {
+      if (settings.get("openOutlookLinksInNewWindow")) {
+        // e.g. Calendar > right click > "Open in new window": give it a real
+        // window of its own, like the Windows Outlook app does.
+        return {
+          action: "allow",
+          overrideBrowserWindowOptions: this.mailWindowOptions(),
+        };
       }
-    });
-
-    // prevent the app minimze, hide the window instead.
-    this.win.on("minimize", (e) => {
-      if (settings.get("hideOnMinimize")) {
-        e.preventDefault();
-        this.win.hide();
-      }
-    });
-
-    // Emitted when the window is closed.
-    this.win.on("closed", () => {
-      // Dereference the window object, usually you would store windows
-      // in an array if your app supports multi windows, this is the time
-      // when you should delete the corresponding element.
-      this.win = null;
-      if (!global.preventAutoCloseApp) {
-        app.exit(0); //dont should the app exit is mainWindow is closed?
-      }
-      global.preventAutoCloseApp = false;
-    });
+      // Legacy behaviour: open main MS365 apps in the same window
+      sourceWin.loadURL(url);
+      return {
+        action: "deny",
+      };
+    }
+    this.openExternalLink(url);
+    return {
+      action: "deny",
+    };
   }
+
+  // Opens another full Outlook window (tray menu, Ctrl+Shift+N, --new-window
+  // or a second launch while the main window is visible).
+  openNewWindow(url = mainMailServiceUrl) {
+    const win = new BrowserWindow({
+      ...this.mailWindowOptions(),
+      show: false,
+    });
+    this.decorateWindow(win, { isMain: false });
+    // ready-to-show is not guaranteed to fire for Outlook's SPA (observed
+    // when the window was requested by a second instance), so also show on
+    // dom-ready. Whichever comes first wins.
+    const showOnce = () => {
+      if (!win.isDestroyed() && !win.isVisible()) win.show();
+    };
+    win.once("ready-to-show", showOnce);
+    win.webContents.once("dom-ready", showOnce);
+    win.loadURL(url, { userAgent: this.customUserAgent });
+    console.log(`[Window] Opened new window (${this.windows.size} total)`);
+    return win;
+  }
+
+  // Called when the user launches the app while it is already running.
+  handleSecondInstance(forceNewWindow) {
+    if (!this.win) return;
+    const mainVisible = this.win.isVisible() && !this.win.isMinimized();
+    if (
+      forceNewWindow ||
+      (settings.get("secondInstanceOpensNewWindow") && mainVisible)
+    ) {
+      this.openNewWindow();
+      return;
+    }
+    this.show();
+  }
+
+  // ---- Zoom ---------------------------------------------------------------
+
+  zoomPercent() {
+    return Math.round(settings.get("zoomFactor") * 100);
+  }
+
+  applyZoom(win) {
+    if (!win || win.isDestroyed()) return;
+    const factor = settings.get("zoomFactor");
+    if (win.webContents.getZoomFactor() !== factor) {
+      win.webContents.setZoomFactor(factor);
+    }
+  }
+
+  setZoom(factor) {
+    factor = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, factor));
+    factor = Math.round(factor * 100) / 100;
+    settings.set("zoomFactor", factor);
+    for (const win of this.windows) this.applyZoom(win);
+    console.log(`[Zoom] ${this.zoomPercent()}%`);
+    if (this.onZoomChanged) this.onZoomChanged(factor);
+  }
+
+  zoomIn() {
+    const current = settings.get("zoomFactor");
+    const next = ZOOM_STEPS.find((z) => z > current + 0.001);
+    this.setZoom(next ?? ZOOM_MAX);
+  }
+
+  zoomOut() {
+    const current = settings.get("zoomFactor");
+    const prev = [...ZOOM_STEPS].reverse().find((z) => z < current - 0.001);
+    this.setZoom(prev ?? ZOOM_MIN);
+  }
+
+  zoomReset() {
+    this.setZoom(1);
+  }
+
+  // -------------------------------------------------------------------------
 
   addUnreadNumberObserver() {
     const showUnreadNotifications = settings.get("showUnreadNotifications");
@@ -530,6 +743,7 @@ class MailWindowController {
    * "sign in again" state instead of auto-authenticating via SSO.
    */
   async cleanExpiredAuthCookies() {
+    if (!this.win) return;
     try {
       const allCookies = await this.win.webContents.session.cookies.get({});
       const nowSeconds = Date.now() / 1000;
@@ -588,6 +802,7 @@ class MailWindowController {
   }
 
   toggleWindow() {
+    if (!this.win) return;
     console.log("toggleWindow", {
       isFocused: this.win.isFocused(),
       isVisible: this.win.isVisible(),
@@ -600,6 +815,7 @@ class MailWindowController {
     }
   }
   reloadWindow() {
+    if (!this.win) return;
     initialMinimization.domReady = false;
     this.win.reload();
   }
@@ -608,11 +824,13 @@ class MailWindowController {
   // recovery while the window is hidden/unfocused: unlike reloadWindow(), it
   // does not force the window to show on the next dom-ready.
   reloadWindowSilently() {
+    if (!this.win) return;
     this.suppressReloadShow = true;
     this.win.webContents.reload();
   }
 
   show() {
+    if (!this.win) return;
     initialMinimization.domReady = false;
 
     // Raise with exactly ONE Wayland activation. restore()/show()/focus()
