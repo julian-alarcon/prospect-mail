@@ -46,6 +46,10 @@ const settings = new Store({
     //   "inbox"     — the Inbox folder only (default, original behaviour)
     //   "favorites" — sum of unread across the Outlook Favorites folders
     unreadNotificationSource: "inbox",
+    // Absolute path to a custom PNG used for the tray icon, the window icon on
+    // Windows/Linux and the dock on macOS. Empty means the bundled icons are
+    // used; also settable from the tray menu's "App Icon" submenu.
+    appIcon: "",
     customBrowserPath: undefined
   }
 });

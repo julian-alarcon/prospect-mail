@@ -8,11 +8,10 @@ const {
   shell,
 } = require("electron");
 const settings = require("../settings");
+const appIcon = require("../app-icon");
 const path = require("path");
 const fs = require("fs");
 const { openAboutWindow } = require("./about-window");
-
-const macOS = process.platform === "darwin";
 
 // Electron is pinned to 42.x (Chromium 148) in package.json. Electron 43+ changed
 // the tray D-Bus path/name in ways snapd's unity7 AppArmor template denies, so the
@@ -116,6 +115,22 @@ class TrayController {
         ],
       },
 
+      {
+        label: "App Icon",
+        submenu: [
+          {
+            // Trailing ellipsis (HIG convention): opens a file picker.
+            label: "Choose App Icon…",
+            click: () => this.chooseAppIcon(),
+          },
+          {
+            label: "Reset to Default Icon",
+            enabled: appIcon.hasCustomIcon(),
+            click: () => this.resetAppIcon(),
+          },
+        ],
+      },
+
       { type: "separator" },
       {
         label: "About Prospect Mail",
@@ -128,27 +143,49 @@ class TrayController {
   }
 
   createTrayIcon(value) {
-    const isUnread = Boolean(value);
-    let iconPath;
+    return appIcon.getTrayIcon(Boolean(value));
+  }
 
-    if (macOS) {
-      iconPath = isUnread
-        ? "../../assets/outlook_macOS_unread.png"
-        : "../../assets/outlook_macOS.png";
+  /**
+   * Lets the user pick a PNG to use as the app icon, replacing the bundled
+   * tray, window and dock icons.
+   */
+  chooseAppIcon() {
+    const parentWindow = this.mailController.win;
+    const result = dialog.showOpenDialogSync(parentWindow, {
+      title: "Choose App Icon",
+      filters: [{ name: "Images", extensions: ["png"] }],
+      properties: ["openFile"],
+    });
+    if (!result || result.length === 0) return;
 
-      const trayIcon = nativeImage.createFromPath(
-        path.join(__dirname, iconPath)
-      );
-      trayIcon.setTemplateImage(true);
-      return trayIcon;
+    const selectedPath = result[0];
+    // Reject anything Electron cannot decode before storing it, so a bad pick
+    // can never leave the tray without an icon.
+    if (nativeImage.createFromPath(selectedPath).isEmpty()) {
+      dialog.showMessageBoxSync(parentWindow, {
+        type: "error",
+        title: "Choose App Icon",
+        message: "That file could not be read as an image.",
+        detail: selectedPath,
+      });
+      return;
     }
 
-    // For non-macOS platforms
-    iconPath = isUnread
-      ? "../../assets/outlook_linux_unread.png"
-      : "../../assets/outlook_linux_black.png";
+    settings.set("appIcon", selectedPath);
+    this.applyAppIcon();
+  }
 
-    return nativeImage.createFromPath(path.join(__dirname, iconPath));
+  resetAppIcon() {
+    settings.set("appIcon", "");
+    this.applyAppIcon();
+  }
+
+  applyAppIcon() {
+    this.tray.setImage(this.createTrayIcon(this.lastUnread));
+    this.mailController.updateAppIcon();
+    // Rebuild so "Reset to Default Icon" reflects the new state
+    this.buildContextMenu();
   }
 
   fireClickEvent() {
