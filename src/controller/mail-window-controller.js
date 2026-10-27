@@ -263,7 +263,9 @@ class MailWindowController {
               label: "Copy Link Address",
               click: () => {
                 const { clipboard } = require("electron");
-                clipboard.writeText(params.linkURL);
+                clipboard.writeText(params.linkURL).catch((err) => {
+                  console.error('Failed to copy link address:', err);
+                });
               },
             }
           );

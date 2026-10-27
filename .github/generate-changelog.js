@@ -82,8 +82,12 @@ Object.values(categories).forEach(category => {
       // Remove the type prefix from the message for cleaner display
       let cleanMessage = commit.message.replace(/^[^:]+:\s*/, '');
 
-      // Convert issue references to links (#123 -> [#123](url))
-      cleanMessage = cleanMessage.replace(/#(\d+)/g, `[#$1](${repoUrl}/issues/$1)`);
+      // Convert issue references to links (#123 -> [#123](url), owner/repo#123 -> [owner/repo#123](url))
+      cleanMessage = cleanMessage.replace(/(?:([\w.-]+\/[\w.-]+))?#(\d+)/g, (match, extRepo, num) =>
+        extRepo
+          ? `[${extRepo}#${num}](https://github.com/${extRepo}/issues/${num})`
+          : `[#${num}](${repoUrl}/issues/${num})`
+      );
 
       changelog += `* ${cleanMessage} ([${commit.hash}](${repoUrl}/commit/${commit.hash}))\n`;
     });
