@@ -67,7 +67,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libarchive-tools libopenjp2-tools flatpak flatpak-builder
-          sudo snap install snapcraft --classic
+          # Pinned to 8.x: 9.1+ regression breaks electron-builder snaps (canonical/snapcraft#6519)
+          sudo snap install snapcraft --classic --channel=8.x/stable
           sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           sudo flatpak install -y --system flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
           sudo flatpak install -y --system flathub org.electronjs.Electron2.BaseApp//25.08
@@ -141,7 +142,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libopenjp2-tools
-          sudo snap install snapcraft --classic
+          # Pinned to 8.x: 9.1+ regression breaks electron-builder snaps (canonical/snapcraft#6519)
+          sudo snap install snapcraft --classic --channel=8.x/stable
 
       - name: Install and initialize LXD
         uses: canonical/setup-lxd@v1
