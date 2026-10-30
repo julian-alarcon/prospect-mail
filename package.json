@@ -68,7 +68,8 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "electron-store": "^8.2.0"
+    "electron-store": "^8.2.0",
+    "electron-phone-passkey": "file:vendor/electron-phone-passkey"
   },
   "devDependencies": {
     "electron": "^44.10.0",
@@ -185,6 +186,12 @@
     },
     "dmg": {
       "writeUpdateInfo": false
-    }
+    },
+    "files": [
+      "src/**/*",
+      "public/**/*",
+      "assets/**/*",
+      "LICENSE"
+    ]
   }
 }

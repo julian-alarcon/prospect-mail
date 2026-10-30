@@ -46,6 +46,8 @@ const settings = new Store({
     //   "inbox"     — the Inbox folder only (default, original behaviour)
     //   "favorites" — sum of unread across the Outlook Favorites folders
     unreadNotificationSource: "inbox",
+    // Experimental Linux phone QR sign-in. Restart after changing this option.
+    phonePasskey: { enabled: false, helperPath: "", extraOrigins: [] },
     customBrowserPath: undefined
   }
 });

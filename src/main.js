@@ -1,11 +1,11 @@
 const { app } = require("electron");
 const path = require("path");
+
+// Select the profile before controllers initialize electron-store.
+app.setPath("userData", process.env.PROSPECT_MAIL_USER_DATA_DIR || path.join(app.getPath("appData"), "prospect-mail"));
+
 const MailWindowController = require("./controller/mail-window-controller");
 const TrayController = require("./controller/tray-controller");
-
-// Set the app name to use kebab-case for config directory (avoids spaces in path)
-// This must be set before app is ready
-app.setPath("userData", path.join(app.getPath("appData"), "prospect-mail"));
 
 // Set desktop name so Wayland uses the correct XDG app_id, which lets GNOME
 // match a notification's activation token to our installed .desktop entry and

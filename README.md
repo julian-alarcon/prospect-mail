@@ -228,6 +228,11 @@ the files using:
 - Snap: `sudo snap install dist/prospect-mail_x.y.z_arch.snap --dangerous`
 - Flatpak: `flatpak install --user dist/prospect-mail_x.y.z_arch.flatpak`
 
+## Experimental phone passkeys
+
+Linux phone QR sign-in requires an external helper and is disabled by default.
+See the [setup guide](docs/phone-passkeys.md) for configuration and limitations.
+
 ## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for

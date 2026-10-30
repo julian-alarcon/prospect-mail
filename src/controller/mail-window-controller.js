@@ -3,6 +3,8 @@ const { spawn } = require("child_process");
 const settings = require("../settings");
 const getClientFile = require("./client-injector");
 const path = require("path");
+const { createPhonePasskeySupport } = require("electron-phone-passkey");
+const { LoginNotificationPolicy } = require("../login-notification-policy");
 
 let mainMailServiceUrl;
 let deeplinkUrls;
@@ -165,6 +167,7 @@ class MailWindowController {
       icon: path.join(__dirname, "../../assets/outlook_linux_black.png"),
       webPreferences: {
         contextIsolation: true,
+        nodeIntegrationInSubFrames: process.platform === "linux" && settings.get("phonePasskey.enabled") === true,
         preload: path.join(__dirname, "preload.js"),
         // Keep the injected unread observer's timers running while the window is
         // hidden to tray (hideOnClose/hideOnMinimize). Chromium throttles timers
@@ -173,6 +176,21 @@ class MailWindowController {
         backgroundThrottling: false,
       },
     });
+
+    const phonePasskey = settings.get("phonePasskey");
+    if (process.platform === "linux" && phonePasskey?.enabled) {
+      try {
+        this.phonePasskeySupport = createPhonePasskeySupport({
+          electron: require("electron"),
+          helperPath: phonePasskey.helperPath,
+          extraOrigins: phonePasskey.extraOrigins,
+        });
+        this.phonePasskeySupport.attach(this.win.webContents);
+        app.once("before-quit", () => this.phonePasskeySupport.dispose());
+      } catch {
+        console.warn("[Passkey] Phone sign-in is unavailable; check its helper configuration.");
+      }
+    }
 
     // Set true right before a silent recovery reload so the dom-ready handler
     // doesn't re-show a hidden/background window (see reloadWindowSilently).
@@ -341,38 +359,29 @@ class MailWindowController {
       notification.show();
     });
 
-    // Session-expiry / sign-in handling. The renderer reports two cases:
-    //   "session-expired": OWA's data calls reject with AuthNeeded (the red
-    //     "your session has expired" banner, mail UI still rendered). One reload
-    //     usually clears it, since OWA re-runs silent SSO on a fresh load.
-    //   "login-page": a hard redirect to a Microsoft sign-in page, needing
-    //     interactive login.
-    //
-    // Recovery policy (see AUTH_RECOVERY_* above):
-    //   - login-page: always just notify. A reload can't help and could wipe a
-    //     half-entered login form.
-    //   - session-expired while the window is focused: notify only, so a reload
-    //     never interrupts something the user is doing (e.g. composing a draft).
-    //   - session-expired while hidden/unfocused: try one silent reload per
-    //     cooldown. If the banner returns within the cooldown, the reload didn't
-    //     fix it (session really gone), so notify instead of looping.
-    // A stuck/blank page from a dropped connection is handled by did-fail-load.
-    ipcMain.on("report-login-required", (_event, reason) => {
-      const notify = () =>
+    // Visible login stays quiet. Background login pages require a prior mailbox;
+    // repeated AuthNeeded can establish expiry without inbox DOM. Expiry gets
+    // one recovery reload per cooldown, then a notification if it persists.
+    const loginNotifications = new LoginNotificationPolicy();
+    const isMainCaller = (event) => event.sender === this.win.webContents &&
+      event.senderFrame === this.win.webContents.mainFrame;
+    ipcMain.on("mail-session-ready", (event) => {
+      if (isMainCaller(event)) loginNotifications.markMailboxReady();
+    });
+    ipcMain.on("report-login-required", (event, reason) => {
+      if (!isMainCaller(event) || !["login-page", "session-expired"].includes(reason)) return;
+      const visible = this.win.isVisible() && !this.win.isMinimized();
+      if (visible || (!loginNotifications.hasMailSession && reason !== "session-expired")) return;
+      const notify = () => {
+        if (!loginNotifications.shouldNotify(reason, { visible })) return;
         this.showAppNotification(
           "Prospect Mail: Sign in required",
           "Outlook requires you to sign in again. Click here to open Prospect Mail."
         );
+      };
 
       if (reason !== "session-expired") {
         console.log(`[LoginRequired] Sign-in required (${reason}), notifying`);
-        notify();
-        return;
-      }
-
-      // Don't touch the window while the user is actively in it.
-      if (this.win.isFocused()) {
-        console.log("[LoginRequired] Session expired while in use, notifying");
         notify();
         return;
       }

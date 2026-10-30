@@ -23,6 +23,7 @@ let lastUnreadNotificationTime;
 let lastCalendarNotificationTime;
 let lastUnreadCount = 0;           // Track previous unread count
 let lastReminderCount = 0;          // Track previous reminder count
+let mailSessionReported = false;
 
 // Helper to create and show notifications using native Electron notifications
 const showNotification = (title, body) => {
@@ -121,6 +122,11 @@ const observeUnreadHandlers = {
     if (!inboxElement) {
       console.log(`No inbox element found for unread monitoring`);
       return false;
+    }
+
+    if (!mailSessionReported) {
+      mailSessionReported = true;
+      window.electronAPI.reportMailSessionReady();
     }
 
     // Parse the unread count from a folder's title tooltip. Outlook localizes

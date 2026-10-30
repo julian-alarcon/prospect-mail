@@ -1,0 +1,17 @@
+{
+  "name": "electron-phone-passkey",
+  "version": "0.1.0",
+  "description": "Opt-in Linux phone-passkey authentication for Electron",
+  "license": "MIT",
+  "main": "index.js",
+  "files": [
+    "*.js",
+    "*.html",
+    "LICENSE",
+    "README.md",
+    "*.css"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

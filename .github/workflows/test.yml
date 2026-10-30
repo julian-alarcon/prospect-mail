@@ -33,3 +33,16 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: Install virtual display
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - name: Verify Electron bridge and actual startup
+        run: |
+          xvfb-run --auto-servernum ./node_modules/.bin/electron vendor/electron-phone-passkey/scripts/renderer-smoke.cjs --no-sandbox --ozone-platform=x11
+          xvfb-run --auto-servernum ./node_modules/.bin/electron scripts/phone-profile-smoke.cjs --no-sandbox --ozone-platform=x11
+
+      - name: Build and verify packaged startup
+        run: |
+          npm run pack
+          PROSPECT_PHONE_PACKAGE_ASAR="$PWD/dist/linux-unpacked/resources/app.asar" xvfb-run --auto-servernum ./node_modules/.bin/electron scripts/phone-profile-smoke.cjs --no-sandbox --ozone-platform=x11

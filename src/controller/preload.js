@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("electronAPI", {
+if (process.isMainFrame) contextBridge.exposeInMainWorld("electronAPI", {
   updateUnread: (unread) => ipcRenderer.send("updateUnread", unread),
   showWindow: () => ipcRenderer.send("show"),
   sendNotification: (notification) =>
@@ -9,4 +9,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.send("show-notification", { title, body, icon }),
   reportLoginRequired: (reason) =>
     ipcRenderer.send("report-login-required", reason),
+  reportMailSessionReady: () => ipcRenderer.send("mail-session-ready"),
 });
