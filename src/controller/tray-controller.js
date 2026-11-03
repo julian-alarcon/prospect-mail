@@ -11,6 +11,7 @@ const settings = require("../settings");
 const path = require("path");
 const fs = require("fs");
 const { openAboutWindow } = require("./about-window");
+const { relaunchApp } = require("../compat");
 
 const macOS = process.platform === "darwin";
 
@@ -98,6 +99,43 @@ class TrayController {
             type: "checkbox",
             checked: settings.get("showUnreadNotifications"),
             click: () => this.toggleUnreadNotifications(),
+          },
+          { type: "separator" },
+          {
+            // Engine-level switches. They can't be changed at runtime, so a
+            // toggle offers to restart the app.
+            label: "Compatibility",
+            submenu: [
+              {
+                label: "Disable Passkey Sign-in (use password)",
+                type: "checkbox",
+                checked: settings.get("disableWebAuthn"),
+                click: () =>
+                  this.toggleRestartSetting(
+                    "disableWebAuthn",
+                    "Passkey (WebAuthn) sign-in",
+                    "Turn this on if sign-in gets stuck on the \"Face, fingerprint, PIN or security key\" page. Microsoft will ask for your password instead."
+                  ),
+              },
+              { type: "separator" },
+              { label: "Rendering Backend", enabled: false },
+              ...["auto", "wayland", "x11"].map((value) => ({
+                label: {
+                  auto: "Auto (X11 on NVIDIA + Wayland)",
+                  wayland: "Wayland (native)",
+                  x11: "X11 (XWayland)",
+                }[value],
+                type: "radio",
+                checked: settings.get("renderingBackend") === value,
+                click: () =>
+                  this.setRestartSetting(
+                    "renderingBackend",
+                    value,
+                    "The rendering backend",
+                    "Pick X11 if the app renders slowly or reports GPU process crashes (common on NVIDIA + Wayland). Auto does that for you when it detects the NVIDIA driver."
+                  ),
+              })),
+            ],
           },
           { type: "separator" },
           {
@@ -191,6 +229,38 @@ class TrayController {
     settings.set("hideOnMinimize", !orivalue);
     this.buildContextMenu(); // Rebuild menu to reflect new checkbox state
   }
+  // Flip an engine-level boolean setting and offer to restart so it takes
+  // effect.
+  toggleRestartSetting(key, name, hint) {
+    const newValue = !settings.get(key);
+    return this.setRestartSetting(
+      key,
+      newValue,
+      name,
+      hint,
+      `${name} will be ${newValue ? "disabled" : "enabled"} after Prospect Mail restarts.`
+    );
+  }
+
+  // Set an engine-level setting and offer to restart so it takes effect.
+  async setRestartSetting(key, value, name, hint, message) {
+    if (settings.get(key) === value) return;
+    settings.set(key, value);
+    this.buildContextMenu();
+
+    const { response } = await dialog.showMessageBox({
+      type: "question",
+      buttons: ["Restart Later", "Restart Now"],
+      defaultId: 1,
+      cancelId: 0,
+      title: "Restart Required",
+      message: message || `${name} will change after Prospect Mail restarts.`,
+      detail: hint,
+    });
+
+    if (response === 1) relaunchApp();
+  }
+
   toggleUnreadNotifications() {
     let orivalue = settings.get("showUnreadNotifications");
     settings.set("showUnreadNotifications", !orivalue);
@@ -223,8 +293,7 @@ class TrayController {
             settings.clear();
 
             // Relaunch application
-            app.relaunch();
-            app.exit(0);
+            relaunchApp();
           } catch (error) {
             dialog.showErrorBox(
               "Restore Failed",
